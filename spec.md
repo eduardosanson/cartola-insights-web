@@ -66,7 +66,7 @@ a POC também demonstrava) ficam pra uma fase seguinte.
 - [x] Lint sem erros
 - [x] Evidências (screenshot ou descrição das 3 telas com dado real)
 - [x] Passo a passo de validação humana
-- [ ] Merge em `main`
+- [x] Merge em `main`
 
 ## Fora de Escopo
 

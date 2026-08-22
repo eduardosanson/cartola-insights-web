@@ -71,3 +71,9 @@
 
 - Decisao: o frontend nao realiza chamada adicional para partidas; o contrato de atleta e suficiente.
 - Decisao: a coluna Mando nao participa da ordenacao nem dos filtros neste incremento.
+
+## EVIDENCIAS -> DOD -- 2026-08-22
+
+- Decisao: a integracao foi feita por fast-forward local na `main`, conforme solicitacao explicita, pois o repositorio web ainda nao possui remote.
+- Decisao: o DOD foi fechado somente apos testes, cobertura, build e validacao da API com dados reais na `main`.
+- Risco aceito: o frontend nao possui PR remoto nem historico de revisao externa nesta entrega.
