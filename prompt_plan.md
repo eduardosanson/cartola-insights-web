@@ -54,6 +54,23 @@ lista de jogadores (roteamento: `react-router` ou estado local simples,
 escolha do implementador dado o tamanho do app — 3 telas não
 necessariamente precisam de um router completo, documentar a decisão).
 
+O detalhe deve consultar `GET /atletas/{id}` para os dados resumidos e
+`GET /atletas/{id}/historico` para as pontuações. O acesso direto e o refresh
+não podem depender de `location.state`.
+
+## Task 5.1: Ordenacao multipla e formatacao numerica
+
+RED: testes do formatador, do estado de ordenacao e das telas cobrindo os ciclos
+descendente/ascendente/removido, combinacao por prioridade e valores com mais de
+duas casas. GREEN: criar utilitario de formatacao, hook de ordenacao e cabecalho
+ordenavel reutilizavel; integrar em Tabela, Jogadores e DetalheJogador.
+
+## Task 5.2: Mando do atleta na rodada atual
+
+RED: atualizar tipos e testes das telas para `rodada_atual` e `mando_rodada`,
+cobrindo casa, fora e sem jogo. GREEN: incluir a coluna Mando em Jogadores e o
+resumo da rodada em DetalheJogador, usando as cores de casa/fora existentes.
+
 ## Task 6: Evidências, PR
 
 Suíte completa + cobertura, lint, `vite build`. Rodar contra o backend

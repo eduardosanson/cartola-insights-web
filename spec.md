@@ -18,14 +18,22 @@ a POC também demonstrava) ficam pra uma fase seguinte.
 - RF02: Tela "Jogadores" — lista paginada de atletas com busca por nome
   e filtro por posição, mostrando nome, clube, posição, preço e médias
   geral/casa/fora (`GET /atletas`).
-- RF03: Tela "Detalhe do jogador" — médias do atleta + histórico das
-  últimas pontuações com os scouts de cada partida
-  (`GET /atletas/{id}/historico`).
+- RF03: Tela "Detalhe do jogador" — dados e médias do atleta obtidos por
+  `GET /atletas/{id}` + histórico das últimas pontuações com os scouts de
+  cada partida (`GET /atletas/{id}/historico`), inclusive em acesso direto
+  ou após recarregar a página.
 - RF04: Estados de carregamento, vazio (sem resultado na busca) e erro
   (API indisponível) em toda tela que busca dado.
 - RF05: Layout responsivo, tema claro/escuro (o artifact-design já
   provou o par cor/tipografia — reaproveitar a mesma identidade visual
   da POC: verde-turfe/ocre casa-fora, Barlow Condensed + Karla).
+- RF06: Ordenação múltipla por média casa/fora na tabela de clubes e por
+  preço/médias na lista de jogadores, com alternância descendente,
+  ascendente e remoção de cada critério.
+- RF07: Preços, médias e pontuações são exibidos com no máximo duas casas
+  decimais, mantendo os valores brutos para cálculos e ordenação.
+- RF08: A lista e o detalhe de jogadores exibem a maior rodada sincronizada e
+  o mando do clube (`casa`, `fora` ou `sem_jogo`).
 
 ## Requisitos Não-Funcionais
 
@@ -43,14 +51,21 @@ a POC também demonstrava) ficam pra uma fase seguinte.
 - CA03: API fora do ar (erro de rede) mostra mensagem de erro clara em
   vez de tela em branco ou quebrada.
 - CA04: Build de produção (`npm run build` / `vite build`) sem erros.
+- CA05: Acessar diretamente `/jogadores/{id}` carrega nome, médias e histórico
+  sem depender de estado de navegação anterior.
+- CA06: Combinar dois critérios respeita a prioridade visual indicada nos
+  cabeçalhos; remover um critério preserva os demais.
+- CA07: Nenhum preço, média ou pontuação exibe mais de duas casas decimais.
+- CA08: Jogadores de clubes mandantes e visitantes são identificados
+  corretamente, e clubes ausentes da rodada aparecem como sem jogo.
 
 ## Definition of Done (DOD)
 
-- [ ] Código implementado e compilando
-- [ ] Testes escritos e passando, cobertura ≥ 90%
-- [ ] Lint sem erros
-- [ ] Evidências (screenshot ou descrição das 3 telas com dado real)
-- [ ] Passo a passo de validação humana
+- [x] Código implementado e compilando
+- [x] Testes escritos e passando, cobertura ≥ 90%
+- [x] Lint sem erros
+- [x] Evidências (screenshot ou descrição das 3 telas com dado real)
+- [x] Passo a passo de validação humana
 - [ ] Merge em `main`
 
 ## Fora de Escopo
