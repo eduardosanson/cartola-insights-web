@@ -1,0 +1,64 @@
+/* Identidade visual reaproveitada da POC (spec.md RF05). */
+:root {
+  --accent-home: #1f6f4a;
+  --accent-away: #b5761e;
+
+  --bg: #f7f7f4;
+  --bg-elevated: #ffffff;
+  --text: #23241f;
+  --text-muted: #5c5d56;
+  --border: #dcdcd4;
+  --danger: #b3261e;
+
+  --font-heading: 'Barlow Condensed', system-ui, sans-serif;
+  --font-body: 'Karla', system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
+
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --accent-home: #3bb27c;
+    --accent-away: #e2a23e;
+
+    --bg: #14150f;
+    --bg-elevated: #1d1f16;
+    --text: #eceee6;
+    --text-muted: #a7a89c;
+    --border: #34362a;
+    --danger: #ff8a80;
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+}
+
+h1,
+h2,
+h3,
+label,
+.label {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+.numeric,
+td.numeric,
+.numeric * {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+a {
+  color: inherit;
+}
