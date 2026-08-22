@@ -10,10 +10,12 @@ const atleta = {
   posicao: 'ATA' as const,
   clube_id: 5,
   clube_nome: 'Flamengo',
-  preco_atual: 12.5,
-  media_geral: 6.2,
-  media_casa: 7.1,
-  media_fora: 5.3,
+  preco_atual: 12.567,
+  media_geral: 6.234,
+  media_casa: 7.156,
+  media_fora: 5.345,
+  rodada_atual: 24,
+  mando_rodada: 'casa' as const,
 }
 
 const partida = {
@@ -21,7 +23,7 @@ const partida = {
   clube_adversario_id: 2,
   clube_adversario_nome: 'Vasco',
   mando: 'casa' as const,
-  pontos_total: 8.5,
+  pontos_total: 8.567,
   scouts: { G: 1, FT: 2 },
 }
 
@@ -36,23 +38,26 @@ function renderDetalhe(id = '1', state: unknown = { atleta }) {
 }
 
 describe('DetalheJogador', () => {
-  it('renders médias from the atleta passed via navigation state and histórico from the API', async () => {
+  it('loads atleta and histórico from the API on a direct access', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
     vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
 
-    renderDetalhe()
+    renderDetalhe('1', null)
 
-    expect(screen.getByRole('heading', { name: 'Gabigol' })).toBeInTheDocument()
-    expect(screen.getByText('6.2')).toBeInTheDocument()
-    expect(screen.getByText('7.1')).toBeInTheDocument()
-    expect(screen.getByText('5.3')).toBeInTheDocument()
-
+    expect(atletasApi.buscarAtleta).toHaveBeenCalledWith(1)
     expect(atletasApi.buscarHistoricoAtleta).toHaveBeenCalledWith(1)
+    expect(await screen.findByRole('heading', { name: 'Gabigol' })).toBeInTheDocument()
+    expect(screen.getByText('6,23')).toBeInTheDocument()
+    expect(screen.getByText('7,16')).toBeInTheDocument()
+    expect(screen.getByText('5,35')).toBeInTheDocument()
+    expect(screen.getByText('Rodada 24 · Casa')).toBeInTheDocument()
     expect(await screen.findByText('Vasco')).toBeInTheDocument()
-    expect(screen.getByText('8.5')).toBeInTheDocument()
+    expect(screen.getByText('8,57')).toBeInTheDocument()
     expect(screen.getByText('casa')).toBeInTheDocument()
   })
 
   it('shows a loading state before the histórico resolves', () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockReturnValue(new Promise(() => {}))
     vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockReturnValue(new Promise(() => {}))
 
     renderDetalhe()
@@ -61,10 +66,59 @@ describe('DetalheJogador', () => {
   })
 
   it('shows an error message when the histórico fetch fails', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
     vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockRejectedValue(new Error('Falha de rede'))
 
     renderDetalhe()
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+  })
+
+  it('shows an empty state when the athlete has no history', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([])
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText(/sem histórico/i)).toBeInTheDocument()
+  })
+
+  it('renders an away match with its scouts', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([
+      { ...partida, mando: 'fora', scouts: {} },
+    ])
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText('fora')).toBeInTheDocument()
+  })
+
+  it('ignores late responses after unmount', () => {
+    let resolver: ((value: typeof atleta) => void) | undefined
+    vi.spyOn(atletasApi, 'buscarAtleta').mockReturnValue(
+      new Promise((resolve) => {
+        resolver = resolve
+      }),
+    )
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([])
+
+    const view = renderDetalhe('1', null)
+    view.unmount()
+    resolver?.(atleta)
+
+    expect(view.container).toBeEmptyDOMElement()
+  })
+
+  it('shows when the athlete has no match in the current round', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue({
+      ...atleta,
+      mando_rodada: 'sem_jogo',
+    })
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([])
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText('Sem jogo na rodada 24')).toBeInTheDocument()
   })
 })

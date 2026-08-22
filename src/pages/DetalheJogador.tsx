@@ -1,25 +1,29 @@
 import { useEffect, useState } from 'react'
-import { Link, useLocation, useParams } from 'react-router-dom'
-import { buscarHistoricoAtleta, type Atleta, type PartidaHistorico } from '../api/atletas'
-
-interface NavigationState {
-  atleta?: Atleta
-}
+import { Link, useParams } from 'react-router-dom'
+import {
+  buscarAtleta,
+  buscarHistoricoAtleta,
+  type Atleta,
+  type PartidaHistorico,
+} from '../api/atletas'
+import { formatNumber } from '../utils/formatNumber'
+import MandoRodada from '../components/MandoRodada'
 
 export default function DetalheJogador() {
   const { id } = useParams<{ id: string }>()
-  const location = useLocation()
-  const atleta = (location.state as NavigationState | null)?.atleta
-
+  const [atleta, setAtleta] = useState<Atleta | null>(null)
   const [historico, setHistorico] = useState<PartidaHistorico[] | null>(null)
   const [erro, setErro] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
     let ativo = true
-    buscarHistoricoAtleta(Number(id))
-      .then((dados) => {
-        if (ativo) setHistorico(dados)
+    Promise.all([buscarAtleta(Number(id)), buscarHistoricoAtleta(Number(id))])
+      .then(([dadosAtleta, dadosHistorico]) => {
+        if (ativo) {
+          setAtleta(dadosAtleta)
+          setHistorico(dadosHistorico)
+        }
       })
       .catch((err: Error) => {
         if (ativo) setErro(err.message)
@@ -39,19 +43,26 @@ export default function DetalheJogador() {
           <p>
             {atleta.clube_nome} · {atleta.posicao}
           </p>
+          <p>
+            <MandoRodada
+              mando={atleta.mando_rodada}
+              rodada={atleta.rodada_atual}
+              showRound
+            />
+          </p>
           <dl className="numeric">
             <dt>Média geral</dt>
-            <dd>{atleta.media_geral}</dd>
+            <dd>{formatNumber(atleta.media_geral)}</dd>
             <dt>Média casa</dt>
-            <dd style={{ color: 'var(--accent-home)' }}>{atleta.media_casa}</dd>
+            <dd style={{ color: 'var(--accent-home)' }}>{formatNumber(atleta.media_casa)}</dd>
             <dt>Média fora</dt>
-            <dd style={{ color: 'var(--accent-away)' }}>{atleta.media_fora}</dd>
+            <dd style={{ color: 'var(--accent-away)' }}>{formatNumber(atleta.media_fora)}</dd>
           </dl>
         </header>
       )}
 
       {erro && <p role="alert">{erro}</p>}
-      {!erro && !historico && <p>Carregando histórico…</p>}
+      {!erro && (!atleta || !historico) && <p>Carregando jogador…</p>}
       {!erro && historico && historico.length === 0 && <p>Sem histórico disponível.</p>}
 
       {!erro && historico && historico.length > 0 && (
@@ -78,7 +89,7 @@ export default function DetalheJogador() {
                 >
                   {partida.mando}
                 </td>
-                <td className="numeric">{partida.pontos_total}</td>
+                <td className="numeric">{formatNumber(partida.pontos_total)}</td>
                 <td>
                   {Object.entries(partida.scouts)
                     .map(([codigo, quantidade]) => `${codigo} ${quantidade}`)

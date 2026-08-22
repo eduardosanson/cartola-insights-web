@@ -1,6 +1,7 @@
 import { apiGet } from './client'
 
-export type Posicao = 'GOL' | 'ZAG' | 'LAT' | 'MEI' | 'ATA'
+export type Posicao = 'GOL' | 'ZAG' | 'LAT' | 'MEI' | 'ATA' | 'TEC'
+export type MandoRodada = 'casa' | 'fora' | 'sem_jogo'
 
 export interface Atleta {
   id: number
@@ -12,6 +13,8 @@ export interface Atleta {
   media_geral: number
   media_casa: number
   media_fora: number
+  rodada_atual: number | null
+  mando_rodada: MandoRodada
 }
 
 export interface FiltrosAtletas {
@@ -45,6 +48,10 @@ export function listarAtletas(filtros: FiltrosAtletas = {}): Promise<Atleta[]> {
 
   const query = params.toString()
   return apiGet<Atleta[]>(`/atletas${query ? `?${query}` : ''}`)
+}
+
+export function buscarAtleta(id: number): Promise<Atleta> {
+  return apiGet<Atleta>(`/atletas/${id}`)
 }
 
 export function buscarHistoricoAtleta(id: number, limit?: number): Promise<PartidaHistorico[]> {

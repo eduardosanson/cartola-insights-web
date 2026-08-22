@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import { MemoryRouter } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import Jogadores from './Jogadores'
@@ -11,10 +11,12 @@ const atleta = {
   posicao: 'ATA' as const,
   clube_id: 5,
   clube_nome: 'Flamengo',
-  preco_atual: 12.5,
-  media_geral: 6.2,
-  media_casa: 7.1,
-  media_fora: 5.3,
+  preco_atual: 12.567,
+  media_geral: 6.234,
+  media_casa: 7.156,
+  media_fora: 5.345,
+  rodada_atual: 24,
+  mando_rodada: 'casa' as const,
 }
 
 function renderJogadores() {
@@ -34,11 +36,11 @@ describe('Jogadores', () => {
     vi.useRealTimers()
   })
 
-  it('renders the 5 position chips (GOL/ZAG/LAT/MEI/ATA)', async () => {
+  it('renders all position chips, including TEC', async () => {
     renderJogadores()
     await screen.findByText('Gabigol')
 
-    for (const posicao of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']) {
+    for (const posicao of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA', 'TEC']) {
       expect(screen.getByRole('button', { name: posicao })).toBeInTheDocument()
     }
   })
@@ -48,7 +50,7 @@ describe('Jogadores', () => {
 
     expect(await screen.findByText('Gabigol')).toBeInTheDocument()
     expect(screen.getByText('Flamengo')).toBeInTheDocument()
-    expect(screen.getByText('12.5')).toBeInTheDocument()
+    expect(screen.getByText('12,57')).toBeInTheDocument()
   })
 
   it('shows an error message when the API call fails', async () => {
@@ -93,5 +95,87 @@ describe('Jogadores', () => {
         expect.objectContaining({ posicao: ['ATA'] }),
       ),
     )
+  })
+
+  it('removes an active position filter when the chip is clicked again', async () => {
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    const chip = screen.getByRole('button', { name: 'ATA' })
+    await user.click(chip)
+    await user.click(chip)
+
+    await waitFor(() =>
+      expect(atletasApi.listarAtletas).toHaveBeenLastCalledWith(
+        expect.objectContaining({ posicao: undefined }),
+      ),
+    )
+  })
+
+  it('shows an empty state when no athlete matches', async () => {
+    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([])
+
+    renderJogadores()
+
+    expect(await screen.findByText(/nenhum jogador/i)).toBeInTheDocument()
+  })
+
+  it('navigates forward and backward through full pages', async () => {
+    const paginaCheia = Array.from({ length: 20 }, (_, index) => ({
+      ...atleta,
+      id: index + 1,
+      nome: `Jogador ${index + 1}`,
+    }))
+    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue(paginaCheia)
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Jogador 1')
+
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+    await waitFor(() =>
+      expect(atletasApi.listarAtletas).toHaveBeenCalledWith(expect.objectContaining({ page: 2 })),
+    )
+    await user.click(screen.getByRole('button', { name: 'Anterior' }))
+    await waitFor(() =>
+      expect(atletasApi.listarAtletas).toHaveBeenLastCalledWith(
+        expect.objectContaining({ page: 1 }),
+      ),
+    )
+  })
+
+  it('combines price and average sorting on the current page', async () => {
+    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'A', preco_atual: 10, media_geral: 5 },
+      { ...atleta, id: 2, nome: 'B', preco_atual: 12, media_geral: 4 },
+      { ...atleta, id: 3, nome: 'C', preco_atual: 12, media_geral: 8 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('A')
+
+    const preco = screen.getByRole('button', { name: /preço/i })
+    const mediaGeral = screen.getByRole('button', { name: /média geral/i })
+    await user.click(preco)
+    await user.click(mediaGeral)
+
+    expect(preco).toHaveTextContent('↓ 1')
+    expect(mediaGeral).toHaveTextContent('↓ 2')
+    expect(within(screen.getAllByRole('row')[1]).getByText('C')).toBeInTheDocument()
+  })
+
+  it('shows whether each athlete plays at home, away or has no match', async () => {
+    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Mandante', mando_rodada: 'casa' },
+      { ...atleta, id: 2, nome: 'Visitante', mando_rodada: 'fora' },
+      { ...atleta, id: 3, nome: 'Sem Partida', mando_rodada: 'sem_jogo' },
+    ])
+    renderJogadores()
+    await screen.findByText('Mandante')
+
+    const rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('Casa')).toHaveStyle({ color: 'var(--accent-home)' })
+    expect(within(rows[2]).getByText('Fora')).toHaveStyle({ color: 'var(--accent-away)' })
+    expect(within(rows[3]).getByText('Sem jogo')).toBeInTheDocument()
   })
 })

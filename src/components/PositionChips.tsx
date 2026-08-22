@@ -1,6 +1,6 @@
 import type { Posicao } from '../api/atletas'
 
-const POSICOES: Posicao[] = ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA']
+const POSICOES: Posicao[] = ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA', 'TEC']
 
 interface Props {
   selecionadas: Posicao[]

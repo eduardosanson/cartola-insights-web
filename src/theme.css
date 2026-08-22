@@ -62,3 +62,18 @@ td.numeric,
 a {
   color: inherit;
 }
+
+.sort-button {
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.sort-button:hover,
+.sort-button:focus-visible {
+  color: var(--accent-home);
+}

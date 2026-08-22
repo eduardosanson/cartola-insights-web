@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from 'vitest'
-import { listarAtletas, buscarHistoricoAtleta } from './atletas'
+import { buscarAtleta, buscarHistoricoAtleta, listarAtletas } from './atletas'
 import * as client from './client'
 
 describe('listarAtletas', () => {
@@ -51,6 +51,16 @@ describe('listarAtletas', () => {
     const result = await listarAtletas()
 
     expect(result).toEqual([atleta])
+  })
+})
+
+describe('buscarAtleta', () => {
+  it('calls GET /atletas/{id}', async () => {
+    const apiGetSpy = vi.spyOn(client, 'apiGet').mockResolvedValue({})
+
+    await buscarAtleta(7)
+
+    expect(apiGetSpy).toHaveBeenCalledWith('/atletas/7')
   })
 })
 

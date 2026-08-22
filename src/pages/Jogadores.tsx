@@ -2,9 +2,21 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listarAtletas, type Atleta, type Posicao } from '../api/atletas'
 import PositionChips from '../components/PositionChips'
+import MandoRodada from '../components/MandoRodada'
+import SortableHeader from '../components/SortableHeader'
+import { useMultiSort } from '../hooks/useMultiSort'
+import { formatNumber } from '../utils/formatNumber'
 
 const PAGE_SIZE = 20
 const DEBOUNCE_MS = 300
+const sortAccessors = {
+  preco_atual: (atleta: Atleta) => atleta.preco_atual,
+  media_geral: (atleta: Atleta) => atleta.media_geral,
+  media_casa: (atleta: Atleta) => atleta.media_casa,
+  media_fora: (atleta: Atleta) => atleta.media_fora,
+}
+
+type SortKey = keyof typeof sortAccessors
 
 export default function Jogadores() {
   const [nomeInput, setNomeInput] = useState('')
@@ -13,6 +25,7 @@ export default function Jogadores() {
   const [page, setPage] = useState(1)
   const [atletas, setAtletas] = useState<Atleta[] | null>(null)
   const [erro, setErro] = useState<string | null>(null)
+  const { criteria, sortedItems, toggleSort } = useMultiSort(atletas ?? [], sortAccessors)
 
   useEffect(() => {
     const timer = setTimeout(() => setNomeDebounced(nomeInput), DEBOUNCE_MS)
@@ -45,6 +58,16 @@ export default function Jogadores() {
     )
   }
 
+  function sortState(key: SortKey) {
+    const index = criteria.findIndex((criterion) => criterion.key === key)
+    return { criterion: criteria[index], priority: index >= 0 ? index + 1 : undefined }
+  }
+
+  const preco = sortState('preco_atual')
+  const geral = sortState('media_geral')
+  const casa = sortState('media_casa')
+  const fora = sortState('media_fora')
+
   return (
     <div>
       <input
@@ -69,14 +92,31 @@ export default function Jogadores() {
               <th>Nome</th>
               <th>Clube</th>
               <th>Posição</th>
-              <th className="numeric">Preço</th>
-              <th className="numeric">Média geral</th>
-              <th className="numeric">Média casa</th>
-              <th className="numeric">Média fora</th>
+              <th>Mando</th>
+              <SortableHeader
+                label="Preço"
+                {...preco}
+                onToggle={() => toggleSort('preco_atual')}
+              />
+              <SortableHeader
+                label="Média geral"
+                {...geral}
+                onToggle={() => toggleSort('media_geral')}
+              />
+              <SortableHeader
+                label="Média casa"
+                {...casa}
+                onToggle={() => toggleSort('media_casa')}
+              />
+              <SortableHeader
+                label="Média fora"
+                {...fora}
+                onToggle={() => toggleSort('media_fora')}
+              />
             </tr>
           </thead>
           <tbody>
-            {atletas.map((atleta) => (
+            {sortedItems.map((atleta) => (
               <tr key={atleta.id}>
                 <td>
                   <Link to={`/jogadores/${atleta.id}`} state={{ atleta }}>
@@ -85,10 +125,13 @@ export default function Jogadores() {
                 </td>
                 <td>{atleta.clube_nome}</td>
                 <td>{atleta.posicao}</td>
-                <td className="numeric">{atleta.preco_atual}</td>
-                <td className="numeric">{atleta.media_geral}</td>
-                <td className="numeric">{atleta.media_casa}</td>
-                <td className="numeric">{atleta.media_fora}</td>
+                <td>
+                  <MandoRodada mando={atleta.mando_rodada} rodada={atleta.rodada_atual} />
+                </td>
+                <td className="numeric">{formatNumber(atleta.preco_atual)}</td>
+                <td className="numeric">{formatNumber(atleta.media_geral)}</td>
+                <td className="numeric">{formatNumber(atleta.media_casa)}</td>
+                <td className="numeric">{formatNumber(atleta.media_fora)}</td>
               </tr>
             ))}
           </tbody>
