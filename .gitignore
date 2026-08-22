@@ -15,6 +15,7 @@ dist-ssr
 # Env
 .env
 coverage
+.superpowers/
 
 # Editor directories and files
 .vscode/*
