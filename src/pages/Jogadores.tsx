@@ -79,7 +79,9 @@ export default function Jogadores() {
             {atletas.map((atleta) => (
               <tr key={atleta.id}>
                 <td>
-                  <Link to={`/jogadores/${atleta.id}`}>{atleta.nome}</Link>
+                  <Link to={`/jogadores/${atleta.id}`} state={{ atleta }}>
+                    {atleta.nome}
+                  </Link>
                 </td>
                 <td>{atleta.clube_nome}</td>
                 <td>{atleta.posicao}</td>
