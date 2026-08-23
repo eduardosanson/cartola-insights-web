@@ -6,14 +6,18 @@ import {
   type Atleta,
   type PartidaHistorico,
 } from '../api/atletas'
+import { buscarPercentisAtleta, type PercentisAtleta } from '../api/percentis'
 import { formatNumber } from '../utils/formatNumber'
 import MandoRodada from '../components/MandoRodada'
+import RadarAtributos from '../components/RadarAtributos'
 
 export default function DetalheJogador() {
   const { id } = useParams<{ id: string }>()
   const [atleta, setAtleta] = useState<Atleta | null>(null)
   const [historico, setHistorico] = useState<PartidaHistorico[] | null>(null)
   const [erro, setErro] = useState<string | null>(null)
+  const [percentis, setPercentis] = useState<PercentisAtleta | null>(null)
+  const [erroPercentis, setErroPercentis] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -31,6 +35,13 @@ export default function DetalheJogador() {
     return () => {
       ativo = false
     }
+  }, [id])
+
+  useEffect(() => {
+    if (!id) return
+    buscarPercentisAtleta(Number(id))
+      .then(setPercentis)
+      .catch((err: Error) => setErroPercentis(err.message))
   }, [id])
 
   return (
@@ -63,6 +74,10 @@ export default function DetalheJogador() {
 
       {erro && <p role="alert">{erro}</p>}
       {!erro && (!atleta || !historico) && <p>Carregando jogador…</p>}
+
+      {percentis && <RadarAtributos percentis={percentis} />}
+      {erroPercentis && <p>{erroPercentis}</p>}
+
       {!erro && historico && historico.length === 0 && <p>Sem histórico disponível.</p>}
 
       {!erro && historico && historico.length > 0 && (

@@ -1,8 +1,9 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import DetalheJogador from './DetalheJogador'
 import * as atletasApi from '../api/atletas'
+import * as percentisApi from '../api/percentis'
 
 const atleta = {
   id: 1,
@@ -38,6 +39,16 @@ function renderDetalhe(id = '1', state: unknown = { atleta }) {
 }
 
 describe('DetalheJogador', () => {
+  beforeEach(() => {
+    vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockResolvedValue({
+      atleta_id: 1,
+      pontuacao_media: 80,
+      participacao_gol: 91,
+      desarme: 40,
+      disciplina: 65,
+    })
+  })
+
   it('loads atleta and histórico from the API on a direct access', async () => {
     vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
     vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
@@ -120,5 +131,37 @@ describe('DetalheJogador', () => {
     renderDetalhe('1', null)
 
     expect(await screen.findByText('Sem jogo na rodada 24')).toBeInTheDocument()
+  })
+
+  it('mostra o radar quando os percentis carregam com sucesso', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+    vi.mocked(percentisApi.buscarPercentisAtleta).mockResolvedValue({
+      atleta_id: 1,
+      pontuacao_media: 80,
+      participacao_gol: 91,
+      desarme: 40,
+      disciplina: 65,
+    })
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText('Participação em gol')).toBeInTheDocument()
+    expect(screen.getByText('Desarme')).toBeInTheDocument()
+    expect(screen.getByText('Disciplina')).toBeInTheDocument()
+  })
+
+  it('mostra a mensagem de erro no lugar do radar quando o percentil da 404', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+    vi.mocked(percentisApi.buscarPercentisAtleta).mockRejectedValue(
+      new Error('dados insuficientes — atleta com poucos jogos'),
+    )
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText(/dados insuficientes/i)).toBeInTheDocument()
+    // a página não quebra: o histórico continua aparecendo normalmente
+    expect(await screen.findByText('Vasco')).toBeInTheDocument()
   })
 })
