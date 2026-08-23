@@ -65,13 +65,13 @@ primeiro caso.
 
 ## Definition of Done (DOD)
 
-- [ ] Código implementado e compilando
-- [ ] Testes escritos e passando, cobertura ≥ 90%
-- [ ] Lint sem erros
-- [ ] Evidências capturadas (`docs/evidence/fase3b-radar-atributos.md`)
-- [ ] Passo a passo de validação humana escrito
-- [ ] Integrado em `main`
-- [ ] Roadmap atualizado — seções "3a" e "3b" da Visualização Avançada
+- [x] Código implementado e compilando
+- [x] Testes escritos e passando, cobertura ≥ 90%
+- [x] Lint sem erros
+- [x] Evidências capturadas (`docs/evidence/fase3b-radar-atributos.md`)
+- [x] Passo a passo de validação humana escrito
+- [x] Integrado em `main`
+- [x] Roadmap atualizado — seções "3a" e "3b" da Visualização Avançada
       promovidas, **e o SVG de exemplo do radar redesenhado pra 4 eixos**
       (ver `backend/docs/decisions/fase3a-percentis-posicao.md`, seção
       "Atualização do roadmap")
