@@ -1,15 +1,23 @@
-import { describe, it, expect } from 'vitest'
+import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import App from './App'
-import { AuthProvider } from './contexts/AuthContext'
 
 describe('App', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
   it('renders without crashing', () => {
-    render(
-      <AuthProvider>
-        <App />
-      </AuthProvider>,
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: async () => ({ detail: 'credencial ausente ou inválida' }),
+      }),
     )
+    render(<App />)
     expect(screen.getByText('Cartola Insights')).toBeInTheDocument()
   })
 })
