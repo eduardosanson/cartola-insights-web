@@ -10,7 +10,7 @@ Implementação completa das telas de conta do Cartola Insights Web: registro de
 - **Total**: 18 arquivos, 1095 insertões, 23 deleções
 - **Base**: `5e2bcd3` → **HEAD** (branch `feature/telas-conta`)
 
-### Novos Arquivos (7)
+### Novos Arquivos (12)
 
 | Arquivo | Tipo | Responsabilidade |
 |---------|------|------------------|
@@ -20,12 +20,12 @@ Implementação completa das telas de conta do Cartola Insights Web: registro de
 | `src/pages/Login.tsx` | Page | Tela de login (email/senha) com mensagens de erro |
 | `src/pages/Registro.tsx` | Page | Tela de cadastro com redirecionamento para `/entrar` pós-sucesso |
 | `src/pages/MinhaConta.tsx` | Page | Tela protegida: mostra email, papel, gera/revoga tokens |
-| `src/contexts/AuthContext.test.tsx` | Test | 83 testes de contexto de autenticação |
-| `src/components/RotaProtegida.test.tsx` | Test | 69 testes de proteção de rotas |
-| `src/pages/Login.test.tsx` | Test | 75 testes de formulário e fluxo de login |
-| `src/pages/Registro.test.tsx` | Test | 55 testes de formulário e fluxo de registro |
-| `src/pages/MinhaConta.test.tsx` | Test | 90 testes de estado, tokens e lógica de revogação |
-| `src/api/contas.test.ts` | Test | 102 testes de endpoints e tratamento de erros |
+| `src/contexts/AuthContext.test.tsx` | Test | 4 testes de contexto de autenticação |
+| `src/components/RotaProtegida.test.tsx` | Test | 3 testes de proteção de rotas |
+| `src/pages/Login.test.tsx` | Test | 3 testes de formulário e fluxo de login |
+| `src/pages/Registro.test.tsx` | Test | 2 testes de formulário e fluxo de registro |
+| `src/pages/MinhaConta.test.tsx` | Test | 4 testes de estado, tokens e lógica de revogação |
+| `src/api/contas.test.ts` | Test | 7 testes de endpoints e tratamento de erros |
 
 ### Arquivos Modificados (6)
 
@@ -92,7 +92,7 @@ Lines        96.34% (237/246)
    - Senha: `senha123` (qualquer valor)
 
 3. Clique "Criar conta"
-   - Esperado: Redirecionamento para `/entrar` com mensagem verde no topo: _"Conta criada com sucesso! Faça login agora."_
+   - Esperado: Redirecionamento para `/entrar` com mensagem verde no topo: _"Conta criada! Faça login."_
    - Confirmação: A barra de navegação ainda mostra "Entrar" (não autenticado)
 
 4. **Caso de erro**: Tente registrar novamente com o mesmo email
@@ -122,10 +122,10 @@ Lines        96.34% (237/246)
    - Exibe: Email, papel (ex: "user"), seção de tokens
 
 2. **Gerar token**:
-   - Clique botão "Gerar novo token"
+   - Clique botão "Gerar token"
    - Esperado: Aparece um bloco com:
-     - O token cru em um `<input readonly>` (exemplo: `tok_abc123xyz...`)
-     - Botão "Copiar token" (copia para clipboard)
+     - O token cru em um `<code>` tag (exemplo: `tok_abc123xyz...`)
+     - Botão "Copiar" (copia para clipboard)
    - Confirme que consegue copiar (Ctrl+C na entrada, ou use o botão)
 
 3. **Validar comportamento único do token**:
@@ -136,7 +136,7 @@ Lines        96.34% (237/246)
 4. **Revogar token**:
    - Na lista de tokens, localize o que foi gerado
    - Clique "Revogar" na linha correspondente
-   - Esperado: A coluna "Revogado em" é preenchida com a data/hora; o token fica marcado como revogado
+   - Esperado: O status da linha muda de "Ativo" para "Revogado"; o botão "Revogar" desaparece (não é mais possível revogar um token já revogado)
 
 5. **Gerar segundo token** (opcional):
    - Repita o passo 2️⃣
