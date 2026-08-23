@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, afterEach } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { MemoryRouter } from 'react-router-dom'
+import { MemoryRouter, Route, Routes } from 'react-router-dom'
 import Nav from './Nav'
 import * as AuthContextModule from '../contexts/AuthContext'
 
@@ -50,5 +50,28 @@ describe('Nav', () => {
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: /sair/i }))
     expect(logout).toHaveBeenCalled()
+  })
+
+  it('navega para home mesmo se logout falhar', async () => {
+    const logout = vi.fn().mockRejectedValue(new Error('Network error'))
+    vi.mocked(AuthContextModule.useAuth).mockReturnValue({
+      usuario: { id: 1, email: 'a@b.com', role: 'usuario' },
+      carregando: false,
+      refetch: vi.fn(),
+      logout,
+    })
+    render(
+      <MemoryRouter initialEntries={['/conta']}>
+        <Routes>
+          <Route path="/" element={<div>Home Page</div>} />
+          <Route path="/conta" element={<Nav />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    const user = userEvent.setup()
+    await user.click(screen.getByRole('button', { name: /sair/i }))
+    expect(logout).toHaveBeenCalled()
+    expect(screen.getByText('Home Page')).toBeInTheDocument()
   })
 })

@@ -14,7 +14,11 @@ export default function Nav() {
   const navigate = useNavigate()
 
   async function handleSair() {
-    await logout()
+    try {
+      await logout()
+    } catch {
+      // segue mesmo se a chamada de logout falhar — nao trava o usuario na tela atual
+    }
     navigate('/')
   }
 
