@@ -9,7 +9,7 @@ Implementação completa das telas de conta do Cartola Insights Web: registro de
 ### Diff Summary
 - **Total**: 20 arquivos, 1377 insertões, 29 deleções
 - **Base**: `5e2bcd3` → **HEAD** (branch `feature/telas-conta`, commit `70471a3`, via `git diff --stat 5e2bcd3..HEAD`)
-- O total inclui os 18 arquivos de código/teste da feature (12 novos + 6 modificados, detalhados abaixo) mais os 2 arquivos de planejamento/evidência (`docs/evidence/contas.md`, `spec-contas.md`). Como este próprio arquivo faz parte do diff, o número muda a cada edição sua — os valores acima refletem o estado do diff no momento em que este arquivo foi escrito.
+- O total inclui os 18 arquivos de código/teste da feature (12 novos + 6 modificados, detalhados abaixo) mais os 2 arquivos de planejamento/evidência (`docs/evidence/contas.md`, `spec-contas.md`). O número está fixo em `70471a3` — o último commit de código antes deste arquivo de evidência ser escrito — então não muda com esta edição nem com futuras edições deste arquivo.
 
 ### Novos Arquivos (12)
 
