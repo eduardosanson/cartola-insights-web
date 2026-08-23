@@ -1,0 +1,69 @@
+# Cartola Insights — Web
+
+Frontend do Cartola Insights: visualização de jogadores, times e tabela do
+Campeonato Brasileiro, com o radar de atributos por jogador, telas de conta
+(registro, login e API tokens) e a identidade visual da POC original.
+
+Consome a API do repositório
+[`cartola-insights-backend`](https://github.com/eduardosanson/cartola-insights-backend)
+(local em `http://localhost:8000` durante o desenvolvimento).
+
+## Stack
+
+TypeScript 6 · React 19 · Vite 8 · react-router-dom · Vitest + React Testing
+Library · Oxlint
+
+## Como rodar
+
+```bash
+npm install
+npm run dev        # dev server em http://localhost:5173
+```
+
+O Vite espera a API do backend em `http://localhost:8000` (ajustável pela
+variável `VITE_API_BASE_URL`).
+
+## Scripts
+
+| Comando | O que faz |
+|---------|-----------|
+| `npm run dev` | Sobe o dev server do Vite |
+| `npm run build` | TypeScript (`tsc -b`) + build de produção |
+| `npm run test` | Vitest (rodada única) |
+| `npm run coverage` | Vitest com cobertura (piso de 90% em statements/branches/functions/lines) |
+| `npm run lint` | Oxlint |
+
+## Ambiente: `NODE_ENV` e os testes
+
+Se o ambiente já exporta `NODE_ENV=production`, o Vitest respeita esse valor e
+o React 19 carrega o build de produção de `react-dom/test-utils`, onde `act`
+não existe — os testes quebram com `TypeError: React.act is not a function`.
+
+Para rodar testes/build/lint de forma confiável, force `NODE_ENV=test`:
+
+```bash
+NODE_ENV=test npm test
+NODE_ENV=test npm run coverage
+NODE_ENV=test npm run build
+```
+
+Isso não é necessário num shell limpo (onde o Vitest normalmente assume
+`NODE_ENV=test` sozinho), só quando a variável já vem definida como
+`production` de processos pai (ex.: alguns agentes/CI).
+
+## Estrutura
+
+```
+src/
+├── api/          # clientes HTTP por domínio (atletas, clubes, contas, percentis)
+├── components/   # componentes reutilizáveis (Nav, RadarAtributos, MandoRodada, …)
+├── contexts/     # estado global (AuthContext)
+├── hooks/        # custom hooks (useMultiSort)
+├── pages/        # telas (Tabela, Jogadores, DetalheJogador, Login, Registro, MinhaConta)
+└── utils/        # helpers (formatNumber)
+```
+
+## Regras de desenvolvimento
+
+Ver [`AGENTS.md`](AGENTS.md) — TDD, cobertura ≥ 90% e o fluxo global de
+`~/.codex/AGENTS.md`.
