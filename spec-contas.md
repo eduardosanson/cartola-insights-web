@@ -85,7 +85,7 @@ contrato completo de request/response de cada um).
 - [x] Lint sem erros
 - [x] Evidências (descrição das 3 telas com o fluxo completo)
 - [x] Passo a passo de validação humana
-- [x] Merge em `main`
+- [ ] Merge em `main`
 
 ## Fora de Escopo
 
