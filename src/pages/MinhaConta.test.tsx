@@ -56,8 +56,6 @@ describe('MinhaConta', () => {
     vi.mocked(contasApi.gerarToken).mockResolvedValue({
       id: 2,
       token: 'valor-cru-do-token',
-      criado_em: '2026-08-23T00:00:00Z',
-      revogado_em: null,
     })
     const user = userEvent.setup()
 
@@ -86,5 +84,48 @@ describe('MinhaConta', () => {
 
     expect(contasApi.revogarToken).toHaveBeenCalledWith(1)
     await waitFor(() => expect(screen.getByText('Revogado')).toBeInTheDocument())
+  })
+
+  it('mantém a lista já carregada visível quando uma ação seguinte falha', async () => {
+    mockUsuarioLogado()
+    vi.mocked(contasApi.listarTokens)
+      .mockResolvedValueOnce([{ id: 1, criado_em: '2026-08-23T00:00:00Z', revogado_em: null }])
+      .mockRejectedValueOnce(new Error('falha ao atualizar lista'))
+    vi.mocked(contasApi.revogarToken).mockResolvedValue(undefined)
+    const user = userEvent.setup()
+
+    render(<MinhaConta />)
+    await waitFor(() => expect(screen.getByText('Ativo')).toBeInTheDocument())
+
+    await user.click(screen.getByRole('button', { name: /revogar/i }))
+
+    expect(await screen.findByRole('alert')).toHaveTextContent('falha ao atualizar lista')
+    expect(screen.getByText('Ativo')).toBeInTheDocument()
+  })
+
+  it('desabilita o botão "Gerar token" enquanto a chamada está em andamento', async () => {
+    mockUsuarioLogado()
+    vi.mocked(contasApi.listarTokens).mockResolvedValue([])
+    let resolverGeracao!: (valor: { id: number; token: string }) => void
+    vi.mocked(contasApi.gerarToken).mockReturnValue(
+      new Promise((resolve) => {
+        resolverGeracao = resolve
+      }),
+    )
+    const user = userEvent.setup()
+
+    render(<MinhaConta />)
+    await waitFor(() => expect(screen.getByText(/nenhum token gerado/i)).toBeInTheDocument())
+
+    const botao = screen.getByRole('button', { name: /gerar token/i })
+    await user.click(botao)
+
+    expect(screen.getByRole('button', { name: /gerando/i })).toBeDisabled()
+
+    resolverGeracao({ id: 3, token: 'outro-token' })
+
+    await waitFor(() =>
+      expect(screen.getByRole('button', { name: /^gerar token$/i })).not.toBeDisabled(),
+    )
   })
 })

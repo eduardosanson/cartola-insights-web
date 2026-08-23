@@ -72,7 +72,7 @@ describe('api/contas', () => {
   })
 
   it('gerarToken chama POST /contas/tokens e retorna o valor cru', async () => {
-    mockFetchOk(201, { id: 5, token: 'abc123', criado_em: '2026-08-23T00:00:00Z', revogado_em: null })
+    mockFetchOk(201, { id: 5, token: 'abc123' })
     const criado = await gerarToken()
     expect(criado.token).toBe('abc123')
     expect(fetch).toHaveBeenCalledWith(

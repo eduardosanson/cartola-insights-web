@@ -14,7 +14,8 @@ export interface ApiToken {
   revogado_em: string | null
 }
 
-export interface ApiTokenCriado extends ApiToken {
+export interface ApiTokenCriado {
+  id: number
   token: string
 }
 

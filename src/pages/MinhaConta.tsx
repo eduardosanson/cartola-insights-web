@@ -7,6 +7,7 @@ export default function MinhaConta() {
   const [tokens, setTokens] = useState<ApiToken[] | null>(null)
   const [tokenGerado, setTokenGerado] = useState<string | null>(null)
   const [erro, setErro] = useState<string | null>(null)
+  const [gerando, setGerando] = useState(false)
 
   function carregarTokens() {
     listarTokens()
@@ -20,12 +21,15 @@ export default function MinhaConta() {
 
   async function handleGerarToken() {
     setErro(null)
+    setGerando(true)
     try {
       const criado = await gerarToken()
       setTokenGerado(criado.token)
       carregarTokens()
     } catch (err) {
       setErro((err as Error).message)
+    } finally {
+      setGerando(false)
     }
   }
 
@@ -60,7 +64,9 @@ export default function MinhaConta() {
         </p>
       )}
 
-      <button onClick={handleGerarToken}>Gerar token</button>
+      <button onClick={handleGerarToken} disabled={gerando}>
+        {gerando ? 'Gerando…' : 'Gerar token'}
+      </button>
 
       {tokenGerado && (
         <div role="status">
@@ -70,9 +76,9 @@ export default function MinhaConta() {
         </div>
       )}
 
-      {!erro && tokens === null && <p>Carregando tokens…</p>}
-      {!erro && tokens && tokens.length === 0 && <p>Nenhum token gerado ainda.</p>}
-      {!erro && tokens && tokens.length > 0 && (
+      {tokens === null && <p>Carregando tokens…</p>}
+      {tokens && tokens.length === 0 && <p>Nenhum token gerado ainda.</p>}
+      {tokens && tokens.length > 0 && (
         <table>
           <thead>
             <tr>
