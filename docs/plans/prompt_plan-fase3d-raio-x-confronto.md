@@ -11,7 +11,7 @@
 blocos (média no mando, o que o adversário cede, participação no time) e o
 selo de veredito, consumindo o endpoint já pronto no backend.
 
-**Spec:** `spec-fase3d-raio-x-confronto.md` — ler antes de começar.
+**Spec:** `../specs/spec-fase3d-raio-x-confronto.md` — ler antes de começar.
 
 ---
 
@@ -398,7 +398,7 @@ git commit -m "feat: integra raio-x de confronto no detalhe do jogador"
 
 **Files:**
 - Create: `docs/evidence/fase3d-raio-x-confronto.md`
-- Modify: `spec-fase3d-raio-x-confronto.md`
+- Modify: `../specs/spec-fase3d-raio-x-confronto.md`
 
 **Nota sobre o roadmap:** não atualizado nesta fase — será atualizado
 centralmente depois que 3c+3d, 3e e a Fase 5 estiverem todos prontos, pra
@@ -416,7 +416,7 @@ sem quebrar o resto da página.
 - [ ] **Step 2: Marcar DOD, commit**
 
 ```bash
-git add docs/evidence/fase3d-raio-x-confronto.md spec-fase3d-raio-x-confronto.md
+git add docs/evidence/fase3d-raio-x-confronto.md ../specs/spec-fase3d-raio-x-confronto.md
 git commit -m "docs: evidencias e DOD do raio-x de confronto (Fase 3d web)"
 ```
 

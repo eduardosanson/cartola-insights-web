@@ -18,7 +18,7 @@ consumir o contexto para alternar entre "Entrar" e email+"Sair".
 **Tech Stack:** React 19 + Vite + TypeScript + react-router-dom 7 + Vitest +
 React Testing Library (mesmo stack já usado no projeto, sem libs novas).
 
-**Spec:** `spec-contas.md`
+**Spec:** `../specs/spec-contas.md`
 
 ## Global Constraints
 
@@ -1588,7 +1588,7 @@ git commit -m "feat: integra rotas e AuthProvider de contas no App"
 
 **Files:**
 - Create: `docs/evidence/contas.md`
-- Modify: `spec-contas.md`
+- Modify: `../specs/spec-contas.md`
 
 - [ ] **Step 1: Escrever as evidências e o passo a passo de validação humana**
 
@@ -1602,12 +1602,12 @@ volta pra `/entrar`.
 
 - [ ] **Step 2: Marcar o DOD no spec**
 
-Em `spec-contas.md`, marcar todos os itens da seção `Definition of Done`
+Em `../specs/spec-contas.md`, marcar todos os itens da seção `Definition of Done`
 como `[x]`.
 
 - [ ] **Step 3: Commit**
 
 ```bash
-git add docs/evidence/contas.md spec-contas.md
+git add docs/evidence/contas.md ../specs/spec-contas.md
 git commit -m "docs: evidencias e DOD das telas de conta"
 ```

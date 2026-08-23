@@ -7,10 +7,10 @@ começar (Fase 2 do roadmap geral, ver `../README.md`).
 
 ## Fluxo de trabalho
 
-Segue o fluxo global definido em `~/.claude/CLAUDE.md`. Este repositório
-ainda não tem `spec.md`/`prompt_plan.md` próprios — serão criados quando a
-Fase 2 (MVP Web) for iniciada, consumindo os endpoints já estabilizados no
-`backend/`.
+Segue o fluxo global definido em `~/.claude/CLAUDE.md`. A documentação de
+planejamento vive em `docs/`: specs em `docs/specs/`, planos de
+implementação em `docs/plans/`, decisões em `docs/decisions/` e evidências
+em `docs/evidence/`.
 
 ## Convenções gerais (herdadas do backend, valem aqui também)
 

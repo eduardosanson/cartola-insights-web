@@ -1,6 +1,6 @@
 # Prompt Plan: MVP Web
 
-Spec: `spec.md`. Depende de `../backend`'s Fase 2 (spec-fase2-consulta.md)
+Spec: `../specs/spec.md`. Depende de `../backend`'s Fase 2 (spec-fase2-consulta.md)
 já estar rodando (endpoints `/atletas`, `/atletas/{id}/historico`,
 `/clubes`).
 

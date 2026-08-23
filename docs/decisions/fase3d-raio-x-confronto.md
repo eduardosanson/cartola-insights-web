@@ -4,7 +4,7 @@
 
 - Decisão: `mando` e o rótulo do primeiro bloco ("Média em casa"/"Média
   fora") vêm do campo `mando` já resolvido pelo backend
-  (`spec-fase3d-raio-x-confronto.md`) — o cliente só espelha, não
+  (`../specs/spec-fase3d-raio-x-confronto.md`) — o cliente só espelha, não
   reconsulta nem recalcula o mando do próximo confronto. Mesmo princípio
   já usado pro rótulo de eixo do radar na Fase 3b: uma decisão, uma fonte
   de verdade.

@@ -9,7 +9,7 @@
 **Goal:** Componente de radar SVG (4 eixos) em `DetalheJogador`, consumindo
 o endpoint de percentis já pronto no backend.
 
-**Spec:** `spec-fase3b-radar-atributos.md` — a matemática do radar (seção
+**Spec:** `../specs/spec-fase3b-radar-atributos.md` — a matemática do radar (seção
 "Matemática do radar") já está derivada e conferida lá, copiar como está.
 
 ---
@@ -211,7 +211,7 @@ Expected: FAIL — módulo não existe.
 - [ ] **Step 3: Implementar**
 
 Criar `src/components/RadarAtributos.tsx`. **A matemática abaixo é a mesma
-derivada em `spec-fase3b-radar-atributos.md` — copiar como está:**
+derivada em `../specs/spec-fase3b-radar-atributos.md` — copiar como está:**
 
 ```tsx
 import { ehPercentisGol, type PercentisAtleta } from '../api/percentis'
@@ -390,7 +390,7 @@ git commit -m "feat: integra radar de atributos no detalhe do jogador"
 
 **Files:**
 - Create: `docs/evidence/fase3b-radar-atributos.md`
-- Modify: `spec-fase3b-radar-atributos.md`
+- Modify: `../specs/spec-fase3b-radar-atributos.md`
 - (fora deste repositório) Atualizar o artefato "Roadmap Cartola Insights"
 
 - [ ] **Step 1: Evidências e DOD**
@@ -406,7 +406,7 @@ a mensagem de erro no lugar do radar, sem quebrar a página.
 - [ ] **Step 2: Marcar DOD, commit**
 
 ```bash
-git add docs/evidence/fase3b-radar-atributos.md spec-fase3b-radar-atributos.md
+git add docs/evidence/fase3b-radar-atributos.md ../specs/spec-fase3b-radar-atributos.md
 git commit -m "docs: evidencias e DOD do radar de atributos (Fase 3b web)"
 ```
 

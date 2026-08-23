@@ -61,7 +61,15 @@ src/
 ├── hooks/        # custom hooks (useMultiSort)
 ├── pages/        # telas (Tabela, Jogadores, DetalheJogador, Login, Registro, MinhaConta)
 └── utils/        # helpers (formatNumber)
+
+docs/
+├── specs/        # especificações (spec-*.md)
+├── plans/        # planos de implementação (prompt_plan-*.md)
+├── decisions/    # log de decisões por fase
+└── evidence/     # evidências e DOD de cada entrega
 ```
+
+Documentos de planejamento ficam em `docs/`, não na raiz do repositório.
 
 ## Regras de desenvolvimento
 

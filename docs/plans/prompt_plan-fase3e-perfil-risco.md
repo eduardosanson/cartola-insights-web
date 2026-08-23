@@ -12,7 +12,7 @@
 **Goal:** Selo de risco (baixo/médio/alto) em `DetalheJogador`, consumindo
 o endpoint de perfil de risco já pronto no backend.
 
-**Spec:** `spec-fase3e-perfil-risco.md` — ler antes de começar.
+**Spec:** `../specs/spec-fase3e-perfil-risco.md` — ler antes de começar.
 
 ---
 
@@ -369,7 +369,7 @@ git commit -m "feat: integra selo de risco no detalhe do jogador"
 
 **Files:**
 - Create: `docs/evidence/fase3e-perfil-risco.md`
-- Modify: `spec-fase3e-perfil-risco.md`
+- Modify: `../specs/spec-fase3e-perfil-risco.md`
 
 - [ ] **Step 1: Suíte final**
 
@@ -391,7 +391,7 @@ de erro no lugar do selo, sem quebrar a página.
 - [ ] **Step 3: DOD, commit**
 
 ```bash
-git add docs/evidence/fase3e-perfil-risco.md spec-fase3e-perfil-risco.md
+git add docs/evidence/fase3e-perfil-risco.md ../specs/spec-fase3e-perfil-risco.md
 git commit -m "docs: evidencias e DOD do perfil de risco (Fase 3e web)"
 ```
 

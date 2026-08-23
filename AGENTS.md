@@ -13,6 +13,15 @@
 - `cartola-insights-web-build` - build de producao do frontend
 - `cartola-insights-web-test` - lint, testes e cobertura do frontend
 
+## Documentacao
+
+Documentos de planejamento ficam em `docs/` — nao na raiz:
+
+- `docs/specs/` — especificacoes (`spec-*.md`)
+- `docs/plans/` — planos de implementacao (`prompt_plan-*.md`)
+- `docs/decisions/` — log de decisoes por fase
+- `docs/evidence/` — evidencias e DOD de cada entrega
+
 ## Fluxo de trabalho
 
-Seguir o fluxo global definido em `~/.codex/AGENTS.md`.
+Segue o fluxo global definido em `~/.codex/AGENTS.md`.
