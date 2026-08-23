@@ -80,12 +80,12 @@ contrato completo de request/response de cada um).
 
 ## Definition of Done (DOD)
 
-- [ ] Código implementado e compilando
-- [ ] Testes escritos e passando, cobertura ≥ 90%
-- [ ] Lint sem erros
-- [ ] Evidências (descrição das 3 telas com o fluxo completo)
-- [ ] Passo a passo de validação humana
-- [ ] Merge em `main`
+- [x] Código implementado e compilando
+- [x] Testes escritos e passando, cobertura ≥ 90%
+- [x] Lint sem erros
+- [x] Evidências (descrição das 3 telas com o fluxo completo)
+- [x] Passo a passo de validação humana
+- [x] Merge em `main`
 
 ## Fora de Escopo
 
