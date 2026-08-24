@@ -17,6 +17,8 @@ const atleta = {
   media_fora: 5.345,
   rodada_atual: 24,
   mando_rodada: 'casa' as const,
+  chance_pontuar_percentual: null,
+  chance_pontuar_classificacao: null,
 }
 
 function renderJogadores() {
@@ -177,5 +179,33 @@ describe('Jogadores', () => {
     expect(within(rows[1]).getByText('Casa')).toHaveStyle({ color: 'var(--accent-home)' })
     expect(within(rows[2]).getByText('Fora')).toHaveStyle({ color: 'var(--accent-away)' })
     expect(within(rows[3]).getByText('Sem jogo')).toBeInTheDocument()
+  })
+
+  it('filters by mando when a chip is clicked', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([atleta])
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    await user.click(screen.getByRole('button', { name: 'Casa' }))
+
+    await waitFor(() => {
+      expect(atletasApi.listarAtletas).toHaveBeenLastCalledWith(
+        expect.objectContaining({ mando: 'casa' }),
+      )
+    })
+  })
+
+  it('shows the chance de pontuar classification, and a dash when unknown', async () => {
+    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Artilheiro', chance_pontuar_classificacao: 'alta' },
+      { ...atleta, id: 2, nome: 'Reserva', chance_pontuar_classificacao: null },
+    ])
+    renderJogadores()
+    await screen.findByText('Artilheiro')
+
+    const rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('—')).toBeInTheDocument()
   })
 })

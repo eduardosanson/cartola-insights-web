@@ -15,12 +15,15 @@ export interface Atleta {
   media_fora: number
   rodada_atual: number | null
   mando_rodada: MandoRodada
+  chance_pontuar_percentual: number | null
+  chance_pontuar_classificacao: 'baixa' | 'media' | 'alta' | null
 }
 
 export interface FiltrosAtletas {
   nome?: string
   posicao?: Posicao[]
   clube_id?: number
+  mando?: MandoRodada
   page?: number
   page_size?: number
 }
@@ -40,6 +43,7 @@ export function listarAtletas(filtros: FiltrosAtletas = {}): Promise<Atleta[]> {
   const params = new URLSearchParams()
   if (filtros.nome) params.set('nome', filtros.nome)
   if (filtros.clube_id !== undefined) params.set('clube_id', String(filtros.clube_id))
+  if (filtros.mando !== undefined) params.set('mando', filtros.mando)
   if (filtros.page !== undefined) params.set('page', String(filtros.page))
   if (filtros.page_size !== undefined) params.set('page_size', String(filtros.page_size))
   for (const posicao of filtros.posicao ?? []) {

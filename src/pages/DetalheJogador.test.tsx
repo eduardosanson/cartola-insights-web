@@ -19,6 +19,8 @@ const atleta = {
   media_fora: 5.345,
   rodada_atual: 24,
   mando_rodada: 'casa' as const,
+  chance_pontuar_percentual: null,
+  chance_pontuar_classificacao: null,
 }
 
 const perfilRisco = {

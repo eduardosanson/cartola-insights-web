@@ -22,6 +22,7 @@ export default function Jogadores() {
   const [nomeInput, setNomeInput] = useState('')
   const [nomeDebounced, setNomeDebounced] = useState('')
   const [posicoes, setPosicoes] = useState<Posicao[]>([])
+  const [mando, setMando] = useState<'' | 'casa' | 'fora' | 'sem_jogo'>('')
   const [page, setPage] = useState(1)
   const [atletas, setAtletas] = useState<Atleta[] | null>(null)
   const [erro, setErro] = useState<string | null>(null)
@@ -37,6 +38,7 @@ export default function Jogadores() {
     listarAtletas({
       nome: nomeDebounced || undefined,
       posicao: posicoes.length > 0 ? posicoes : undefined,
+      mando: mando || undefined,
       page,
       page_size: PAGE_SIZE,
     })
@@ -49,7 +51,7 @@ export default function Jogadores() {
     return () => {
       ativo = false
     }
-  }, [nomeDebounced, posicoes, page])
+  }, [nomeDebounced, posicoes, mando, page])
 
   function togglePosicao(posicao: Posicao) {
     setPage(1)
@@ -80,6 +82,21 @@ export default function Jogadores() {
         }}
       />
       <PositionChips selecionadas={posicoes} onToggle={togglePosicao} />
+      <div role="group" aria-label="Filtrar por mando do próximo jogo">
+        {(['', 'casa', 'fora'] as const).map((valor) => (
+          <button
+            key={valor || 'todos'}
+            type="button"
+            aria-pressed={mando === valor}
+            onClick={() => {
+              setPage(1)
+              setMando(valor)
+            }}
+          >
+            {valor === '' ? 'Todos' : valor === 'casa' ? 'Casa' : 'Fora'}
+          </button>
+        ))}
+      </div>
 
       {erro && <p role="alert">{erro}</p>}
       {!erro && !atletas && <p>Carregando jogadores…</p>}
@@ -113,6 +130,7 @@ export default function Jogadores() {
                 {...fora}
                 onToggle={() => toggleSort('media_fora')}
               />
+              <th>Chance de pontuar</th>
             </tr>
           </thead>
           <tbody>
@@ -132,6 +150,13 @@ export default function Jogadores() {
                 <td className="numeric">{formatNumber(atleta.media_geral)}</td>
                 <td className="numeric">{formatNumber(atleta.media_casa)}</td>
                 <td className="numeric">{formatNumber(atleta.media_fora)}</td>
+                <td>
+                  {atleta.chance_pontuar_classificacao === null
+                    ? '—'
+                    : { baixa: 'Baixa', media: 'Média', alta: 'Alta' }[
+                        atleta.chance_pontuar_classificacao
+                      ]}
+                </td>
               </tr>
             ))}
           </tbody>
