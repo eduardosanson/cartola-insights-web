@@ -99,3 +99,11 @@
   padrão de `chance_pontuar_percentual` (`?? -1`, nulo sempre por
   último em qualquer direção) e exibição usa `—` pra nulo (ex.: TEC),
   mesmo padrão visual da coluna de chance de pontuar.
+- Bug introduzido pela coluna nova e corrigido na sequência: a tabela
+  usa CSS Grid com `grid-template-columns` fixo em 10 trilhas
+  explícitas (`.player-row-header, .player-row`). Adicionar a 11ª
+  célula (Overall) sem atualizar o grid fazia o auto-placement jogar a
+  última coluna ("Chance de pontuar") pra uma linha implícita nova —
+  quebrava o alinhamento de cabeçalho e células. Corrigido adicionando
+  a 11ª trilha (`88px`, mesmo tamanho das outras colunas numéricas) e
+  ajustando `.players-list-inner { min-width }` de 760px pra 848px.

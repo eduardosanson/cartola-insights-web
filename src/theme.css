@@ -197,13 +197,13 @@ button {
 }
 
 .players-list-inner {
-  min-width: 760px;
+  min-width: 848px;
 }
 
 .player-row-header,
 .player-row {
   display: grid;
-  grid-template-columns: 1.7fr 1.1fr 64px 96px 80px 88px 88px 88px 88px 132px;
+  grid-template-columns: 1.7fr 1.1fr 64px 96px 80px 88px 88px 88px 88px 88px 132px;
   align-items: center;
   gap: 0.6rem;
   padding: 0.55rem 0.85rem;
