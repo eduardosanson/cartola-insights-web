@@ -118,3 +118,12 @@
   só) e `.players-list-inner { min-width }` ajustado pra 1140px —
   a tabela passa a exigir mais scroll horizontal em telas estreitas,
   mas não quebra mais o conteúdo pra caber.
+- Ajuste pedido pelo usuário: sem scroll horizontal, cabeçalhos mais
+  próximos. Reduzidas as 11 colunas (nome/clube com piso menor,
+  colunas numéricas de `88px` pra `66px`, "chance de pontuar" de
+  `132px` pra `100px`), `gap` de `0.6rem` pra `0.4rem` e padding
+  lateral da linha de `0.85rem` pra `0.6rem`. `.players-list-inner`
+  perde o `min-width` fixo (não precisa mais forçar, cabe sem
+  scroll). Verificado via `scrollWidth <= clientWidth` no navegador
+  (926 ≤ 928) e visualmente: nomes longos ("Vagner Mancini", "Dorival
+  Júnior") continuam numa linha só.

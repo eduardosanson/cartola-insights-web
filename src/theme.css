@@ -197,21 +197,22 @@ button {
 }
 
 .players-list-inner {
-  min-width: 1140px;
+  min-width: 0;
 }
 
 /* minmax() nas colunas de nome/clube — sem piso, o fr encolhe até o
-   min-content assim que o grid fica apertado (ex.: coluna nova),
-   quebrando "Léo Condé" em duas linhas e espremendo tudo à esquerda. */
+   min-content assim que o grid fica apertado, quebrando "Léo Condé"
+   em duas linhas. Colunas mais estreitas e gap/padding menores pra
+   caber as 11 colunas sem scroll horizontal em telas de desktop. */
 .player-row-header,
 .player-row {
   display: grid;
   grid-template-columns:
-    minmax(130px, 1.7fr) minmax(64px, 1.1fr) 64px 96px 80px 88px 88px 88px
-    88px 88px 132px;
+    minmax(112px, 1.6fr) minmax(48px, 0.8fr) 56px 76px 60px 66px 66px 66px
+    66px 66px 100px;
   align-items: center;
-  gap: 0.6rem;
-  padding: 0.55rem 0.85rem;
+  gap: 0.4rem;
+  padding: 0.55rem 0.6rem;
 }
 
 .player-row-header {
