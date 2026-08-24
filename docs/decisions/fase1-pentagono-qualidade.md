@@ -127,3 +127,7 @@
   scroll). Verificado via `scrollWidth <= clientWidth` no navegador
   (926 ≤ 928) e visualmente: nomes longos ("Vagner Mancini", "Dorival
   Júnior") continuam numa linha só.
+- Ajuste pedido pelo usuário: valores numéricos (`.num`) e os rótulos
+  de cabeçalho ordenáveis (`.sort-button`) viraram `text-align: left`
+  (eram `right`) — cabeçalho e valor passam a alinhar na borda
+  esquerda da coluna, em vez da direita.
