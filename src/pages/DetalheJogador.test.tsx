@@ -5,6 +5,7 @@ import DetalheJogador from './DetalheJogador'
 import * as atletasApi from '../api/atletas'
 import * as percentisApi from '../api/percentis'
 import * as raioXApi from '../api/raioX'
+import * as perfilRiscoApi from '../api/perfilRisco'
 
 const atleta = {
   id: 1,
@@ -18,6 +19,14 @@ const atleta = {
   media_fora: 5.345,
   rodada_atual: 24,
   mando_rodada: 'casa' as const,
+}
+
+const perfilRisco = {
+  atleta_id: 1,
+  risco_percentual: 70,
+  classificacao: 'alto' as const,
+  pontos_retorno_direto: 132,
+  pontos_participacao: 56.5,
 }
 
 const partida = {
@@ -60,6 +69,7 @@ describe('DetalheJogador', () => {
       participacao_pontuacao_time_media: 12.4,
       veredito: 'referencia_do_time',
     })
+    vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockResolvedValue(perfilRisco)
   })
 
   it('loads atleta and histórico from the API on a direct access', async () => {
@@ -198,5 +208,26 @@ describe('DetalheJogador', () => {
     renderDetalhe('1', null)
 
     expect(await screen.findByText(/raio-x nao disponivel/i)).toBeInTheDocument()
+  })
+
+  it('mostra o selo de risco quando o perfil carrega com sucesso', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText(/risco alto/i)).toBeInTheDocument()
+  })
+
+  it('mostra a mensagem de erro no lugar do selo quando o perfil de risco da 404', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+    vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockRejectedValue(
+      new Error('dados insuficientes - atleta com poucos jogos pra calcular perfil de risco'),
+    )
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText(/dados insuficientes/i)).toBeInTheDocument()
   })
 })

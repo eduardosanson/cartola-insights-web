@@ -8,10 +8,12 @@ import {
 } from '../api/atletas'
 import { buscarPercentisAtleta, type PercentisAtleta } from '../api/percentis'
 import { buscarRaioXConfronto, type RaioXConfronto as RaioXConfrontoTipo } from '../api/raioX'
+import { buscarPerfilRiscoAtleta, type PerfilRisco } from '../api/perfilRisco'
 import { formatNumber } from '../utils/formatNumber'
 import MandoRodada from '../components/MandoRodada'
 import RadarAtributos from '../components/RadarAtributos'
 import RaioXConfronto from '../components/RaioXConfronto'
+import SeloRisco from '../components/SeloRisco'
 
 export default function DetalheJogador() {
   const { id } = useParams<{ id: string }>()
@@ -22,6 +24,8 @@ export default function DetalheJogador() {
   const [erroPercentis, setErroPercentis] = useState<string | null>(null)
   const [raioX, setRaioX] = useState<RaioXConfrontoTipo | null>(null)
   const [erroRaioX, setErroRaioX] = useState<string | null>(null)
+  const [perfilRisco, setPerfilRisco] = useState<PerfilRisco | null>(null)
+  const [erroPerfilRisco, setErroPerfilRisco] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -55,6 +59,13 @@ export default function DetalheJogador() {
       .catch((err: Error) => setErroRaioX(err.message))
   }, [id])
 
+  useEffect(() => {
+    if (!id) return
+    buscarPerfilRiscoAtleta(Number(id))
+      .then(setPerfilRisco)
+      .catch((err: Error) => setErroPerfilRisco(err.message))
+  }, [id])
+
   return (
     <div>
       <Link to="/jogadores">← Jogadores</Link>
@@ -72,6 +83,12 @@ export default function DetalheJogador() {
               showRound
             />
           </p>
+          {perfilRisco && (
+            <p>
+              <SeloRisco perfil={perfilRisco} />
+            </p>
+          )}
+          {erroPerfilRisco && <p>{erroPerfilRisco}</p>}
           <dl className="numeric">
             <dt>Média geral</dt>
             <dd>{formatNumber(atleta.media_geral)}</dd>
