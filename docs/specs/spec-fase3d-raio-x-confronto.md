@@ -86,12 +86,12 @@ Em `404`: `{"detail": "..."}` — mesmo formato de erro do resto da API.
 
 ## Definition of Done (DOD)
 
-- [ ] Código implementado e compilando
-- [ ] Testes escritos e passando, cobertura ≥ 90%
-- [ ] Lint sem erros
-- [ ] Evidências capturadas (`docs/evidence/fase3d-raio-x-confronto.md`)
-- [ ] Passo a passo de validação humana escrito
-- [ ] Integrado em `main`
+- [x] Código implementado e compilando
+- [x] Testes escritos e passando, cobertura ≥ 90%
+- [x] Lint sem erros
+- [x] Evidências capturadas (`docs/evidence/fase3d-raio-x-confronto.md`)
+- [x] Passo a passo de validação humana escrito
+- [x] Integrado em `main`
 
 ## Fora de Escopo
 
