@@ -12,8 +12,12 @@ const DEBOUNCE_MS = 300
 const sortAccessors = {
   preco_atual: (atleta: Atleta) => atleta.preco_atual,
   media_geral: (atleta: Atleta) => atleta.media_geral,
+  media_basica: (atleta: Atleta) => atleta.media_basica,
   media_casa: (atleta: Atleta) => atleta.media_casa,
   media_fora: (atleta: Atleta) => atleta.media_fora,
+  // sem dado (null) fica sempre por ultimo, tanto em ordem crescente quanto
+  // decrescente — -1 nunca colide com um percentual real (0-100).
+  chance_pontuar_percentual: (atleta: Atleta) => atleta.chance_pontuar_percentual ?? -1,
 }
 
 type SortKey = keyof typeof sortAccessors
@@ -67,8 +71,10 @@ export default function Jogadores() {
 
   const preco = sortState('preco_atual')
   const geral = sortState('media_geral')
+  const basica = sortState('media_basica')
   const casa = sortState('media_casa')
   const fora = sortState('media_fora')
+  const chance = sortState('chance_pontuar_percentual')
 
   return (
     <div>
@@ -144,9 +150,12 @@ export default function Jogadores() {
                 {...geral}
                 onToggle={() => toggleSort('media_geral')}
               />
-              <div role="columnheader" className="numeric">
-                Média básica
-              </div>
+              <SortableHeader
+                as="div"
+                label="Média básica"
+                {...basica}
+                onToggle={() => toggleSort('media_basica')}
+              />
               <SortableHeader
                 as="div"
                 label="Média casa"
@@ -159,7 +168,12 @@ export default function Jogadores() {
                 {...fora}
                 onToggle={() => toggleSort('media_fora')}
               />
-              <div role="columnheader">Chance de pontuar</div>
+              <SortableHeader
+                as="div"
+                label="Chance de pontuar"
+                {...chance}
+                onToggle={() => toggleSort('chance_pontuar_percentual')}
+              />
             </div>
             <div role="rowgroup">
               {sortedItems.map((atleta) => (

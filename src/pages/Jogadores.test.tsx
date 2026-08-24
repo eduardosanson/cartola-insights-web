@@ -217,6 +217,39 @@ describe('Jogadores', () => {
     expect(screen.getByText('4,12')).toBeInTheDocument()
   })
 
+  it('sorts by media basica when the column header is clicked', async () => {
+    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'A', media_basica: 3 },
+      { ...atleta, id: 2, nome: 'B', media_basica: 9 },
+      { ...atleta, id: 3, nome: 'C', media_basica: 5 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('A')
+
+    await user.click(screen.getByRole('button', { name: /média básica/i }))
+
+    expect(within(screen.getAllByRole('row')[1]).getByText('B')).toBeInTheDocument()
+  })
+
+  it('sorts by chance de pontuar, with atletas sem dado ficando por ultimo', async () => {
+    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Media', chance_pontuar_percentual: 80 },
+      { ...atleta, id: 2, nome: 'SemDado', chance_pontuar_percentual: null },
+      { ...atleta, id: 3, nome: 'Alta', chance_pontuar_percentual: 95 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Media')
+
+    await user.click(screen.getByRole('button', { name: /chance de pontuar/i }))
+
+    const rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('Media')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
+  })
+
   it('renders each player row as a single link to the detail page, not just the name', async () => {
     renderJogadores()
     await screen.findByText('Gabigol')
