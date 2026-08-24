@@ -19,6 +19,22 @@ describe('api/percentis', () => {
           participacao_gol: 91,
           desarme: 40,
           disciplina: 65,
+          media_basica: 75,
+          brutos: {
+            pontuacao_media: 6.5,
+            participacao_gol: 0.5,
+            desarme: 1.2,
+            disciplina: 0.8,
+            media_basica: 4.0,
+          },
+          mediana_posicao: {
+            pontuacao_media: 4.2,
+            participacao_gol: 0.2,
+            desarme: 0.9,
+            disciplina: 0.5,
+            media_basica: 3.1,
+          },
+          overall_score: 70.2,
         }),
       }),
     )
@@ -31,6 +47,22 @@ describe('api/percentis', () => {
       participacao_gol: 91,
       desarme: 40,
       disciplina: 65,
+      media_basica: 75,
+      brutos: {
+        pontuacao_media: 6.5,
+        participacao_gol: 0.5,
+        desarme: 1.2,
+        disciplina: 0.8,
+        media_basica: 4.0,
+      },
+      mediana_posicao: {
+        pontuacao_media: 4.2,
+        participacao_gol: 0.2,
+        desarme: 0.9,
+        disciplina: 0.5,
+        media_basica: 3.1,
+      },
+      overall_score: 70.2,
     })
     expect(fetch).toHaveBeenCalledWith(
       'http://localhost:8000/atletas/1/percentis',

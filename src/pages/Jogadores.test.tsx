@@ -197,6 +197,38 @@ describe('Jogadores', () => {
     })
   })
 
+  it('does not render the Todos button in the mando filter group', async () => {
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    const mandoGroup = screen.getByRole('group', { name: /mando/i })
+    expect(within(mandoGroup).queryByRole('button', { name: 'Todos' })).not.toBeInTheDocument()
+    expect(within(mandoGroup).getByRole('button', { name: 'Casa' })).toBeInTheDocument()
+    expect(within(mandoGroup).getByRole('button', { name: 'Fora' })).toBeInTheDocument()
+  })
+
+  it('toggles off active mando filter when clicked again', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([atleta])
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    const casaBtn = screen.getByRole('button', { name: 'Casa' })
+    await user.click(casaBtn)
+    await waitFor(() => {
+      expect(atletasApi.listarAtletas).toHaveBeenLastCalledWith(
+        expect.objectContaining({ mando: 'casa' }),
+      )
+    })
+
+    await user.click(casaBtn)
+    await waitFor(() => {
+      expect(atletasApi.listarAtletas).toHaveBeenLastCalledWith(
+        expect.objectContaining({ mando: undefined }),
+      )
+    })
+  })
+
   it('shows the chance de pontuar classification, and a dash when unknown', async () => {
     vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'Artilheiro', chance_pontuar_classificacao: 'alta' },
@@ -248,6 +280,28 @@ describe('Jogadores', () => {
     expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
     expect(within(rows[2]).getByText('Media')).toBeInTheDocument()
     expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
+  })
+
+  it('sorts by media casa and media fora when header is clicked', async () => {
+    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'A', media_casa: 3, media_fora: 8 },
+      { ...atleta, id: 2, nome: 'B', media_casa: 9, media_fora: 2 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('A')
+
+    const btnCasa = screen.getByRole('button', { name: /média casa/i })
+    await user.click(btnCasa)
+    expect(within(screen.getAllByRole('row')[1]).getByText('B')).toBeInTheDocument()
+
+    // untoggle casa (click 2 more times: desc -> asc -> none)
+    await user.click(btnCasa)
+    await user.click(btnCasa)
+
+    const btnFora = screen.getByRole('button', { name: /média fora/i })
+    await user.click(btnFora)
+    expect(within(screen.getAllByRole('row')[1]).getByText('A')).toBeInTheDocument()
   })
 
   it('renders each player row as a single link to the detail page, not just the name', async () => {

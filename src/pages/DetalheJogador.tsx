@@ -11,7 +11,7 @@ import { buscarRaioXConfronto, type RaioXConfronto as RaioXConfrontoTipo } from 
 import { buscarPerfilRiscoAtleta, type PerfilRisco } from '../api/perfilRisco'
 import { formatNumber } from '../utils/formatNumber'
 import MandoRodada from '../components/MandoRodada'
-import RadarAtributos from '../components/RadarAtributos'
+import PentagonoQualidade from '../components/PentagonoQualidade'
 import RaioXConfronto from '../components/RaioXConfronto'
 import SeloRisco from '../components/SeloRisco'
 import SplitBars from '../components/SplitBars'
@@ -71,37 +71,42 @@ export default function DetalheJogador() {
     <div>
       <Link to="/jogadores">← Jogadores</Link>
 
-      {atleta && (
-        <header>
-          <h2>{atleta.nome}</h2>
-          <p>
-            {atleta.clube_nome} · {atleta.posicao}
-          </p>
-          <p>
-            <MandoRodada
-              mando={atleta.mando_rodada}
-              rodada={atleta.rodada_atual}
-              showRound
-            />
-          </p>
-          {perfilRisco && (
+      <div className="detalhe-topo">
+        {atleta && (
+          <header>
+            <h2>{atleta.nome}</h2>
             <p>
-              <SeloRisco perfil={perfilRisco} />
+              {atleta.clube_nome} · {atleta.posicao}
             </p>
-          )}
-          {erroPerfilRisco && <p>{erroPerfilRisco}</p>}
-          <p className="numeric">
-            Média geral <span>{formatNumber(atleta.media_geral)}</span>
-          </p>
-          <SplitBars mediaCasa={atleta.media_casa} mediaFora={atleta.media_fora} />
-        </header>
-      )}
+            <p>
+              <MandoRodada
+                mando={atleta.mando_rodada}
+                rodada={atleta.rodada_atual}
+                showRound
+              />
+            </p>
+            {perfilRisco && (
+              <p>
+                <SeloRisco perfil={perfilRisco} />
+              </p>
+            )}
+            {erroPerfilRisco && <p>{erroPerfilRisco}</p>}
+            <p className="numeric">
+              Média geral <span>{formatNumber(atleta.media_geral)}</span>
+            </p>
+            <p className="numeric">
+              Média básica <span>{formatNumber(atleta.media_basica)}</span>
+            </p>
+            <SplitBars mediaCasa={atleta.media_casa} mediaFora={atleta.media_fora} />
+          </header>
+        )}
 
-      {erro && <p role="alert">{erro}</p>}
-      {!erro && (!atleta || !historico) && <p>Carregando jogador…</p>}
+        {erro && <p role="alert">{erro}</p>}
+        {!erro && (!atleta || !historico) && <p>Carregando jogador…</p>}
 
-      {percentis && <RadarAtributos percentis={percentis} />}
-      {erroPercentis && <p>{erroPercentis}</p>}
+        {percentis && <PentagonoQualidade percentis={percentis} />}
+        {erroPercentis && <p>{erroPercentis}</p>}
+      </div>
 
       {raioX && <RaioXConfronto raioX={raioX} />}
       {erroRaioX && <p>{erroRaioX}</p>}

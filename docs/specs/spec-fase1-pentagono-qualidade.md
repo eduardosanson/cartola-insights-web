@@ -74,11 +74,11 @@ independente no filtro de mando da lista de jogadores.
 
 ## Definition of Done (DOD)
 
-- [ ] Código implementado e compilando
-- [ ] Testes escritos e passando, cobertura ≥ 90%
-- [ ] Lint sem erros
-- [ ] Evidências capturadas (`docs/evidence/fase1-pentagono-qualidade.md`)
-- [ ] Passo a passo de validação humana escrito
+- [x] Código implementado e compilando
+- [x] Testes escritos e passando, cobertura ≥ 90%
+- [x] Lint sem erros
+- [x] Evidências capturadas (`docs/evidence/fase1-pentagono-qualidade.md`)
+- [x] Passo a passo de validação humana escrito
 - [ ] Integrado em `main`
 
 ## Fora de Escopo

@@ -110,17 +110,17 @@ export default function Jogadores() {
           role="group"
           aria-label="Filtrar por mando do próximo jogo"
         >
-          {(['', 'casa', 'fora'] as const).map((valor) => (
+          {(['casa', 'fora'] as const).map((valor) => (
             <button
-              key={valor || 'todos'}
+              key={valor}
               type="button"
               aria-pressed={mando === valor}
               onClick={() => {
                 setPage(1)
-                setMando(valor)
+                setMando((atual) => (atual === valor ? '' : valor))
               }}
             >
-              {valor === '' ? 'Todos' : valor === 'casa' ? 'Casa' : 'Fora'}
+              {valor === 'casa' ? 'Casa' : 'Fora'}
             </button>
           ))}
         </div>

@@ -59,6 +59,8 @@ describe('DetalheJogador', () => {
       participacao_gol: 91,
       desarme: 40,
       disciplina: 65,
+      media_basica: 75,
+      overall_score: 70.2,
     })
     vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockResolvedValue({
       atleta_id: 1,
@@ -159,7 +161,7 @@ describe('DetalheJogador', () => {
     expect(await screen.findByText('Sem jogo na rodada 24')).toBeInTheDocument()
   })
 
-  it('mostra o radar quando os percentis carregam com sucesso', async () => {
+  it('mostra o pentágono de qualidade quando os percentis carregam com sucesso', async () => {
     vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
     vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
     vi.mocked(percentisApi.buscarPercentisAtleta).mockResolvedValue({
@@ -168,13 +170,17 @@ describe('DetalheJogador', () => {
       participacao_gol: 91,
       desarme: 40,
       disciplina: 65,
+      media_basica: 75,
+      overall_score: 70.2,
     })
 
     renderDetalhe('1', null)
 
-    expect(await screen.findByText('Participação em gol')).toBeInTheDocument()
-    expect(screen.getByText('Desarme')).toBeInTheDocument()
-    expect(screen.getByText('Disciplina')).toBeInTheDocument()
+    expect(await screen.findByText(/criação/i)).toBeInTheDocument()
+    expect(screen.getByText(/combate/i)).toBeInTheDocument()
+    expect(screen.getByText(/disciplina/i)).toBeInTheDocument()
+    expect(screen.getByText(/piso básico/i)).toBeInTheDocument()
+    expect(screen.getByTestId('overall-score')).toHaveTextContent('70,2')
   })
 
   it('mostra a mensagem de erro no lugar do radar quando o percentil da 404', async () => {
@@ -232,5 +238,30 @@ describe('DetalheJogador', () => {
     renderDetalhe('1', null)
 
     expect(await screen.findByText(/dados insuficientes/i)).toBeInTheDocument()
+  })
+
+  it('mostra a média básica do atleta na tela de detalhe', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText('Média básica')).toBeInTheDocument()
+    expect(screen.getByText('4,12')).toBeInTheDocument()
+  })
+
+  it('mantém info base e pentágono dentro do mesmo container de layout lado a lado', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+
+    const { container } = renderDetalhe('1', null)
+
+    const heading = await screen.findByRole('heading', { name: 'Gabigol' })
+    const pentagono = await screen.findByRole('img', { name: /pentágono de qualidade/i })
+
+    const topo = container.querySelector('.detalhe-topo')
+    expect(topo).not.toBeNull()
+    expect(topo).toContainElement(heading)
+    expect(topo).toContainElement(pentagono)
   })
 })
