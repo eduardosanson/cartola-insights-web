@@ -5,6 +5,9 @@ interface Props<K extends string> {
   criterion?: SortCriterion<K>
   priority?: number
   onToggle: () => void
+  /** Elemento raiz: `th` dentro de `<table>` (padrão), `div` com
+   * role="columnheader" pra cabeçalhos em grid (fora de tabela). */
+  as?: 'th' | 'div'
 }
 
 export default function SortableHeader<K extends string>({
@@ -12,11 +15,15 @@ export default function SortableHeader<K extends string>({
   criterion,
   priority,
   onToggle,
+  as = 'th',
 }: Props<K>) {
   const directionLabel = criterion?.direction === 'desc' ? 'decrescente' : 'crescente'
+  const Wrapper = as
+  const wrapperProps =
+    as === 'div' ? { className: 'numeric', role: 'columnheader' } : { className: 'numeric' }
 
   return (
-    <th className="numeric">
+    <Wrapper {...wrapperProps}>
       <button
         type="button"
         className="sort-button"
@@ -26,6 +33,6 @@ export default function SortableHeader<K extends string>({
         {label}
         {criterion && ` ${criterion.direction === 'desc' ? '↓' : '↑'} ${priority}`}
       </button>
-    </th>
+    </Wrapper>
   )
 }

@@ -103,64 +103,90 @@ export default function Jogadores() {
       {!erro && atletas && atletas.length === 0 && <p>Nenhum jogador encontrado.</p>}
 
       {!erro && atletas && atletas.length > 0 && (
-        <table>
-          <thead>
-            <tr>
-              <th>Nome</th>
-              <th>Clube</th>
-              <th>Posição</th>
-              <th>Mando</th>
+        <div className="players-list-card" role="table">
+          <div className="players-list-inner">
+            <div className="player-row-header" role="row">
+              <div role="columnheader">Nome</div>
+              <div role="columnheader">Clube</div>
+              <div role="columnheader">Posição</div>
+              <div role="columnheader">Mando</div>
               <SortableHeader
+                as="div"
                 label="Preço"
                 {...preco}
                 onToggle={() => toggleSort('preco_atual')}
               />
               <SortableHeader
+                as="div"
                 label="Média geral"
                 {...geral}
                 onToggle={() => toggleSort('media_geral')}
               />
               <SortableHeader
+                as="div"
                 label="Média casa"
                 {...casa}
                 onToggle={() => toggleSort('media_casa')}
               />
               <SortableHeader
+                as="div"
                 label="Média fora"
                 {...fora}
                 onToggle={() => toggleSort('media_fora')}
               />
-              <th>Chance de pontuar</th>
-            </tr>
-          </thead>
-          <tbody>
-            {sortedItems.map((atleta) => (
-              <tr key={atleta.id}>
-                <td>
-                  <Link to={`/jogadores/${atleta.id}`} state={{ atleta }}>
-                    {atleta.nome}
-                  </Link>
-                </td>
-                <td>{atleta.clube_nome}</td>
-                <td>{atleta.posicao}</td>
-                <td>
-                  <MandoRodada mando={atleta.mando_rodada} rodada={atleta.rodada_atual} />
-                </td>
-                <td className="numeric">{formatNumber(atleta.preco_atual)}</td>
-                <td className="numeric">{formatNumber(atleta.media_geral)}</td>
-                <td className="numeric">{formatNumber(atleta.media_casa)}</td>
-                <td className="numeric">{formatNumber(atleta.media_fora)}</td>
-                <td>
-                  {atleta.chance_pontuar_classificacao === null
-                    ? '—'
-                    : { baixa: 'Baixa', media: 'Média', alta: 'Alta' }[
-                        atleta.chance_pontuar_classificacao
-                      ]}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+              <div role="columnheader">Chance de pontuar</div>
+            </div>
+            <div role="rowgroup">
+              {sortedItems.map((atleta) => (
+                <Link
+                  key={atleta.id}
+                  to={`/jogadores/${atleta.id}`}
+                  state={{ atleta }}
+                  className="player-row"
+                  role="row"
+                >
+                  <span role="cell" className="name-cell">
+                    <strong>{atleta.nome}</strong>
+                  </span>
+                  <span role="cell" className="club-cell-text">
+                    {atleta.clube_nome}
+                  </span>
+                  <span role="cell" className="pos-pill">
+                    {atleta.posicao}
+                  </span>
+                  <span role="cell">
+                    <MandoRodada mando={atleta.mando_rodada} rodada={atleta.rodada_atual} />
+                  </span>
+                  <span role="cell" className="num">
+                    {formatNumber(atleta.preco_atual)}
+                  </span>
+                  <span role="cell" className="num">
+                    {formatNumber(atleta.media_geral)}
+                  </span>
+                  <span role="cell" className="num home">
+                    {formatNumber(atleta.media_casa)}
+                  </span>
+                  <span role="cell" className="num away">
+                    {formatNumber(atleta.media_fora)}
+                  </span>
+                  <span role="cell">
+                    {atleta.chance_pontuar_classificacao === null ? (
+                      '—'
+                    ) : (
+                      <span className={`chance-badge chance-${atleta.chance_pontuar_classificacao}`}>
+                        {
+                          { baixa: 'Baixa', media: 'Média', alta: 'Alta' }[
+                            atleta.chance_pontuar_classificacao
+                          ]
+                        }
+                      </span>
+                    )}
+                  </span>
+                </Link>
+              ))}
+            </div>
+          </div>
+        </div>
       )}
 
       <div>

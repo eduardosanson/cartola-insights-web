@@ -55,4 +55,17 @@ describe('RaioXConfronto', () => {
     expect(screen.queryByText('Pontuação diluída')).not.toBeInTheDocument()
     expect(screen.getByText(/sem veredito/i)).toBeInTheDocument()
   })
+
+  it('usa um tom diferente de badge por veredito: positivo, neutro e negativo', () => {
+    const { rerender } = render(
+      <RaioXConfronto raioX={{ ...base, veredito: 'referencia_do_time' }} />,
+    )
+    expect(screen.getByText('Referência do time')).toHaveClass('tone-positivo')
+
+    rerender(<RaioXConfronto raioX={{ ...base, veredito: 'contribuicao_dividida' }} />)
+    expect(screen.getByText('Contribuição dividida')).toHaveClass('tone-neutro')
+
+    rerender(<RaioXConfronto raioX={{ ...base, veredito: 'pontuacao_diluida' }} />)
+    expect(screen.getByText('Pontuação diluída')).toHaveClass('tone-negativo')
+  })
 })

@@ -7,6 +7,12 @@ const ROTULOS_VEREDITO: Record<Veredito, string> = {
   pontuacao_diluida: 'Pontuação diluída',
 }
 
+const TOM_VEREDITO: Record<Veredito, 'positivo' | 'neutro' | 'negativo'> = {
+  referencia_do_time: 'positivo',
+  contribuicao_dividida: 'neutro',
+  pontuacao_diluida: 'negativo',
+}
+
 interface Props {
   raioX: RaioXConfrontoTipo
 }
@@ -17,29 +23,38 @@ export default function RaioXConfronto({ raioX }: Props) {
   return (
     <section>
       <h3>Raio-X do confronto</h3>
-      <dl>
-        <dt>{rotuloMedia}</dt>
-        <dd>{formatNumber(raioX.media_no_mando)}</dd>
+      <ul className="matchup-cols">
+        <li className="matchup-block">
+          <p className="mb-label">{rotuloMedia}</p>
+          <p className="mb-value" style={{ color: 'var(--accent-home)' }}>
+            {formatNumber(raioX.media_no_mando)}
+          </p>
+        </li>
 
-        <dt>{raioX.clube_adversario_nome} cede em média</dt>
-        <dd>
-          {raioX.pontos_cedidos_adversario === null
-            ? 'sem dado suficiente'
-            : formatNumber(raioX.pontos_cedidos_adversario)}
-        </dd>
+        <li className="matchup-block">
+          <p className="mb-label">{raioX.clube_adversario_nome} cede em média</p>
+          <p className="mb-value" style={{ color: 'var(--accent-away)' }}>
+            {raioX.pontos_cedidos_adversario === null
+              ? 'sem dado suficiente'
+              : formatNumber(raioX.pontos_cedidos_adversario)}
+          </p>
+        </li>
 
-        <dt>Participação na pontuação do time</dt>
-        <dd>
-          {raioX.participacao_pontuacao_time_media === null
-            ? 'sem dado suficiente'
-            : `${formatNumber(raioX.participacao_pontuacao_time_media)}%`}
-        </dd>
-      </dl>
-      <p>
-        {raioX.veredito === null
-          ? 'Sem veredito ainda (dados insuficientes)'
-          : ROTULOS_VEREDITO[raioX.veredito]}
-      </p>
+        <li className="matchup-block">
+          {raioX.veredito !== null && (
+            <span className={`verdict-badge tone-${TOM_VEREDITO[raioX.veredito]}`}>
+              {ROTULOS_VEREDITO[raioX.veredito]}
+            </span>
+          )}
+          <p className="mb-value">
+            {raioX.participacao_pontuacao_time_media === null
+              ? 'sem dado suficiente'
+              : `${formatNumber(raioX.participacao_pontuacao_time_media)}%`}
+          </p>
+          <p className="mb-note">Participação na pontuação do time.</p>
+        </li>
+      </ul>
+      {raioX.veredito === null && <p>Sem veredito ainda (dados insuficientes)</p>}
     </section>
   )
 }

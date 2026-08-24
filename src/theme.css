@@ -183,3 +183,236 @@ input[type='password'] {
 button {
   font-family: var(--font-heading);
 }
+
+/* Lista de jogadores — card único com linhas em grid clicáveis (Fase 7,
+   reproduz players-list-card/player-row da POC). Cada linha é o <Link>
+   inteiro, não só o nome — navega e é focável por teclado como qualquer
+   link. */
+.players-list-card {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow-x: auto;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+
+.players-list-inner {
+  min-width: 760px;
+}
+
+.player-row-header,
+.player-row {
+  display: grid;
+  grid-template-columns: 1.8fr 1.2fr 60px 96px 68px 68px 68px 68px 110px;
+  align-items: center;
+  gap: 10px;
+  padding: 0.55rem 0.85rem;
+}
+
+.player-row-header {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--accent-home) 6%, var(--bg-elevated));
+  border-bottom: 1px solid var(--border);
+}
+
+.player-row {
+  border-bottom: 1px solid var(--border);
+  text-decoration: none;
+  color: inherit;
+}
+
+[role='rowgroup'] .player-row:last-child {
+  border-bottom: none;
+}
+
+.player-row:hover {
+  background: color-mix(in srgb, var(--accent-home) 5%, transparent);
+}
+
+.player-row:focus-visible {
+  outline: 2px solid var(--accent-home);
+  outline-offset: -2px;
+}
+
+.player-row .name-cell strong {
+  font-size: 0.94rem;
+}
+
+.player-row .club-cell-text {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.player-row .pos-pill {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.04em;
+  font-weight: 600;
+  padding: 0.1rem 0.5rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  width: fit-content;
+}
+
+.player-row .num {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  text-align: right;
+}
+
+.player-row .num.home {
+  color: var(--accent-home);
+}
+
+.player-row .num.away {
+  color: var(--accent-away);
+}
+
+.chance-badge {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 7px;
+  white-space: nowrap;
+}
+
+.chance-baixa {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  color: var(--danger);
+}
+
+.chance-media {
+  background: color-mix(in srgb, var(--accent-away) 14%, transparent);
+  color: var(--accent-away);
+}
+
+.chance-alta {
+  background: color-mix(in srgb, var(--accent-home) 14%, transparent);
+  color: var(--accent-home);
+}
+
+/* Barras horizontais casa/fora (SplitBars, Fase 7) */
+.split-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.split-row .split-row-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.82rem;
+  margin-bottom: 0.3rem;
+}
+
+.split-row .split-row-label .k {
+  color: var(--text-muted);
+}
+
+.split-row .split-row-label .v {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+}
+
+.bar-track {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.bar-fill.home {
+  background: var(--accent-home);
+}
+
+.bar-fill.away {
+  background: var(--accent-away);
+}
+
+/* Raio-x de confronto — 3 blocos em grid (matchup-cols, Fase 7) */
+.matchup-cols {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+@media (max-width: 820px) {
+  .matchup-cols {
+    grid-template-columns: 1fr;
+  }
+}
+
+.matchup-block {
+  background: color-mix(in srgb, var(--accent-home) 4%, var(--bg-elevated));
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.matchup-block .mb-label {
+  font-family: var(--font-heading);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-weight: 600;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin: 0 0 0.5rem;
+}
+
+.matchup-block .mb-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+  margin: 0 0 0.4rem;
+}
+
+.matchup-block .mb-note {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.4;
+  margin: 0;
+}
+
+.verdict-badge {
+  display: inline-flex;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.25rem 0.55rem;
+  border-radius: 7px;
+  margin-bottom: 0.5rem;
+}
+
+.verdict-badge.tone-positivo {
+  background: color-mix(in srgb, var(--accent-home) 14%, transparent);
+  color: var(--accent-home);
+}
+
+.verdict-badge.tone-neutro {
+  background: var(--border);
+  color: var(--text-muted);
+}
+
+.verdict-badge.tone-negativo {
+  background: color-mix(in srgb, var(--danger) 14%, transparent);
+  color: var(--danger);
+}

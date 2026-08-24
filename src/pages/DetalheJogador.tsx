@@ -14,6 +14,7 @@ import MandoRodada from '../components/MandoRodada'
 import RadarAtributos from '../components/RadarAtributos'
 import RaioXConfronto from '../components/RaioXConfronto'
 import SeloRisco from '../components/SeloRisco'
+import SplitBars from '../components/SplitBars'
 
 export default function DetalheJogador() {
   const { id } = useParams<{ id: string }>()
@@ -89,14 +90,10 @@ export default function DetalheJogador() {
             </p>
           )}
           {erroPerfilRisco && <p>{erroPerfilRisco}</p>}
-          <dl className="numeric">
-            <dt>Média geral</dt>
-            <dd>{formatNumber(atleta.media_geral)}</dd>
-            <dt>Média casa</dt>
-            <dd style={{ color: 'var(--accent-home)' }}>{formatNumber(atleta.media_casa)}</dd>
-            <dt>Média fora</dt>
-            <dd style={{ color: 'var(--accent-away)' }}>{formatNumber(atleta.media_fora)}</dd>
-          </dl>
+          <p className="numeric">
+            Média geral <span>{formatNumber(atleta.media_geral)}</span>
+          </p>
+          <SplitBars mediaCasa={atleta.media_casa} mediaFora={atleta.media_fora} />
         </header>
       )}
 

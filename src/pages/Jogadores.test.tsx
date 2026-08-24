@@ -208,4 +208,12 @@ describe('Jogadores', () => {
     expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
     expect(within(rows[2]).getByText('—')).toBeInTheDocument()
   })
+
+  it('renders each player row as a single link to the detail page, not just the name', async () => {
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    const rows = screen.getAllByRole('row')
+    expect(rows[1]).toHaveAttribute('href', '/jogadores/1')
+  })
 })
