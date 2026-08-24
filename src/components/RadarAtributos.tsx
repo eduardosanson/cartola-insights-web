@@ -53,7 +53,7 @@ export default function RadarAtributos({
   const raioAnel = `${centroX - raio},${centroY} ${centroX},${centroY - raio} ${centroX + raio},${centroY} ${centroX},${centroY + raio}`
 
   return (
-    <div>
+    <div className="radar-wrap">
       <svg
         viewBox={`0 0 ${centroX * 2} ${centroY * 2}`}
         role="img"

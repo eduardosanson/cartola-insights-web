@@ -72,30 +72,52 @@ export default function Jogadores() {
 
   return (
     <div>
-      <input
-        type="search"
-        placeholder="Buscar por nome…"
-        value={nomeInput}
-        onChange={(e) => {
-          setPage(1)
-          setNomeInput(e.target.value)
-        }}
-      />
-      <PositionChips selecionadas={posicoes} onToggle={togglePosicao} />
-      <div role="group" aria-label="Filtrar por mando do próximo jogo">
-        {(['', 'casa', 'fora'] as const).map((valor) => (
-          <button
-            key={valor || 'todos'}
-            type="button"
-            aria-pressed={mando === valor}
-            onClick={() => {
-              setPage(1)
-              setMando(valor)
-            }}
+      <div className="players-toolbar">
+        <label className="search-field">
+          <svg
+            aria-hidden="true"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
           >
-            {valor === '' ? 'Todos' : valor === 'casa' ? 'Casa' : 'Fora'}
-          </button>
-        ))}
+            <circle cx="11" cy="11" r="7" />
+            <line x1="21" y1="21" x2="16.65" y2="16.65" />
+          </svg>
+          <input
+            type="search"
+            placeholder="Buscar por nome…"
+            value={nomeInput}
+            onChange={(e) => {
+              setPage(1)
+              setNomeInput(e.target.value)
+            }}
+          />
+        </label>
+        <div className="filter-group">
+          <PositionChips selecionadas={posicoes} onToggle={togglePosicao} />
+        </div>
+        <div
+          className="filter-group"
+          role="group"
+          aria-label="Filtrar por mando do próximo jogo"
+        >
+          {(['', 'casa', 'fora'] as const).map((valor) => (
+            <button
+              key={valor || 'todos'}
+              type="button"
+              aria-pressed={mando === valor}
+              onClick={() => {
+                setPage(1)
+                setMando(valor)
+              }}
+            >
+              {valor === '' ? 'Todos' : valor === 'casa' ? 'Casa' : 'Fora'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {erro && <p role="alert">{erro}</p>}

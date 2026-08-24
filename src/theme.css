@@ -203,9 +203,9 @@ button {
 .player-row-header,
 .player-row {
   display: grid;
-  grid-template-columns: 1.8fr 1.2fr 60px 96px 68px 68px 68px 68px 110px;
+  grid-template-columns: 1.8fr 1.2fr 64px 96px 80px 88px 88px 88px 132px;
   align-items: center;
-  gap: 10px;
+  gap: 0.6rem;
   padding: 0.55rem 0.85rem;
 }
 
@@ -214,10 +214,20 @@ button {
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.02em;
-  font-size: 0.78rem;
+  font-size: 0.72rem;
   color: var(--text-muted);
   background: color-mix(in srgb, var(--accent-home) 6%, var(--bg-elevated));
   border-bottom: 1px solid var(--border);
+  align-items: start;
+}
+
+/* Rótulos de coluna podem ser mais largos que os números que descrevem
+   (ex.: "Média geral" vs "6,23") — sem isso o .sort-button herda
+   white-space:nowrap e transborda por cima da coluna vizinha. */
+.player-row-header .sort-button {
+  white-space: normal;
+  text-align: right;
+  line-height: 1.2;
 }
 
 .player-row {
@@ -415,4 +425,68 @@ button {
 .verdict-badge.tone-negativo {
   background: color-mix(in srgb, var(--danger) 14%, transparent);
   color: var(--danger);
+}
+
+/* Radar de atributos — sem isso o <svg> (só viewBox, sem width/height)
+   estica pra ocupar a largura inteira do container, virando um losango
+   gigantesco em vez de um card compacto. */
+.radar-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.radar-wrap svg {
+  width: 100%;
+  max-width: 280px;
+  height: auto;
+  display: block;
+}
+
+/* Toolbar de busca/filtros — linha única (busca + grupos de filtro em
+   caixas), reproduz players-toolbar/search-field/filter-group da POC. */
+.players-toolbar {
+  display: flex;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-bottom: 0.85rem;
+}
+
+.search-field {
+  flex: 1 1 240px;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0 0.75rem;
+}
+
+.search-field svg {
+  flex-shrink: 0;
+  color: var(--text-muted);
+}
+
+.search-field input[type='search'] {
+  flex: 1;
+  border: none;
+  background: none;
+  padding: 0.6rem 0;
+}
+
+.search-field input[type='search']:focus {
+  outline: none;
+}
+
+.filter-group {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  padding: 0.3rem;
+  flex-wrap: wrap;
 }
