@@ -33,11 +33,19 @@ function renderJogadores() {
 
 describe('Jogadores', () => {
   beforeEach(() => {
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([atleta])
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([atleta])
   })
 
   afterEach(() => {
     vi.useRealTimers()
+  })
+
+  it('busca todos os atletas uma única vez ao montar (cache local)', async () => {
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    expect(atletasApi.listarTodosAtletas).toHaveBeenCalledTimes(1)
+    expect(atletasApi.listarTodosAtletas).toHaveBeenCalledWith()
   })
 
   it('renders all position chips, including TEC', async () => {
@@ -58,98 +66,107 @@ describe('Jogadores', () => {
   })
 
   it('shows an error message when the API call fails', async () => {
-    vi.spyOn(atletasApi, 'listarAtletas').mockRejectedValue(new Error('Falha de rede'))
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockRejectedValue(new Error('Falha de rede'))
 
     renderJogadores()
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
   })
 
-  it('calls the API with the nome filter only after the 300ms debounce', async () => {
+  it('filters by nome (client-side, sem nova chamada à API) após o debounce de 300ms', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Gabigol' },
+      { ...atleta, id: 2, nome: 'Pedro' },
+    ])
     renderJogadores()
     await screen.findByText('Gabigol')
 
     const input = screen.getByPlaceholderText(/buscar/i)
     fireEvent.change(input, { target: { value: 'Gabi' } })
 
-    // still just the initial mount call right after typing, debounce hasn't fired yet
-    expect(atletasApi.listarAtletas).not.toHaveBeenCalledWith(
-      expect.objectContaining({ nome: 'Gabi' }),
-    )
+    // ainda não filtrou — debounce não disparou
+    expect(screen.getByText('Pedro')).toBeInTheDocument()
 
-    await waitFor(
-      () =>
-        expect(atletasApi.listarAtletas).toHaveBeenCalledWith(
-          expect.objectContaining({ nome: 'Gabi' }),
-        ),
-      { timeout: 1000 },
-    )
+    await waitFor(() => expect(screen.queryByText('Pedro')).not.toBeInTheDocument(), {
+      timeout: 1000,
+    })
+    expect(screen.getByText('Gabigol')).toBeInTheDocument()
+    // nenhuma nova busca ao backend — filtro roda sobre o cache já carregado
+    expect(atletasApi.listarTodosAtletas).toHaveBeenCalledTimes(1)
   })
 
-  it('filters by position when a chip is clicked', async () => {
-    vi.useRealTimers()
+  it('filters by position when a chip is clicked (client-side)', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Atacante', posicao: 'ATA' },
+      { ...atleta, id: 2, nome: 'Goleiro', posicao: 'GOL' },
+    ])
     const user = userEvent.setup()
     renderJogadores()
-    await screen.findByText('Gabigol')
+    await screen.findByText('Atacante')
 
     await user.click(screen.getByRole('button', { name: 'ATA' }))
 
-    await waitFor(() =>
-      expect(atletasApi.listarAtletas).toHaveBeenCalledWith(
-        expect.objectContaining({ posicao: ['ATA'] }),
-      ),
-    )
+    expect(screen.getByText('Atacante')).toBeInTheDocument()
+    expect(screen.queryByText('Goleiro')).not.toBeInTheDocument()
+    expect(atletasApi.listarTodosAtletas).toHaveBeenCalledTimes(1)
   })
 
   it('removes an active position filter when the chip is clicked again', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Atacante', posicao: 'ATA' },
+      { ...atleta, id: 2, nome: 'Goleiro', posicao: 'GOL' },
+    ])
     const user = userEvent.setup()
     renderJogadores()
-    await screen.findByText('Gabigol')
+    await screen.findByText('Atacante')
 
     const chip = screen.getByRole('button', { name: 'ATA' })
     await user.click(chip)
     await user.click(chip)
 
-    await waitFor(() =>
-      expect(atletasApi.listarAtletas).toHaveBeenLastCalledWith(
-        expect.objectContaining({ posicao: undefined }),
-      ),
-    )
+    expect(screen.getByText('Atacante')).toBeInTheDocument()
+    expect(screen.getByText('Goleiro')).toBeInTheDocument()
   })
 
-  it('shows an empty state when no athlete matches', async () => {
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([])
-
+  it('shows an empty state when no athlete matches the filters', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Goleiro', posicao: 'GOL' },
+    ])
+    const user = userEvent.setup()
     renderJogadores()
+    await screen.findByText('Goleiro')
+
+    await user.click(screen.getByRole('button', { name: 'ATA' }))
 
     expect(await screen.findByText(/nenhum jogador/i)).toBeInTheDocument()
   })
 
-  it('navigates forward and backward through full pages', async () => {
-    const paginaCheia = Array.from({ length: 20 }, (_, index) => ({
+  it('navigates forward and backward through client-side pages without new requests', async () => {
+    const paginaCheia = Array.from({ length: 25 }, (_, index) => ({
       ...atleta,
       id: index + 1,
       nome: `Jogador ${index + 1}`,
     }))
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue(paginaCheia)
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue(paginaCheia)
     const user = userEvent.setup()
     renderJogadores()
     await screen.findByText('Jogador 1')
 
+    expect(screen.queryByText('Jogador 21')).not.toBeInTheDocument()
+
     await user.click(screen.getByRole('button', { name: 'Próxima' }))
-    await waitFor(() =>
-      expect(atletasApi.listarAtletas).toHaveBeenCalledWith(expect.objectContaining({ page: 2 })),
-    )
+    expect(await screen.findByText('Jogador 21')).toBeInTheDocument()
+    expect(screen.queryByText('Jogador 1')).not.toBeInTheDocument()
+
     await user.click(screen.getByRole('button', { name: 'Anterior' }))
-    await waitFor(() =>
-      expect(atletasApi.listarAtletas).toHaveBeenLastCalledWith(
-        expect.objectContaining({ page: 1 }),
-      ),
-    )
+    expect(await screen.findByText('Jogador 1')).toBeInTheDocument()
+
+    // paginação inteira client-side — nenhuma nova busca ao backend
+    expect(atletasApi.listarTodosAtletas).toHaveBeenCalledTimes(1)
   })
 
-  it('combines price and average sorting on the current page', async () => {
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+  it('combines price and average sorting across the whole dataset, not just the current page', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'A', preco_atual: 10, media_geral: 5 },
       { ...atleta, id: 2, nome: 'B', preco_atual: 12, media_geral: 4 },
       { ...atleta, id: 3, nome: 'C', preco_atual: 12, media_geral: 8 },
@@ -168,8 +185,25 @@ describe('Jogadores', () => {
     expect(within(screen.getAllByRole('row')[1]).getByText('C')).toBeInTheDocument()
   })
 
+  it('sorts by overall across the full dataset, bringing the best from a later page to the top', async () => {
+    const dataset = Array.from({ length: 25 }, (_, index) => ({
+      ...atleta,
+      id: index + 1,
+      nome: `Jogador ${index + 1}`,
+      overall_score: index + 1, // Jogador 25 tem o maior overall (25), mas está na página 2
+    }))
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue(dataset)
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Jogador 1')
+
+    await user.click(screen.getByRole('button', { name: /overall/i }))
+
+    expect(within(screen.getAllByRole('row')[1]).getByText('Jogador 25')).toBeInTheDocument()
+  })
+
   it('shows whether each athlete plays at home, away or has no match', async () => {
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'Mandante', mando_rodada: 'casa' },
       { ...atleta, id: 2, nome: 'Visitante', mando_rodada: 'fora' },
       { ...atleta, id: 3, nome: 'Sem Partida', mando_rodada: 'sem_jogo' },
@@ -183,19 +217,19 @@ describe('Jogadores', () => {
     expect(within(rows[3]).getByText('Sem jogo')).toBeInTheDocument()
   })
 
-  it('filters by mando when a chip is clicked', async () => {
+  it('filters by mando when a chip is clicked (client-side)', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Mandante', mando_rodada: 'casa' },
+      { ...atleta, id: 2, nome: 'Visitante', mando_rodada: 'fora' },
+    ])
     const user = userEvent.setup()
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([atleta])
     renderJogadores()
-    await screen.findByText('Gabigol')
+    await screen.findByText('Mandante')
 
     await user.click(screen.getByRole('button', { name: 'Casa' }))
 
-    await waitFor(() => {
-      expect(atletasApi.listarAtletas).toHaveBeenLastCalledWith(
-        expect.objectContaining({ mando: 'casa' }),
-      )
-    })
+    expect(screen.getByText('Mandante')).toBeInTheDocument()
+    expect(screen.queryByText('Visitante')).not.toBeInTheDocument()
   })
 
   it('does not render the Todos button in the mando filter group', async () => {
@@ -209,29 +243,24 @@ describe('Jogadores', () => {
   })
 
   it('toggles off active mando filter when clicked again', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Mandante', mando_rodada: 'casa' },
+      { ...atleta, id: 2, nome: 'Visitante', mando_rodada: 'fora' },
+    ])
     const user = userEvent.setup()
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([atleta])
     renderJogadores()
-    await screen.findByText('Gabigol')
+    await screen.findByText('Mandante')
 
     const casaBtn = screen.getByRole('button', { name: 'Casa' })
     await user.click(casaBtn)
-    await waitFor(() => {
-      expect(atletasApi.listarAtletas).toHaveBeenLastCalledWith(
-        expect.objectContaining({ mando: 'casa' }),
-      )
-    })
+    expect(screen.queryByText('Visitante')).not.toBeInTheDocument()
 
     await user.click(casaBtn)
-    await waitFor(() => {
-      expect(atletasApi.listarAtletas).toHaveBeenLastCalledWith(
-        expect.objectContaining({ mando: undefined }),
-      )
-    })
+    expect(screen.getByText('Visitante')).toBeInTheDocument()
   })
 
   it('shows the chance de pontuar classification, and a dash when unknown', async () => {
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'Artilheiro', chance_pontuar_classificacao: 'alta' },
       { ...atleta, id: 2, nome: 'Reserva', chance_pontuar_classificacao: null },
     ])
@@ -243,8 +272,30 @@ describe('Jogadores', () => {
     expect(within(rows[2]).getByText('—')).toBeInTheDocument()
   })
 
+  it('shows the media basica column', async () => {
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    expect(screen.getByText('4,12')).toBeInTheDocument()
+  })
+
+  it('sorts by media basica when the column header is clicked', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'A', media_basica: 3 },
+      { ...atleta, id: 2, nome: 'B', media_basica: 9 },
+      { ...atleta, id: 3, nome: 'C', media_basica: 5 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('A')
+
+    await user.click(screen.getByRole('button', { name: /média básica/i }))
+
+    expect(within(screen.getAllByRole('row')[1]).getByText('B')).toBeInTheDocument()
+  })
+
   it('shows the overall column, and a dash when there is no data (e.g. TEC)', async () => {
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'ComOverall', overall_score: 69.3 },
       {
         ...atleta,
@@ -262,48 +313,8 @@ describe('Jogadores', () => {
     expect(within(rows[2]).getByText('—')).toBeInTheDocument()
   })
 
-  it('sorts by overall, with atletas sem dado ficando por ultimo', async () => {
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
-      { ...atleta, id: 1, nome: 'Media', overall_score: 60 },
-      { ...atleta, id: 2, nome: 'SemDado', overall_score: null },
-      { ...atleta, id: 3, nome: 'Alta', overall_score: 90 },
-    ])
-    const user = userEvent.setup()
-    renderJogadores()
-    await screen.findByText('Media')
-
-    await user.click(screen.getByRole('button', { name: /overall/i }))
-
-    const rows = screen.getAllByRole('row')
-    expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
-    expect(within(rows[2]).getByText('Media')).toBeInTheDocument()
-    expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
-  })
-
-  it('shows the media basica column', async () => {
-    renderJogadores()
-    await screen.findByText('Gabigol')
-
-    expect(screen.getByText('4,12')).toBeInTheDocument()
-  })
-
-  it('sorts by media basica when the column header is clicked', async () => {
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
-      { ...atleta, id: 1, nome: 'A', media_basica: 3 },
-      { ...atleta, id: 2, nome: 'B', media_basica: 9 },
-      { ...atleta, id: 3, nome: 'C', media_basica: 5 },
-    ])
-    const user = userEvent.setup()
-    renderJogadores()
-    await screen.findByText('A')
-
-    await user.click(screen.getByRole('button', { name: /média básica/i }))
-
-    expect(within(screen.getAllByRole('row')[1]).getByText('B')).toBeInTheDocument()
-  })
-
   it('sorts by chance de pontuar, with atletas sem dado ficando por ultimo', async () => {
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'Media', chance_pontuar_percentual: 80 },
       { ...atleta, id: 2, nome: 'SemDado', chance_pontuar_percentual: null },
       { ...atleta, id: 3, nome: 'Alta', chance_pontuar_percentual: 95 },
@@ -320,8 +331,26 @@ describe('Jogadores', () => {
     expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
   })
 
+  it('sorts by overall, with atletas sem dado ficando por ultimo', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Media', overall_score: 60 },
+      { ...atleta, id: 2, nome: 'SemDado', overall_score: null },
+      { ...atleta, id: 3, nome: 'Alta', overall_score: 90 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Media')
+
+    await user.click(screen.getByRole('button', { name: /overall/i }))
+
+    const rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('Media')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
+  })
+
   it('sorts by media casa and media fora when header is clicked', async () => {
-    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'A', media_casa: 3, media_fora: 8 },
       { ...atleta, id: 2, nome: 'B', media_casa: 9, media_fora: 2 },
     ])

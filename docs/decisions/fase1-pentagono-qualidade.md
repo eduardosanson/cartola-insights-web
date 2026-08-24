@@ -139,3 +139,30 @@
   alinhava à direita, o valor/badge ficava à esquerda por padrão) —
   adicionada `className="num"` na célula em `Jogadores.tsx` pra
   cabeçalho e valor baterem no mesmo lado.
+
+## Cache local de atletas (spike + implementação) — 2026-08-24
+
+- Spike (pedido do usuário: medir antes de decidir): total de atletas
+  no banco = 857; buscar tudo (paginando `page_size=100`, o máximo
+  aceito pelo backend) leva ~0,475s sequencial / ~285KB. Descoberta
+  paralela: o backend já suporta `sort_by`/`sort_dir` nativo em
+  `/atletas`, mas o frontend nunca usava — a ordenação (`useMultiSort`)
+  rodava só sobre a página atual de 20 itens, não sobre o dataset
+  inteiro (bug de corretude, não só performance).
+- Decisão: dataset pequeno demais (857/285KB, <0.5s) pra justificar
+  streaming progressivo ("mostra os primeiros, vai completando em
+  background") — implementado cache completo em memória:
+  `listarTodosAtletas()` (`src/api/atletas.ts`) pagina internamente até
+  a última página e retorna tudo de uma vez.
+- Decisão: filtro (nome/posição/mando), ordenação e paginação em
+  `Jogadores.tsx` passam a rodar 100% client-side sobre o cache — nome
+  buscado com `.toLowerCase().includes(...)`, sem round-trip ao backend
+  a cada interação. Não usei o `sort_by` do backend (resolver tudo no
+  cliente é mais simples e não depende de sincronizar com o outro
+  repo); o parâmetro server-side fica disponível pra um cenário futuro
+  onde o dataset não caiba mais em memória.
+- Risco aceito: cache não expira/não recarrega sozinho — só é buscado
+  de novo se a página for recarregada. Se o dado mudar no backend
+  (nova rodada, etc.) o usuário só vê a atualização dando refresh.
+  Aceitável pro tamanho e a frequência de mudança dos dados hoje; YAGNI
+  invalidação automática enquanto não for um problema real.

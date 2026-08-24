@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { listarAtletas, type Atleta, type Posicao } from '../api/atletas'
+import { listarTodosAtletas, type Atleta, type Posicao } from '../api/atletas'
 import PositionChips from '../components/PositionChips'
 import MandoRodada from '../components/MandoRodada'
 import SortableHeader from '../components/SortableHeader'
@@ -29,9 +29,12 @@ export default function Jogadores() {
   const [posicoes, setPosicoes] = useState<Posicao[]>([])
   const [mando, setMando] = useState<'' | 'casa' | 'fora' | 'sem_jogo'>('')
   const [page, setPage] = useState(1)
-  const [atletas, setAtletas] = useState<Atleta[] | null>(null)
+  // Cache local — todos os atletas buscados uma única vez ao montar.
+  // Filtro, ordenação e paginação rodam 100% no cliente sobre esse
+  // array, sem round-trip ao backend a cada interação (dataset medido
+  // em ~857 atletas / ~285KB, carrega em <0.5s — ver docs/decisions).
+  const [todosAtletas, setTodosAtletas] = useState<Atleta[] | null>(null)
   const [erro, setErro] = useState<string | null>(null)
-  const { criteria, sortedItems, toggleSort } = useMultiSort(atletas ?? [], sortAccessors)
 
   useEffect(() => {
     const timer = setTimeout(() => setNomeDebounced(nomeInput), DEBOUNCE_MS)
@@ -40,15 +43,9 @@ export default function Jogadores() {
 
   useEffect(() => {
     let ativo = true
-    listarAtletas({
-      nome: nomeDebounced || undefined,
-      posicao: posicoes.length > 0 ? posicoes : undefined,
-      mando: mando || undefined,
-      page,
-      page_size: PAGE_SIZE,
-    })
+    listarTodosAtletas()
       .then((dados) => {
-        if (ativo) setAtletas(dados)
+        if (ativo) setTodosAtletas(dados)
       })
       .catch((err: Error) => {
         if (ativo) setErro(err.message)
@@ -56,7 +53,7 @@ export default function Jogadores() {
     return () => {
       ativo = false
     }
-  }, [nomeDebounced, posicoes, mando, page])
+  }, [])
 
   function togglePosicao(posicao: Posicao) {
     setPage(1)
@@ -64,6 +61,24 @@ export default function Jogadores() {
       atual.includes(posicao) ? atual.filter((p) => p !== posicao) : [...atual, posicao],
     )
   }
+
+  const filtrados = useMemo(() => {
+    if (!todosAtletas) return []
+    const nomeBusca = nomeDebounced.trim().toLowerCase()
+    return todosAtletas.filter((atleta) => {
+      if (nomeBusca && !atleta.nome.toLowerCase().includes(nomeBusca)) return false
+      if (posicoes.length > 0 && !posicoes.includes(atleta.posicao)) return false
+      if (mando && atleta.mando_rodada !== mando) return false
+      return true
+    })
+  }, [todosAtletas, nomeDebounced, posicoes, mando])
+
+  const { criteria, sortedItems, toggleSort } = useMultiSort(filtrados, sortAccessors)
+
+  const atletasDaPagina = useMemo(
+    () => sortedItems.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE),
+    [sortedItems, page],
+  )
 
   function sortState(key: SortKey) {
     const index = criteria.findIndex((criterion) => criterion.key === key)
@@ -129,10 +144,10 @@ export default function Jogadores() {
       </div>
 
       {erro && <p role="alert">{erro}</p>}
-      {!erro && !atletas && <p>Carregando jogadores…</p>}
-      {!erro && atletas && atletas.length === 0 && <p>Nenhum jogador encontrado.</p>}
+      {!erro && !todosAtletas && <p>Carregando jogadores…</p>}
+      {!erro && todosAtletas && sortedItems.length === 0 && <p>Nenhum jogador encontrado.</p>}
 
-      {!erro && atletas && atletas.length > 0 && (
+      {!erro && todosAtletas && sortedItems.length > 0 && (
         <div className="players-list-card" role="table">
           <div className="players-list-inner">
             <div className="player-row-header" role="row">
@@ -184,7 +199,7 @@ export default function Jogadores() {
               />
             </div>
             <div role="rowgroup">
-              {sortedItems.map((atleta) => (
+              {atletasDaPagina.map((atleta) => (
                 <Link
                   key={atleta.id}
                   to={`/jogadores/${atleta.id}`}
@@ -249,7 +264,7 @@ export default function Jogadores() {
         <span> Página {page} </span>
         <button
           type="button"
-          disabled={!atletas || atletas.length < PAGE_SIZE}
+          disabled={page * PAGE_SIZE >= sortedItems.length}
           onClick={() => setPage((p) => p + 1)}
         >
           Próxima

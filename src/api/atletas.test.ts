@@ -1,6 +1,26 @@
 import { describe, it, expect, vi } from 'vitest'
-import { buscarAtleta, buscarHistoricoAtleta, listarAtletas } from './atletas'
+import { buscarAtleta, buscarHistoricoAtleta, listarAtletas, listarTodosAtletas } from './atletas'
 import * as client from './client'
+
+function atletaFake(id: number) {
+  return {
+    id,
+    nome: `Atleta ${id}`,
+    posicao: 'ATA' as const,
+    clube_id: 1,
+    clube_nome: 'CLB',
+    preco_atual: 5,
+    media_geral: 5,
+    media_casa: 5,
+    media_fora: 5,
+    rodada_atual: 1,
+    mando_rodada: 'casa' as const,
+    chance_pontuar_percentual: null,
+    chance_pontuar_classificacao: null,
+    media_basica: 5,
+    overall_score: null,
+  }
+}
 
 describe('listarAtletas', () => {
   it('calls GET /atletas with no query params by default', async () => {
@@ -51,6 +71,33 @@ describe('listarAtletas', () => {
     const result = await listarAtletas()
 
     expect(result).toEqual([atleta])
+  })
+})
+
+describe('listarTodosAtletas', () => {
+  it('busca todas as páginas (100 por vez) até uma página incompleta', async () => {
+    const apiGetSpy = vi.spyOn(client, 'apiGet')
+    apiGetSpy.mockResolvedValueOnce(Array.from({ length: 100 }, (_, i) => atletaFake(i)))
+    apiGetSpy.mockResolvedValueOnce(Array.from({ length: 100 }, (_, i) => atletaFake(100 + i)))
+    apiGetSpy.mockResolvedValueOnce(Array.from({ length: 57 }, (_, i) => atletaFake(200 + i)))
+
+    const resultado = await listarTodosAtletas()
+
+    expect(apiGetSpy).toHaveBeenCalledTimes(3)
+    expect(apiGetSpy).toHaveBeenNthCalledWith(1, '/atletas?page=1&page_size=100')
+    expect(apiGetSpy).toHaveBeenNthCalledWith(2, '/atletas?page=2&page_size=100')
+    expect(apiGetSpy).toHaveBeenNthCalledWith(3, '/atletas?page=3&page_size=100')
+    expect(resultado).toHaveLength(257)
+  })
+
+  it('para na primeira página quando ela já vem incompleta', async () => {
+    const apiGetSpy = vi.spyOn(client, 'apiGet')
+    apiGetSpy.mockResolvedValueOnce(Array.from({ length: 5 }, (_, i) => atletaFake(i)))
+
+    const resultado = await listarTodosAtletas()
+
+    expect(apiGetSpy).toHaveBeenCalledTimes(1)
+    expect(resultado).toHaveLength(5)
   })
 })
 

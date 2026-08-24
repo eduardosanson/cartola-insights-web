@@ -56,6 +56,29 @@ export function listarAtletas(filtros: FiltrosAtletas = {}): Promise<Atleta[]> {
   return apiGet<Atleta[]>(`/atletas${query ? `?${query}` : ''}`)
 }
 
+// Maior page_size aceito pelo backend (ver validação `le=100` em
+// backend/app/contexts/estatisticas/api/atletas.py).
+const TAMANHO_MAX_PAGINA = 100
+
+/**
+ * Busca todos os atletas do banco, paginando internamente até a última
+ * página. Dataset medido em ~857 atletas / ~285KB — cabe inteiro em
+ * memória e carrega em <0.5s (9 páginas sequenciais); vira a base pro
+ * cache local que filtro/ordenação/paginação usam no cliente, sem
+ * round-trip ao backend a cada interação.
+ */
+export async function listarTodosAtletas(): Promise<Atleta[]> {
+  const todos: Atleta[] = []
+  let page = 1
+  while (true) {
+    const pagina = await listarAtletas({ page, page_size: TAMANHO_MAX_PAGINA })
+    todos.push(...pagina)
+    if (pagina.length < TAMANHO_MAX_PAGINA) break
+    page += 1
+  }
+  return todos
+}
+
 export function buscarAtleta(id: number): Promise<Atleta> {
   return apiGet<Atleta>(`/atletas/${id}`)
 }
