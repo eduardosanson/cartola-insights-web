@@ -18,6 +18,7 @@ const sortAccessors = {
   // sem dado (null) fica sempre por ultimo, tanto em ordem crescente quanto
   // decrescente — -1 nunca colide com um percentual real (0-100).
   chance_pontuar_percentual: (atleta: Atleta) => atleta.chance_pontuar_percentual ?? -1,
+  overall_score: (atleta: Atleta) => atleta.overall_score ?? -1,
 }
 
 type SortKey = keyof typeof sortAccessors
@@ -74,6 +75,7 @@ export default function Jogadores() {
   const basica = sortState('media_basica')
   const casa = sortState('media_casa')
   const fora = sortState('media_fora')
+  const overall = sortState('overall_score')
   const chance = sortState('chance_pontuar_percentual')
 
   return (
@@ -170,6 +172,12 @@ export default function Jogadores() {
               />
               <SortableHeader
                 as="div"
+                label="Overall"
+                {...overall}
+                onToggle={() => toggleSort('overall_score')}
+              />
+              <SortableHeader
+                as="div"
                 label="Chance de pontuar"
                 {...chance}
                 onToggle={() => toggleSort('chance_pontuar_percentual')}
@@ -210,6 +218,9 @@ export default function Jogadores() {
                   </span>
                   <span role="cell" className="num away">
                     {formatNumber(atleta.media_fora)}
+                  </span>
+                  <span role="cell" className="num">
+                    {atleta.overall_score === null ? '—' : formatNumber(atleta.overall_score)}
                   </span>
                   <span role="cell">
                     {atleta.chance_pontuar_classificacao === null ? (

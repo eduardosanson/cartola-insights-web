@@ -20,6 +20,7 @@ const atleta = {
   chance_pontuar_percentual: null,
   chance_pontuar_classificacao: null,
   media_basica: 4.123,
+  overall_score: 69.3,
 }
 
 function renderJogadores() {
@@ -240,6 +241,43 @@ describe('Jogadores', () => {
     const rows = screen.getAllByRole('row')
     expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
     expect(within(rows[2]).getByText('—')).toBeInTheDocument()
+  })
+
+  it('shows the overall column, and a dash when there is no data (e.g. TEC)', async () => {
+    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'ComOverall', overall_score: 69.3 },
+      {
+        ...atleta,
+        id: 2,
+        nome: 'SemOverall',
+        overall_score: null,
+        chance_pontuar_classificacao: 'alta',
+      },
+    ])
+    renderJogadores()
+    await screen.findByText('ComOverall')
+
+    const rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('69,3')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('—')).toBeInTheDocument()
+  })
+
+  it('sorts by overall, with atletas sem dado ficando por ultimo', async () => {
+    vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Media', overall_score: 60 },
+      { ...atleta, id: 2, nome: 'SemDado', overall_score: null },
+      { ...atleta, id: 3, nome: 'Alta', overall_score: 90 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Media')
+
+    await user.click(screen.getByRole('button', { name: /overall/i }))
+
+    const rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('Media')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
   })
 
   it('shows the media basica column', async () => {

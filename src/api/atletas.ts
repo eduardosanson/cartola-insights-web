@@ -18,6 +18,7 @@ export interface Atleta {
   chance_pontuar_percentual: number | null
   chance_pontuar_classificacao: 'baixa' | 'media' | 'alta' | null
   media_basica: number
+  overall_score: number | null
 }
 
 export interface FiltrosAtletas {

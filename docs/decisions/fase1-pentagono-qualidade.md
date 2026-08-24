@@ -85,3 +85,17 @@
   (`getBoundingClientRect`): alturas iguais (438,7px) e gap de 32px
   (as duas margens de 1rem, sem colapsar — mesmo padrão do resto da
   página) restaurado.
+
+## Coluna Overall na listagem de jogadores — 2026-08-24
+
+- Decisão: coluna "Overall" adicionada em `Jogadores.tsx` logo antes de
+  "Chance de pontuar" (que o usuário pediu pra manter como última
+  coluna) — não no fim da tabela, quebrando o padrão de "sempre
+  anexar no final" usado nas colunas anteriores (`media_basica`,
+  `chance_pontuar`).
+- Decisão: `overall_score: number | null` adicionado ao tipo `Atleta` —
+  o campo já vinha pronto do endpoint `/atletas` (calculado no
+  backend), só faltava o tipo no cliente. Ordenação segue o mesmo
+  padrão de `chance_pontuar_percentual` (`?? -1`, nulo sempre por
+  último em qualquer direção) e exibição usa `—` pra nulo (ex.: TEC),
+  mesmo padrão visual da coluna de chance de pontuar.

@@ -22,6 +22,7 @@ const atleta = {
   chance_pontuar_percentual: null,
   chance_pontuar_classificacao: null,
   media_basica: 4.123,
+  overall_score: 69.3,
 }
 
 const perfilRisco = {
