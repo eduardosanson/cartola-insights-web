@@ -77,3 +77,109 @@ a {
 .sort-button:focus-visible {
   color: var(--accent-home);
 }
+
+/* Redesign visual (Fase 7) — reconstrói a linguagem de cards/painéis da
+   POC original em cima do HTML semântico já existente (table/section/
+   header/dl), sem mudar nenhum componente ou teste. */
+
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+
+thead th {
+  text-align: left;
+  font-family: var(--font-heading);
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--accent-home) 6%, var(--bg-elevated));
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+tbody td {
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid var(--border);
+}
+
+tbody tr:last-child td {
+  border-bottom: none;
+}
+
+tbody tr:hover td {
+  background: color-mix(in srgb, var(--accent-home) 5%, transparent);
+}
+
+/* Painéis (header do jogador, radar, raio-x, perfil-risco) — cada
+   <section>/<header> de nível superior vira um card com respiro. */
+header,
+section {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  margin: 1rem 0;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.04);
+}
+
+/* Chips de filtro sem estilo próprio (ex.: mando) — mesmo visual dos que
+   já têm inline style (posição), sem duplicar a lógica de cada um. */
+[role="group"] button {
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  padding: 0.25rem 0.9rem;
+  font-family: var(--font-heading);
+  cursor: pointer;
+}
+
+[role="group"] button[aria-pressed="true"] {
+  background: var(--accent-home);
+  border-color: var(--accent-home);
+  color: white;
+}
+
+dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 1.5rem;
+  margin: 0.5rem 0;
+}
+
+dl dt {
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  width: 100%;
+}
+
+dl dd {
+  margin: 0 0 0.35rem;
+  font-size: 1.15rem;
+}
+
+input[type='search'],
+input[type='text'],
+input[type='email'],
+input[type='password'] {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+button {
+  font-family: var(--font-heading);
+}
