@@ -7,9 +7,11 @@ import {
   type PartidaHistorico,
 } from '../api/atletas'
 import { buscarPercentisAtleta, type PercentisAtleta } from '../api/percentis'
+import { buscarRaioXConfronto, type RaioXConfronto as RaioXConfrontoTipo } from '../api/raioX'
 import { formatNumber } from '../utils/formatNumber'
 import MandoRodada from '../components/MandoRodada'
 import RadarAtributos from '../components/RadarAtributos'
+import RaioXConfronto from '../components/RaioXConfronto'
 
 export default function DetalheJogador() {
   const { id } = useParams<{ id: string }>()
@@ -18,6 +20,8 @@ export default function DetalheJogador() {
   const [erro, setErro] = useState<string | null>(null)
   const [percentis, setPercentis] = useState<PercentisAtleta | null>(null)
   const [erroPercentis, setErroPercentis] = useState<string | null>(null)
+  const [raioX, setRaioX] = useState<RaioXConfrontoTipo | null>(null)
+  const [erroRaioX, setErroRaioX] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -42,6 +46,13 @@ export default function DetalheJogador() {
     buscarPercentisAtleta(Number(id))
       .then(setPercentis)
       .catch((err: Error) => setErroPercentis(err.message))
+  }, [id])
+
+  useEffect(() => {
+    if (!id) return
+    buscarRaioXConfronto(Number(id))
+      .then(setRaioX)
+      .catch((err: Error) => setErroRaioX(err.message))
   }, [id])
 
   return (
@@ -77,6 +88,9 @@ export default function DetalheJogador() {
 
       {percentis && <RadarAtributos percentis={percentis} />}
       {erroPercentis && <p>{erroPercentis}</p>}
+
+      {raioX && <RaioXConfronto raioX={raioX} />}
+      {erroRaioX && <p>{erroRaioX}</p>}
 
       {!erro && historico && historico.length === 0 && <p>Sem histórico disponível.</p>}
 

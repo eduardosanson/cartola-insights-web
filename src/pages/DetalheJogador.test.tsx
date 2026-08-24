@@ -4,6 +4,7 @@ import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import DetalheJogador from './DetalheJogador'
 import * as atletasApi from '../api/atletas'
 import * as percentisApi from '../api/percentis'
+import * as raioXApi from '../api/raioX'
 
 const atleta = {
   id: 1,
@@ -46,6 +47,18 @@ describe('DetalheJogador', () => {
       participacao_gol: 91,
       desarme: 40,
       disciplina: 65,
+    })
+    vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockResolvedValue({
+      atleta_id: 1,
+      posicao: 'ATA',
+      rodada: 24,
+      mando: 'casa',
+      clube_adversario_id: 267,
+      clube_adversario_nome: 'Vasco',
+      media_no_mando: 7.15,
+      pontos_cedidos_adversario: 4.89,
+      participacao_pontuacao_time_media: 12.4,
+      veredito: 'referencia_do_time',
     })
   })
 
@@ -163,5 +176,27 @@ describe('DetalheJogador', () => {
     expect(await screen.findByText(/dados insuficientes/i)).toBeInTheDocument()
     // a página não quebra: o histórico continua aparecendo normalmente
     expect(await screen.findByText('Vasco')).toBeInTheDocument()
+  })
+
+  it('mostra o raio-x quando ele carrega com sucesso', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText('Raio-X do confronto')).toBeInTheDocument()
+    expect(screen.getByText('Referência do time')).toBeInTheDocument()
+  })
+
+  it('mostra a mensagem de erro no lugar do raio-x quando o raio-x da 404', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+    vi.mocked(raioXApi.buscarRaioXConfronto).mockRejectedValue(
+      new Error('raio-x nao disponivel para tecnico'),
+    )
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText(/raio-x nao disponivel/i)).toBeInTheDocument()
   })
 })
