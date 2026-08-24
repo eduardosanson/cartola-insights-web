@@ -107,3 +107,14 @@
   quebrava o alinhamento de cabeçalho e células. Corrigido adicionando
   a 11ª trilha (`88px`, mesmo tamanho das outras colunas numéricas) e
   ajustando `.players-list-inner { min-width }` de 760px pra 848px.
+- Segundo bug, mesma raiz: sem `minmax()`, as colunas de Nome/Clube
+  (`1.7fr`/`1.1fr`) não têm piso mínimo — quando o grid fica mais
+  apertado (a coluna Overall tomou espaço), o `fr` encolhe até o
+  min-content da célula, que pra texto quebrável é só a palavra mais
+  longa. Resultado: "Léo Condé" quebrava em duas linhas, "Vagner
+  Mancini"/"Dorival Júnior" também, deixando a tabela com cara de
+  quebrada/espremida à esquerda. Corrigido com
+  `minmax(130px, 1.7fr)`/`minmax(64px, 1.1fr)` (nomes cabem numa linha
+  só) e `.players-list-inner { min-width }` ajustado pra 1140px —
+  a tabela passa a exigir mais scroll horizontal em telas estreitas,
+  mas não quebra mais o conteúdo pra caber.

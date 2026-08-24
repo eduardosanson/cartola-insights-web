@@ -197,13 +197,18 @@ button {
 }
 
 .players-list-inner {
-  min-width: 848px;
+  min-width: 1140px;
 }
 
+/* minmax() nas colunas de nome/clube — sem piso, o fr encolhe até o
+   min-content assim que o grid fica apertado (ex.: coluna nova),
+   quebrando "Léo Condé" em duas linhas e espremendo tudo à esquerda. */
 .player-row-header,
 .player-row {
   display: grid;
-  grid-template-columns: 1.7fr 1.1fr 64px 96px 80px 88px 88px 88px 88px 88px 132px;
+  grid-template-columns:
+    minmax(130px, 1.7fr) minmax(64px, 1.1fr) 64px 96px 80px 88px 88px 88px
+    88px 88px 132px;
   align-items: center;
   gap: 0.6rem;
   padding: 0.55rem 0.85rem;
