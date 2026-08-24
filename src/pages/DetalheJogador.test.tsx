@@ -21,6 +21,7 @@ const atleta = {
   mando_rodada: 'casa' as const,
   chance_pontuar_percentual: null,
   chance_pontuar_classificacao: null,
+  media_basica: 4.123,
 }
 
 const perfilRisco = {

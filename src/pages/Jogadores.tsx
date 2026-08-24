@@ -144,6 +144,9 @@ export default function Jogadores() {
                 {...geral}
                 onToggle={() => toggleSort('media_geral')}
               />
+              <div role="columnheader" className="numeric">
+                Média básica
+              </div>
               <SortableHeader
                 as="div"
                 label="Média casa"
@@ -184,6 +187,9 @@ export default function Jogadores() {
                   </span>
                   <span role="cell" className="num">
                     {formatNumber(atleta.media_geral)}
+                  </span>
+                  <span role="cell" className="num base" title="Média sem pontos ponderados de gol/assistência">
+                    {formatNumber(atleta.media_basica)}
                   </span>
                   <span role="cell" className="num home">
                     {formatNumber(atleta.media_casa)}

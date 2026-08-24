@@ -19,6 +19,7 @@ const atleta = {
   mando_rodada: 'casa' as const,
   chance_pontuar_percentual: null,
   chance_pontuar_classificacao: null,
+  media_basica: 4.123,
 }
 
 function renderJogadores() {
@@ -207,6 +208,13 @@ describe('Jogadores', () => {
     const rows = screen.getAllByRole('row')
     expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
     expect(within(rows[2]).getByText('—')).toBeInTheDocument()
+  })
+
+  it('shows the media basica column', async () => {
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    expect(screen.getByText('4,12')).toBeInTheDocument()
   })
 
   it('renders each player row as a single link to the detail page, not just the name', async () => {

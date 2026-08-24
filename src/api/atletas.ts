@@ -17,6 +17,7 @@ export interface Atleta {
   mando_rodada: MandoRodada
   chance_pontuar_percentual: number | null
   chance_pontuar_classificacao: 'baixa' | 'media' | 'alta' | null
+  media_basica: number
 }
 
 export interface FiltrosAtletas {
