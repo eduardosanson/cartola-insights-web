@@ -57,12 +57,12 @@ página, com seu próprio componente.
 
 ## Definition of Done (DOD)
 
-- [ ] Código implementado e compilando
-- [ ] Testes escritos e passando, cobertura ≥ 90%
-- [ ] Lint sem erros
-- [ ] Evidências capturadas (`docs/evidence/fase3e-perfil-risco.md`)
-- [ ] Passo a passo de validação humana escrito
-- [ ] Integrado em `main`
+- [x] Código implementado e compilando
+- [x] Testes escritos e passando, cobertura ≥ 90%
+- [x] Lint sem erros
+- [x] Evidências capturadas (`docs/evidence/fase3e-perfil-risco.md`)
+- [x] Passo a passo de validação humana escrito
+- [x] Integrado em `main`
 
 > Roadmap será atualizado centralmente depois que 3c+3d, 3e e Fase 5
 > estiverem todos prontos — não há task de "atualizar roadmap" nesta fase.
