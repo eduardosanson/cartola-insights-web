@@ -131,3 +131,11 @@
   de cabeçalho ordenáveis (`.sort-button`) viraram `text-align: left`
   (eram `right`) — cabeçalho e valor passam a alinhar na borda
   esquerda da coluna, em vez da direita.
+- Correção do ajuste acima: usuário esclareceu que a direção certa era
+  a direita mesmo (o padrão original) — revertido `.num`/`.sort-button`
+  pra `text-align: right`. De quebra, corrigido um desalinhamento que
+  já existia antes de qualquer mudança desta sessão: a célula de
+  "Chance de pontuar" nunca teve a classe `.num` (só o cabeçalho
+  alinhava à direita, o valor/badge ficava à esquerda por padrão) —
+  adicionada `className="num"` na célula em `Jogadores.tsx` pra
+  cabeçalho e valor baterem no mesmo lado.

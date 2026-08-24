@@ -232,7 +232,7 @@ button {
    white-space:nowrap e transborda por cima da coluna vizinha. */
 .player-row-header .sort-button {
   white-space: normal;
-  text-align: left;
+  text-align: right;
   line-height: 1.2;
 }
 
@@ -280,7 +280,7 @@ button {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
   font-weight: 600;
-  text-align: left;
+  text-align: right;
 }
 
 .player-row .num.home {

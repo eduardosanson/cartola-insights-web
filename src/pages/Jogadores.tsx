@@ -222,7 +222,7 @@ export default function Jogadores() {
                   <span role="cell" className="num">
                     {atleta.overall_score === null ? '—' : formatNumber(atleta.overall_score)}
                   </span>
-                  <span role="cell">
+                  <span role="cell" className="num">
                     {atleta.chance_pontuar_classificacao === null ? (
                       '—'
                     ) : (
