@@ -562,6 +562,16 @@ figure {
   stroke-linejoin: round;
 }
 
+/* Polígono do Atleta B no Pentágono Dual (comparador) — mesma forma do
+   polígono padrão, cor --accent-away pra distinguir do Atleta A. */
+.pentagon-player-poly-b {
+  fill: var(--accent-away);
+  fill-opacity: 0.28;
+  stroke: var(--accent-away);
+  stroke-width: 2.25;
+  stroke-linejoin: round;
+}
+
 .pentagon-vertex {
   fill: var(--accent-home);
   stroke: #ffffff;
