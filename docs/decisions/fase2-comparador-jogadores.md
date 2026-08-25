@@ -27,3 +27,18 @@
   um autocomplete compartilhado antes desta fase; `Jogadores.tsx` só
   tinha um campo de busca simples sem dropdown de seleção.
 
+## TDD → BUILD (Bloco C — Comparar.tsx) — 2026-08-25
+
+- Decisão: cache de dados por id de atleta (`Record<number, DadosAtleta>`),
+  não por slot A/B — permite que a inversão de atletas do Bloco E
+  (Fase 2) troque `a`/`b` na URL sem refazer as 8 chamadas, já que os
+  dados buscados continuam disponíveis pelo id em si.
+- Decisão: as 8 chamadas só disparam quando `a` e `b` estão os dois
+  presentes e válidos na URL — um slot vazio (ou `a`/`b` não numérico)
+  não gera busca parcial; a tela cai no estado de seleção com os dois
+  `AtletaAutocomplete`.
+- Decisão: selecionar um atleta em qualquer um dos dois seletores
+  escreve o id em `a`/`b` via `setSearchParams` — a URL é a única fonte
+  de verdade de "quem está sendo comparado", reaproveitada por
+  compartilhamento de link (RF02) sem estado adicional.
+
