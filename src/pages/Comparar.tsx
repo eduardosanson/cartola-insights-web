@@ -5,6 +5,7 @@ import { buscarPercentisAtleta, type PercentisAtleta } from '../api/percentis'
 import { buscarRaioXConfronto, type RaioXConfronto as RaioXConfrontoTipo } from '../api/raioX'
 import { buscarPerfilRiscoAtleta, type PerfilRisco } from '../api/perfilRisco'
 import AtletaAutocomplete from '../components/AtletaAutocomplete'
+import BlocosComparacao from '../components/BlocosComparacao'
 
 type StatusAtleta = 'carregando' | 'ok' | 'erro-parcial'
 
@@ -119,8 +120,11 @@ export default function Comparar() {
 
   return (
     <div className="comparar-conteudo">
-      <BlocoAtleta dados={dadosA} />
-      <BlocoAtleta dados={dadosB} />
+      <div className="comparar-duo">
+        <BlocoAtleta dados={dadosA} />
+        <BlocoAtleta dados={dadosB} />
+      </div>
+      <BlocoComparacoes dadosA={dadosA} dadosB={dadosB} />
     </div>
   )
 }
@@ -128,9 +132,7 @@ export default function Comparar() {
 /**
  * Placeholder mínimo por atleta: nome quando disponível e "Dados
  * insuficientes" no lugar dos blocos analíticos quando alguma das 4
- * chamadas falhou (RNF04/CA05). Os blocos de fato (Pentágono Dual,
- * head-to-head, raio-X, perfil de risco) são construídos na Fase 2
- * Bloco D, sobre este mesmo estado.
+ * chamadas falhou (RNF04/CA05).
  */
 function BlocoAtleta({ dados }: { dados: DadosAtleta | undefined }) {
   if (!dados || dados.status === 'carregando') {
@@ -142,5 +144,56 @@ function BlocoAtleta({ dados }: { dados: DadosAtleta | undefined }) {
       {dados.atleta && <h2>{dados.atleta.nome}</h2>}
       {dados.status === 'erro-parcial' && <p>Dados insuficientes</p>}
     </div>
+  )
+}
+
+/**
+ * Os 4 blocos analíticos (RF05-RF08, componente `BlocosComparacao`) só
+ * fazem sentido quando os dois atletas carregaram por completo — um
+ * confronto lado a lado não tem como "degradar graciosamente" pra um
+ * atleta só, e a Fase 2 não pede isso (RNF04 já é atendido pelo
+ * placeholder "Dados insuficientes" do `BlocoAtleta` acima, por atleta).
+ * Guarda única e explícita em vez de encadear `!` non-null: cada campo é
+ * checado aqui, e o componente filho já recebe os tipos estreitados.
+ */
+function BlocoComparacoes({
+  dadosA,
+  dadosB,
+}: {
+  dadosA: DadosAtleta | undefined
+  dadosB: DadosAtleta | undefined
+}) {
+  if (
+    !dadosA ||
+    !dadosB ||
+    dadosA.status !== 'ok' ||
+    dadosB.status !== 'ok' ||
+    !dadosA.atleta ||
+    !dadosB.atleta ||
+    !dadosA.percentis ||
+    !dadosB.percentis ||
+    !dadosA.raioX ||
+    !dadosB.raioX ||
+    !dadosA.perfilRisco ||
+    !dadosB.perfilRisco
+  ) {
+    return null
+  }
+
+  return (
+    <BlocosComparacao
+      dadosA={{
+        atleta: dadosA.atleta,
+        percentis: dadosA.percentis,
+        raioX: dadosA.raioX,
+        perfilRisco: dadosA.perfilRisco,
+      }}
+      dadosB={{
+        atleta: dadosB.atleta,
+        percentis: dadosB.percentis,
+        raioX: dadosB.raioX,
+        perfilRisco: dadosB.perfilRisco,
+      }}
+    />
   )
 }

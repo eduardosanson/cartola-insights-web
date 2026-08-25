@@ -1,6 +1,6 @@
 import { StrictMode } from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, fireEvent, waitFor } from '@testing-library/react'
+import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { MemoryRouter, Routes, Route } from 'react-router-dom'
 import Comparar from './Comparar'
@@ -264,8 +264,166 @@ describe('Comparar', () => {
     // StrictMode) pulava os ids já "marcados" pelo dedupe persistente,
     // e a 1ª execução tinha suas respostas descartadas pelo cleanup —
     // a tela ficava presa em "Carregando atleta…" pra sempre.
-    expect(await screen.findByText('Atleta A')).toBeInTheDocument()
-    expect(await screen.findByText('Atleta B')).toBeInTheDocument()
+    // findAllByText (não findByText): com os blocos analíticos (Bloco D)
+    // wireados, o nome de cada atleta aparece em mais de um lugar (h2,
+    // legenda do pentágono, cabeçalho da tabela head-to-head, bloco de
+    // risco) — o teste só precisa confirmar que os dois atletas carregaram,
+    // não a contagem de repetições do nome.
+    expect(await screen.findAllByText('Atleta A')).not.toHaveLength(0)
+    expect(await screen.findAllByText('Atleta B')).not.toHaveLength(0)
     expect(screen.queryByText('Carregando atleta…')).not.toBeInTheDocument()
+  })
+
+  describe('blocos analíticos (Bloco D)', () => {
+    it('renderiza o Pentágono Dual quando os dois atletas carregam com sucesso e são da mesma categoria', async () => {
+      vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation((id) =>
+        Promise.resolve(criarAtleta({ id, nome: id === 123 ? 'Atleta A' : 'Atleta B' })),
+      )
+      vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockResolvedValue(percentisPadrao)
+      vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockResolvedValue(raioXPadrao)
+      vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockResolvedValue(perfilRiscoPadrao)
+
+      renderComparar('?a=123&b=456')
+
+      expect(await screen.findByTestId('pentagono-jogador-a')).toBeInTheDocument()
+      expect(screen.getByTestId('pentagono-jogador-b')).toBeInTheDocument()
+      expect(screen.queryByText(/posições não comparáveis/i)).not.toBeInTheDocument()
+    })
+
+    it('cai para dois pentágonos individuais lado a lado + aviso quando as posições são incompatíveis (GOL vs. linha, CA03)', async () => {
+      const percentisGol = {
+        atleta_id: 456,
+        pontuacao_media: 88,
+        defesas: 80,
+        solidez_sg: 70,
+        disciplina: 90,
+        media_basica: 60,
+      }
+      vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation((id) =>
+        Promise.resolve(
+          criarAtleta({
+            id,
+            nome: id === 123 ? 'Atleta A' : 'Atleta B',
+            posicao: id === 123 ? 'ATA' : 'GOL',
+          }),
+        ),
+      )
+      vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockImplementation((id) =>
+        Promise.resolve(id === 456 ? percentisGol : percentisPadrao),
+      )
+      vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockResolvedValue(raioXPadrao)
+      vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockResolvedValue(perfilRiscoPadrao)
+
+      renderComparar('?a=123&b=456')
+
+      expect(await screen.findByText(/posições não comparáveis/i)).toBeInTheDocument()
+      expect(screen.getAllByTestId('pentagono-jogador')).toHaveLength(2)
+      expect(screen.queryByTestId('pentagono-jogador-a')).not.toBeInTheDocument()
+    })
+
+    it('tabela Head-to-Head marca com badge o atleta com maior valor em cada métrica (brutos.*)', async () => {
+      const percentisComBrutosA = {
+        atleta_id: 123,
+        pontuacao_media: 90,
+        participacao_gol: 80,
+        desarme: 40,
+        disciplina: 70,
+        media_basica: 75,
+        brutos: {
+          pontuacao_media: 9.0,
+          participacao_gol: 0.7,
+          desarme: 1.2,
+          disciplina: 0.9,
+          media_basica: 5.5,
+        },
+      }
+      const percentisComBrutosB = {
+        atleta_id: 456,
+        pontuacao_media: 60,
+        participacao_gol: 55,
+        desarme: 70,
+        disciplina: 50,
+        media_basica: 60,
+        brutos: {
+          pontuacao_media: 6.5,
+          participacao_gol: 0.5,
+          desarme: 2.0,
+          disciplina: 0.6,
+          media_basica: 4.0,
+        },
+      }
+      vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation((id) =>
+        Promise.resolve(criarAtleta({ id, nome: id === 123 ? 'Atleta A' : 'Atleta B' })),
+      )
+      vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockImplementation((id) =>
+        Promise.resolve(id === 123 ? percentisComBrutosA : percentisComBrutosB),
+      )
+      vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockResolvedValue(raioXPadrao)
+      vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockResolvedValue(perfilRiscoPadrao)
+
+      renderComparar('?a=123&b=456')
+
+      const tabela = within(await screen.findByRole('table'))
+      const linhaPoderDeFogo = tabela.getByText('Poder de Fogo').closest('tr')!
+      const linhaCombate = tabela.getByText('Combate').closest('tr')!
+
+      // "Poder de Fogo": Atleta A tem bruto maior (9,0 > 6,5) — badge no A
+      expect(within(linhaPoderDeFogo).getAllByText('Maior')).toHaveLength(1)
+      const celulasA = within(linhaPoderDeFogo).getAllByRole('cell')[1]
+      expect(within(celulasA).queryByText('Maior')).toBeInTheDocument()
+
+      // "Combate": Atleta B tem bruto maior (2,0 > 1,2) — badge no B
+      expect(within(linhaCombate).getAllByText('Maior')).toHaveLength(1)
+      const celulasB = within(linhaCombate).getAllByRole('cell')[2]
+      expect(within(celulasB).queryByText('Maior')).toBeInTheDocument()
+    })
+
+    it('bloco Raio-X mostra o RaioXConfronto (mando, adversário, veredito) dos dois atletas lado a lado', async () => {
+      vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation((id) =>
+        Promise.resolve(criarAtleta({ id, nome: id === 123 ? 'Atleta A' : 'Atleta B' })),
+      )
+      vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockResolvedValue(percentisPadrao)
+      vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockImplementation((id) =>
+        Promise.resolve({
+          ...raioXPadrao,
+          atleta_id: id,
+          clube_adversario_nome: id === 123 ? 'Vasco' : 'Botafogo',
+        }),
+      )
+      vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockResolvedValue(perfilRiscoPadrao)
+
+      renderComparar('?a=123&b=456')
+
+      expect(await screen.findByText('Vasco cede em média')).toBeInTheDocument()
+      expect(screen.getByText('Botafogo cede em média')).toBeInTheDocument()
+      expect(screen.getAllByText('Referência do time')).toHaveLength(2)
+      expect(screen.getAllByText('Média em casa')).toHaveLength(2)
+    })
+
+    it('bloco Perfil de Risco mostra a classificação e a distribuição retorno-direto/participação dos dois atletas lado a lado', async () => {
+      vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation((id) =>
+        Promise.resolve(criarAtleta({ id, nome: id === 123 ? 'Atleta A' : 'Atleta B' })),
+      )
+      vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockResolvedValue(percentisPadrao)
+      vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockResolvedValue(raioXPadrao)
+      vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockImplementation((id) =>
+        Promise.resolve({
+          ...perfilRiscoPadrao,
+          atleta_id: id,
+          classificacao: id === 123 ? 'alto' : 'baixo',
+          pontos_retorno_direto: id === 123 ? 132 : 40,
+          pontos_participacao: id === 123 ? 56.5 : 20,
+        }),
+      )
+
+      renderComparar('?a=123&b=456')
+
+      expect(await screen.findByText(/risco alto/i)).toBeInTheDocument()
+      expect(screen.getByText(/risco baixo/i)).toBeInTheDocument()
+      expect(screen.getAllByText('Retorno direto')).toHaveLength(2)
+      expect(screen.getAllByText('Participação')).toHaveLength(2)
+      expect(screen.getByText('132')).toBeInTheDocument()
+      expect(screen.getByText('56,5')).toBeInTheDocument()
+    })
   })
 })
