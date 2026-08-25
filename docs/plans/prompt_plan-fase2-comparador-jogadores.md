@@ -4,6 +4,8 @@
 
 ## Ordem de Implementação
 
+## Task 1
+
 ### Bloco A — `AtletaAutocomplete.tsx` (independente, sem dependência dos outros blocos)
 
 1. [ ] Teste (RED): `AtletaAutocomplete` renderiza um `input type="search"`
@@ -22,6 +24,8 @@
    ordenação por `posicaoPrioritaria` quando presente.
 5. [ ] Rodar os 3 testes acima e confirmar GREEN.
 6. [ ] Commit: `feat: adiciona AtletaAutocomplete para seleção de atletas`.
+
+## Task 2
 
 ### Bloco B — `PentagonoDual.tsx` (depende de `PentagonoQualidade.tsx`, já em `main`)
 
@@ -53,6 +57,8 @@
 11. [ ] Rodar os testes do Bloco B e confirmar GREEN.
 12. [ ] Commit: `feat: adiciona PentagonoDual para comparação de dois atletas`.
 
+## Task 3
+
 ### Bloco C — `Comparar.tsx`: orquestração de dados (depende de A e B)
 
 13. [ ] Teste (RED): ao montar com `?a=123&b=456` na URL, `Comparar`
@@ -74,6 +80,8 @@
     `AtletaAutocomplete` quando os IDs não estão setados.
 17. [ ] Rodar os testes do Bloco C e confirmar GREEN.
 18. [ ] Commit: `feat: adiciona página Comparar com busca paralela de dois atletas`.
+
+## Task 4
 
 ### Bloco D — Blocos analíticos: Pentágono Dual, Head-to-Head, Raio-X, Perfil de Risco (depende de A, B, C)
 
@@ -99,6 +107,8 @@
     `Jogadores.tsx`, não um breakpoint novo (RNF03).
 24. [ ] Rodar os testes do Bloco D e confirmar GREEN.
 25. [ ] Commit: `feat: adiciona blocos de comparação (pentágono, head-to-head, raio-x, perfil de risco)`.
+
+## Task 5
 
 ### Bloco E — Navegação, inversão, integração e DOD
 
