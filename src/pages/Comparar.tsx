@@ -31,21 +31,35 @@ export default function Comparar() {
   const idA = lerId(searchParams.get('a'))
   const idB = lerId(searchParams.get('b'))
 
-  // Cache por id de atleta (não por slot A/B) — permite que a futura
-  // inversão de atletas (Fase 2, Bloco E) troque `a`/`b` na URL sem
-  // refazer as 8 chamadas de rede, já que os dados já buscados
-  // continuam disponíveis pelo id.
+  // Cache por id de atleta (não por slot A/B) — mantém a distinção
+  // entre "quem é A" e "quem é B" fora da chave dos dados, então uma
+  // futura troca de rótulos não precisa remodelar o estado. NÃO tenta
+  // (ainda) evitar refetch entre execuções do efeito — ver nota abaixo
+  // sobre por que essa otimização foi removida.
   const [cache, setCache] = useState<Record<number, DadosAtleta>>({})
-  const solicitados = useRef<Set<number>>(new Set())
+  // Guarda de dedupe DENTRO de uma única execução do efeito (só evita
+  // 8 chamadas quando idA === idB) — resetada no início de TODA
+  // execução, nunca reaproveitada entre execuções. Ver nota no efeito
+  // sobre por que ela não pode sobreviver ao cleanup.
+  const vistosRef = useRef<Set<number>>(new Set())
 
   useEffect(() => {
     // As 8 chamadas só disparam quando os dois ids estão presentes e
     // válidos na URL (RF02/brief) — um slot vazio não gera busca parcial.
     if (idA === null || idB === null) return
     let ativo = true
+    // Reseta a cada execução do efeito — se esse Set sobrevivesse ao
+    // cleanup (ex.: só criado uma vez fora do efeito), o comportamento
+    // sob StrictMode quebraria: o React roda efeito→cleanup→efeito de
+    // novo no mount; a 2ª execução pularia os ids já "marcados" pela
+    // 1ª, e a 1ª teria suas respostas descartadas pelo cleanup (`ativo`
+    // vira false) — a tela ficaria presa em "Carregando atleta…" pra
+    // sempre. Resetando aqui, a 2ª execução do StrictMode dispara suas
+    // próprias 8 chamadas do zero e as conclui normalmente.
+    vistosRef.current = new Set()
     for (const id of [idA, idB]) {
-      if (solicitados.current.has(id)) continue
-      solicitados.current.add(id)
+      if (vistosRef.current.has(id)) continue
+      vistosRef.current.add(id)
       setCache((atual) => ({
         ...atual,
         [id]: { status: 'carregando', atleta: null, percentis: null, raioX: null, perfilRisco: null },

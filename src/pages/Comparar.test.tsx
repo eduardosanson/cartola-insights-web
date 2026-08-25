@@ -1,3 +1,4 @@
+import { StrictMode } from 'react'
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -71,6 +72,22 @@ function renderComparar(query = '') {
   )
 }
 
+// Reproduz o ambiente real da app (src/main.tsx envolve <App /> em
+// <StrictMode>), que dispara efeito→cleanup→efeito de novo no mount em
+// dev — os testes acima com renderComparar() não pegam esse cenário
+// porque MemoryRouter sozinho roda o efeito uma única vez.
+function renderCompararStrictMode(query = '') {
+  return render(
+    <StrictMode>
+      <MemoryRouter initialEntries={[`/comparar${query}`]}>
+        <Routes>
+          <Route path="/comparar" element={<Comparar />} />
+        </Routes>
+      </MemoryRouter>
+    </StrictMode>,
+  )
+}
+
 describe('Comparar', () => {
   beforeEach(() => {
     vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([])
@@ -100,7 +117,7 @@ describe('Comparar', () => {
     expect(perfilRiscoApi.buscarPerfilRiscoAtleta).toHaveBeenCalledTimes(2)
   })
 
-  it('não duplica a busca quando "a" e "b" apontam pro mesmo id (dedupe por cache de id)', async () => {
+  it('não duplica a busca quando "a" e "b" apontam pro mesmo id (dedupe dentro da mesma execução do efeito)', async () => {
     vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(criarAtleta({ id: 123, nome: 'Atleta A' }))
     vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockResolvedValue(percentisPadrao)
     vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockResolvedValue(raioXPadrao)
@@ -231,5 +248,24 @@ describe('Comparar', () => {
     // atleta B falhou até em buscarAtleta — sem nome pra exibir, mas o
     // placeholder de dados insuficientes aparece e o Atleta A não é afetado
     expect(screen.getAllByText('Dados insuficientes')).toHaveLength(1)
+  })
+
+  it('sob StrictMode (efeito roda duas vezes no mount, como em produção), não trava em "Carregando" pra sempre', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation((id) =>
+      Promise.resolve(criarAtleta({ id, nome: id === 123 ? 'Atleta A' : 'Atleta B' })),
+    )
+    vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockResolvedValue(percentisPadrao)
+    vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockResolvedValue(raioXPadrao)
+    vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockResolvedValue(perfilRiscoPadrao)
+
+    renderCompararStrictMode('?a=123&b=456')
+
+    // Antes da correção, a 2ª execução do efeito (disparada pelo
+    // StrictMode) pulava os ids já "marcados" pelo dedupe persistente,
+    // e a 1ª execução tinha suas respostas descartadas pelo cleanup —
+    // a tela ficava presa em "Carregando atleta…" pra sempre.
+    expect(await screen.findByText('Atleta A')).toBeInTheDocument()
+    expect(await screen.findByText('Atleta B')).toBeInTheDocument()
+    expect(screen.queryByText('Carregando atleta…')).not.toBeInTheDocument()
   })
 })
