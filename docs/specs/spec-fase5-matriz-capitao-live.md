@@ -62,7 +62,7 @@ pré-fechamento com sugestão de troca).
 - [x] Lint sem erros
 - [x] Evidências capturadas (`docs/evidence/fase5-matriz-capitao-live.md`)
 - [x] Passo a passo de validação humana escrito
-- [ ] Integrado em `main`
+- [x] Integrado em `main`
 
 ## Fora de Escopo
 

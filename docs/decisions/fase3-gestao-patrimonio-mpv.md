@@ -52,3 +52,8 @@
 - Correção: o conteúdo do detalhe é remontado pela chave da rota ao trocar
   `/jogadores/:id`, limpando atleta, histórico e blocos analíticos enquanto as
   novas requests carregam. Isso impede exibir MPV ou erro do jogador anterior.
+
+## Integração — 2026-08-25
+
+- A branch `eduardosanson/Roadmap-2` foi integrada em `main` por fast-forward
+  após revisão e suíte final com 192 testes aprovados.

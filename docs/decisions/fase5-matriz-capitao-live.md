@@ -35,9 +35,14 @@
   na próxima consulta; apenas `visibilityState === 'visible'` dispara nova
   checagem.
 - Evidência final após revisão integrada: 192 testes passaram; cobertura
-  global de 97,94% statements, 90,94% branches, 99,23% functions e 99,23%
+  global de 97,94% statements, 90,75% branches, 99,23% functions e 99,23%
   lines; lint e build aprovados.
 - Integração de contrato: backend do worktree retornou HTTP 200 com 5
   candidatos, 534 alterações desde epoch e um substituto real para o primeiro
   candidato. O container padrão em `:8000` estava desatualizado; a validação
   usou o source atual em `:8001`.
+
+## Integração — 2026-08-25
+
+- A branch `eduardosanson/Roadmap-2` foi integrada em `main` por fast-forward;
+  o backend correspondente já estava publicado em `origin/main`.

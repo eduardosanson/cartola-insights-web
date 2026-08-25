@@ -27,7 +27,7 @@ Resultado real:
 Test Files  36 passed (36)
 Tests       192 passed (192)
 Statements  97.94% (716/731)
-Branches    90.94% (472/519)
+Branches    90.75% (471/519)
 Functions   99.23% (258/260)
 Lines       99.23% (645/650)
 ```
@@ -52,10 +52,10 @@ Resultado real:
 
 ```text
 ✓ 66 modules transformed
-✓ built in 232ms
+✓ built in 256ms
 ```
 
-O Vite passou a avisar que o bundle principal ficou acima de 500 kB após minificação (506,88 kB). É um aviso de otimização futura, não erro de build.
+O Vite passou a avisar que o bundle principal ficou acima de 500 kB após minificação (506,73 kB). É um aviso de otimização futura, não erro de build.
 
 ## Contrato e integração real
 

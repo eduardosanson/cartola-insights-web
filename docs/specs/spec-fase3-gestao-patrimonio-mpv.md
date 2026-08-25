@@ -76,7 +76,7 @@ número oficial.
 - [x] Lint sem erros
 - [x] Evidências capturadas (`docs/evidence/fase3-gestao-patrimonio-mpv.md`)
 - [x] Passo a passo de validação humana escrito
-- [ ] Integrado em `main`
+- [x] Integrado em `main`
 
 ## Fora de Escopo
 

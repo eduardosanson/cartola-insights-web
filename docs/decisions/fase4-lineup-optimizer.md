@@ -29,3 +29,8 @@
   linhas semânticas e empilhamento de cards abaixo de 640 px.
 - Validação real: backend e Vite locais retornaram uma escalação 4-3-3
   completa para C$ 100, com nomes hidratados e zero erros no console.
+
+## Integração — 2026-08-25
+
+- A branch `eduardosanson/Roadmap-2` foi integrada em `main` por fast-forward
+  após revisão, validação real e suíte final aprovada.
