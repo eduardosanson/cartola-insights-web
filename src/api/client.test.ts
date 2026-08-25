@@ -37,6 +37,23 @@ describe('apiGet', () => {
     await expect(apiGet('/clubes')).rejects.toThrow(/500/)
   })
 
+  it('preserva o status HTTP no erro', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 422,
+        statusText: 'Unprocessable Entity',
+        json: async () => ({ detail: 'entrada inválida' }),
+      }),
+    )
+
+    await expect(apiGet('/clubes')).rejects.toMatchObject({
+      message: 'entrada inválida',
+      status: 422,
+    })
+  })
+
   it('throws a clear error on a network failure', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new Error('connection refused')))
 

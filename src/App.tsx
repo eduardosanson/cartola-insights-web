@@ -8,6 +8,11 @@ import DetalheJogador from './pages/DetalheJogador'
 import Login from './pages/Login'
 import Registro from './pages/Registro'
 import MinhaConta from './pages/MinhaConta'
+import Comparar from './pages/Comparar'
+import Patrimonio from './pages/Patrimonio'
+import Escalador from './pages/Escalador'
+import MatrizCapitao from './pages/MatrizCapitao'
+import AlertasMercado from './pages/AlertasMercado'
 
 function App() {
   return (
@@ -21,6 +26,11 @@ function App() {
             <Route path="/tabela" element={<Tabela />} />
             <Route path="/jogadores" element={<Jogadores />} />
             <Route path="/jogadores/:id" element={<DetalheJogador />} />
+            <Route path="/comparar" element={<Comparar />} />
+            <Route path="/patrimonio" element={<Patrimonio />} />
+            <Route path="/escalador" element={<Escalador />} />
+            <Route path="/capitaes" element={<MatrizCapitao />} />
+            <Route path="/alertas" element={<AlertasMercado />} />
             <Route path="/entrar" element={<Login />} />
             <Route path="/registrar" element={<Registro />} />
             <Route

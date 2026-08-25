@@ -1,5 +1,15 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
+export class ApiError extends Error {
+  readonly status: number
+
+  constructor(message: string, status: number) {
+    super(message)
+    this.name = 'ApiError'
+    this.status = status
+  }
+}
+
 async function extrairMensagemDeErro(path: string, response: Response): Promise<string> {
   try {
     const corpo = (await response.json()) as { detail?: unknown }
@@ -19,7 +29,7 @@ async function requisitar<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (!response.ok) {
-    throw new Error(await extrairMensagemDeErro(path, response))
+    throw new ApiError(await extrairMensagemDeErro(path, response), response.status)
   }
 
   if (response.status === 204) return undefined as T

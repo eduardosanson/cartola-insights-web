@@ -16,3 +16,16 @@
   tipado no cliente (`src/api/otimizador.ts`), não tratado como falha
   de rede genérica — a UI depende de distinguir esse caso pra mostrar
   RF05 corretamente.
+
+## Implementação e validação — 2026-08-25
+
+- Decisão: como o contrato do otimizador retorna IDs, preços e objetivo,
+  mas não nomes, a tela hidrata os 12 IDs em paralelo com
+  `buscarAtleta()`. Falhas individuais mantêm o card navegável com o ID,
+  sem invalidar a escalação ótima já calculada.
+- Decisão: os links usam a rota existente `/jogadores/{id}` de
+  `DetalheJogador.tsx`; não foi criada uma rota paralela `/atletas/{id}`.
+- Decisão: o campo tático é CSS nativo, sem dependência visual nova, com
+  linhas semânticas e empilhamento de cards abaixo de 640 px.
+- Validação real: backend e Vite locais retornaram uma escalação 4-3-3
+  completa para C$ 100, com nomes hidratados e zero erros no console.

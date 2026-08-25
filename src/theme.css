@@ -184,6 +184,137 @@ button {
   font-family: var(--font-heading);
 }
 
+.otimizador-form {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+  align-items: end;
+}
+
+.otimizador-form label {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.otimizador-form input,
+.otimizador-form select {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  font: inherit;
+  background: var(--bg-elevated);
+  color: var(--text);
+}
+
+.otimizador-form button {
+  grid-column: 1 / -1;
+  justify-self: start;
+  border: 0;
+  border-radius: 8px;
+  padding: 0.65rem 1rem;
+  color: white;
+  background: var(--accent-home);
+  cursor: pointer;
+}
+
+.otimizador-form button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.formacao-resumo,
+.estimativa-nota {
+  color: var(--text-muted);
+}
+
+.modo-descricao {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: var(--text-muted);
+}
+
+.otimizador-totais > div {
+  min-width: 10rem;
+}
+
+.campo-tatico {
+  display: grid;
+  gap: 1rem;
+  padding: 1.25rem;
+  border: 2px solid color-mix(in srgb, var(--accent-home) 60%, var(--border));
+  border-radius: 12px;
+  background:
+    linear-gradient(90deg, transparent 49.8%, rgba(255, 255, 255, 0.18) 50%, transparent 50.2%),
+    color-mix(in srgb, var(--accent-home) 25%, var(--bg-elevated));
+}
+
+.campo-linha {
+  display: grid;
+  gap: 0.4rem;
+}
+
+.campo-linha-rotulo {
+  font-family: var(--font-heading);
+  color: var(--text-muted);
+  text-align: center;
+}
+
+.campo-atletas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-evenly;
+  gap: 0.75rem;
+}
+
+.campo-atleta {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 9rem;
+  max-width: 13rem;
+  padding: 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
+  color: var(--text);
+  text-align: center;
+  text-decoration: none;
+  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+}
+
+.campo-atleta:hover,
+.campo-atleta:focus-visible {
+  border-color: var(--accent-home);
+  transform: translateY(-1px);
+}
+
+.campo-atleta span {
+  font-size: 0.82rem;
+}
+
+.campo-tecnico .campo-atleta {
+  margin-inline: auto;
+}
+
+@media (max-width: 640px) {
+  .otimizador-form {
+    grid-template-columns: 1fr;
+  }
+
+  .campo-tatico {
+    padding: 0.75rem;
+  }
+
+  .campo-atletas {
+    flex-direction: column;
+  }
+
+  .campo-atleta {
+    width: 100%;
+    max-width: none;
+  }
+}
+
 /* Lista de jogadores — card único com linhas em grid clicáveis (Fase 7,
    reproduz players-list-card/player-row da POC). Cada linha é o <Link>
    inteiro, não só o nome — navega e é focável por teclado como qualquer
@@ -375,6 +506,117 @@ button {
 
 .detalhe-topo header {
   margin: 1rem 0;
+}
+
+.mpv-estimado {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent-home) 5%, var(--bg-elevated));
+}
+
+.mpv-estimado p {
+  margin: 0.35rem 0 0;
+}
+
+.mpv-estimado small {
+  color: var(--text-muted);
+}
+
+.simulador-valorizacao input[type='range'] {
+  display: block;
+  width: min(100%, 520px);
+  margin: 0.75rem 0;
+}
+
+.curva-faixa-inicial {
+  fill: color-mix(in srgb, var(--accent-home) 12%, transparent);
+}
+
+.curva-eixo {
+  stroke: var(--border-strong);
+  stroke-dasharray: 4 4;
+}
+
+.curva-linha {
+  stroke: var(--accent-home);
+  stroke-width: 3;
+}
+
+.curva-transicao circle {
+  fill: var(--accent-home);
+}
+
+.matriz-capitao,
+.alertas-mercado {
+  display: grid;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.matriz-capitao > li,
+.alerta-mercado-card {
+  padding: 1rem;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--bg-elevated);
+}
+
+.matriz-capitao > .capitao-destaque {
+  border-color: var(--accent-home);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent-home) 20%, transparent);
+}
+
+.capitao-cabecalho,
+.alerta-mercado-card > header {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.capitao-cabecalho h3,
+.alerta-mercado-card h3 {
+  margin: 0.25rem 0;
+}
+
+.capitao-selo,
+.status-alerta {
+  display: inline-block;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  color: white;
+  background: var(--accent-home);
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+}
+
+.status-alerta {
+  background: var(--accent-away);
+}
+
+.capitao-metricas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.capitao-metricas > div {
+  min-width: 8rem;
+}
+
+.capitao-metricas dd {
+  margin: 0.25rem 0 0;
+  font-family: var(--font-heading);
+}
+
+.substituto-sugerido {
+  margin-top: 1rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
 }
 
 /* A moldura do cartão vira da figure inteira (SVG + legenda), não só do

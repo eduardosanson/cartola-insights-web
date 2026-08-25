@@ -30,6 +30,20 @@ describe('Nav', () => {
       </MemoryRouter>,
     )
     expect(screen.getByRole('link', { name: /entrar/i })).toBeInTheDocument()
+    expect(screen.getByRole('link', { name: /comparar/i })).toHaveAttribute('href', '/comparar')
+    expect(screen.getByRole('link', { name: /patrimônio/i })).toHaveAttribute(
+      'href',
+      '/patrimonio',
+    )
+    expect(screen.getByRole('link', { name: /escalador/i })).toHaveAttribute(
+      'href',
+      '/escalador',
+    )
+    expect(screen.getByRole('link', { name: /matriz de capitão/i })).toHaveAttribute(
+      'href',
+      '/capitaes',
+    )
+    expect(screen.getByRole('link', { name: /^alertas$/i })).toHaveAttribute('href', '/alertas')
   })
 
   it('mostra o email e o botão Sair quando logado', async () => {

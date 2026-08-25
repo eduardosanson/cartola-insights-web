@@ -6,6 +6,7 @@ import * as atletasApi from '../api/atletas'
 import * as percentisApi from '../api/percentis'
 import * as raioXApi from '../api/raioX'
 import * as perfilRiscoApi from '../api/perfilRisco'
+import * as mpvApi from '../api/mpv'
 
 const atleta = {
   id: 1,
@@ -76,6 +77,13 @@ describe('DetalheJogador', () => {
       veredito: 'referencia_do_time',
     })
     vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockResolvedValue(perfilRisco)
+    vi.spyOn(mpvApi, 'buscarMpvAtleta').mockResolvedValue({
+      mpv_estimado: 2,
+      faixa_preco: { min: 1, max: 10 },
+      coeficientes: { a: 0.5, b: -1 },
+      amostras: 35,
+      confiavel: true,
+    })
   })
 
   it('loads atleta and histórico from the API on a direct access', async () => {
@@ -264,5 +272,44 @@ describe('DetalheJogador', () => {
     expect(topo).not.toBeNull()
     expect(topo).toContainElement(heading)
     expect(topo).toContainElement(pentagono)
+  })
+
+  it('mostra MPV com selo permanente de estimativa historica', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([])
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText('C$ 2,00')).toBeInTheDocument()
+    expect(screen.getByText(/estimativa baseada em dados históricos/i)).toBeInTheDocument()
+  })
+
+  it('mostra dados insuficientes quando o MPV nao e confiavel', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([])
+    vi.mocked(mpvApi.buscarMpvAtleta).mockResolvedValue({
+      mpv_estimado: null,
+      faixa_preco: { min: 1, max: 10 },
+      coeficientes: { a: 0, b: 0 },
+      amostras: 3,
+      confiavel: false,
+    })
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText(/dados insuficientes ainda para estimar/i)).toBeInTheDocument()
+    expect(screen.queryByText(/C\$ NaN/i)).not.toBeInTheDocument()
+  })
+
+  it('mapeia 404 de dados de MPV para o estado insuficiente', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([])
+    vi.mocked(mpvApi.buscarMpvAtleta).mockRejectedValue(
+      new Error('dados insuficientes — sem preço registrado para o atleta'),
+    )
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText(/dados insuficientes ainda para estimar/i)).toBeInTheDocument()
   })
 })

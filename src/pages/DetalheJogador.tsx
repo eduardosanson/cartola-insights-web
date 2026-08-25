@@ -9,7 +9,8 @@ import {
 import { buscarPercentisAtleta, type PercentisAtleta } from '../api/percentis'
 import { buscarRaioXConfronto, type RaioXConfronto as RaioXConfrontoTipo } from '../api/raioX'
 import { buscarPerfilRiscoAtleta, type PerfilRisco } from '../api/perfilRisco'
-import { formatNumber } from '../utils/formatNumber'
+import { buscarMpvAtleta, type MpvAtleta } from '../api/mpv'
+import { formatCurrency, formatNumber } from '../utils/formatNumber'
 import MandoRodada from '../components/MandoRodada'
 import PentagonoQualidade from '../components/PentagonoQualidade'
 import RaioXConfronto from '../components/RaioXConfronto'
@@ -27,6 +28,8 @@ export default function DetalheJogador() {
   const [erroRaioX, setErroRaioX] = useState<string | null>(null)
   const [perfilRisco, setPerfilRisco] = useState<PerfilRisco | null>(null)
   const [erroPerfilRisco, setErroPerfilRisco] = useState<string | null>(null)
+  const [mpv, setMpv] = useState<MpvAtleta | null>(null)
+  const [erroMpv, setErroMpv] = useState<string | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -67,6 +70,25 @@ export default function DetalheJogador() {
       .catch((err: Error) => setErroPerfilRisco(err.message))
   }, [id])
 
+  useEffect(() => {
+    if (!id) return
+    let ativo = true
+    buscarMpvAtleta(Number(id))
+      .then((dados) => {
+        if (ativo) setMpv(dados)
+      })
+      .catch((err: Error) => {
+        if (ativo) setErroMpv(err.message)
+      })
+    return () => {
+      ativo = false
+    }
+  }, [id])
+
+  const mpvInsuficiente =
+    (mpv !== null && (!mpv.confiavel || mpv.mpv_estimado === null)) ||
+    (erroMpv !== null && /insuficiente|sem preço|faixas de preço/i.test(erroMpv))
+
   return (
     <div>
       <Link to="/jogadores">← Jogadores</Link>
@@ -97,6 +119,17 @@ export default function DetalheJogador() {
             <p className="numeric">
               Média básica <span>{formatNumber(atleta.media_basica)}</span>
             </p>
+            <div className="mpv-estimado">
+              <strong>MPV estimado</strong>
+              {mpv?.confiavel && mpv.mpv_estimado !== null && (
+                <p>
+                  <span className="numeric">{formatCurrency(mpv.mpv_estimado)}</span>{' '}
+                  <small>estimativa baseada em dados históricos</small>
+                </p>
+              )}
+              {mpvInsuficiente && <p>Dados insuficientes ainda para estimar.</p>}
+              {erroMpv && !mpvInsuficiente && <p>{erroMpv}</p>}
+            </div>
             <SplitBars mediaCasa={atleta.media_casa} mediaFora={atleta.media_fora} />
           </header>
         )}

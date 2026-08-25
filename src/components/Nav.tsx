@@ -26,6 +26,7 @@ export default function Nav() {
     <nav
       style={{
         display: 'flex',
+        flexWrap: 'wrap',
         gap: '0.5rem',
         alignItems: 'center',
         borderBottom: '1px solid var(--border)',
@@ -37,6 +38,21 @@ export default function Nav() {
       </NavLink>
       <NavLink to="/jogadores" style={linkStyle}>
         Jogadores
+      </NavLink>
+      <NavLink to="/comparar" style={linkStyle}>
+        Comparar
+      </NavLink>
+      <NavLink to="/patrimonio" style={linkStyle}>
+        Patrimônio
+      </NavLink>
+      <NavLink to="/escalador" style={linkStyle}>
+        Escalador
+      </NavLink>
+      <NavLink to="/capitaes" style={linkStyle}>
+        Matriz de Capitão
+      </NavLink>
+      <NavLink to="/alertas" style={linkStyle}>
+        Alertas
       </NavLink>
       <div style={{ marginLeft: 'auto', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
         {usuario ? (
