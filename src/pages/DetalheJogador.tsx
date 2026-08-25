@@ -19,6 +19,11 @@ import SplitBars from '../components/SplitBars'
 
 export default function DetalheJogador() {
   const { id } = useParams<{ id: string }>()
+
+  return <DetalheJogadorConteudo key={id} id={id} />
+}
+
+function DetalheJogadorConteudo({ id }: { id: string | undefined }) {
   const [atleta, setAtleta] = useState<Atleta | null>(null)
   const [historico, setHistorico] = useState<PartidaHistorico[] | null>(null)
   const [erro, setErro] = useState<string | null>(null)

@@ -34,8 +34,9 @@
   falha repete a mesma janela e uma alteração ocorrida durante a request entra
   na próxima consulta; apenas `visibilityState === 'visible'` dispara nova
   checagem.
-- Evidência: 191 testes passaram; cobertura global de 97,94% statements,
-  90,75% branches, 99,22% functions e 99,22% lines; lint e build aprovados.
+- Evidência final após revisão integrada: 192 testes passaram; cobertura
+  global de 97,94% statements, 90,94% branches, 99,23% functions e 99,23%
+  lines; lint e build aprovados.
 - Integração de contrato: backend do worktree retornou HTTP 200 com 5
   candidatos, 534 alterações desde epoch e um substituto real para o primeiro
   candidato. O container padrão em `:8000` estava desatualizado; a validação

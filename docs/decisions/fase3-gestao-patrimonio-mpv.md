@@ -49,3 +49,6 @@
 - Correção: o simulador trata tanto `confiavel: false` quanto
   `mpv_estimado: null` como dados insuficientes, inclusive quando esses campos
   vierem inconsistentes entre si. O slider nunca é exibido com MPV nulo.
+- Correção: o conteúdo do detalhe é remontado pela chave da rota ao trocar
+  `/jogadores/:id`, limpando atleta, histórico e blocos analíticos enquanto as
+  novas requests carregam. Isso impede exibir MPV ou erro do jogador anterior.

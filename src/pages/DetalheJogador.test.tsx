@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { render, screen, waitFor } from '@testing-library/react'
-import { MemoryRouter, Routes, Route } from 'react-router-dom'
+import { act, render, screen, waitFor } from '@testing-library/react'
+import { createMemoryRouter, MemoryRouter, Route, RouterProvider, Routes } from 'react-router-dom'
 import DetalheJogador from './DetalheJogador'
 import * as atletasApi from '../api/atletas'
 import * as percentisApi from '../api/percentis'
@@ -311,5 +311,57 @@ describe('DetalheJogador', () => {
     renderDetalhe('1', null)
 
     expect(await screen.findByText(/dados insuficientes ainda para estimar/i)).toBeInTheDocument()
+  })
+
+  it('limpa MPV e erro anteriores ao navegar entre jogadores na mesma rota', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation(async (id) => ({
+      ...atleta,
+      id,
+      nome: `Atleta ${id}`,
+    }))
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([])
+    let resolverSegundo: ((valor: mpvApi.MpvAtleta) => void) | undefined
+    vi.mocked(mpvApi.buscarMpvAtleta).mockImplementation((id) => {
+      if (id === 1) {
+        return Promise.resolve({
+          mpv_estimado: 2,
+          faixa_preco: { min: 1, max: 10 },
+          coeficientes: { a: 0.5, b: -1 },
+          amostras: 35,
+          confiavel: true,
+        })
+      }
+      if (id === 2) {
+        return new Promise((resolve) => {
+          resolverSegundo = resolve
+        })
+      }
+      return Promise.reject(new Error('Falha temporária de MPV'))
+    })
+    const router = createMemoryRouter(
+      [{ path: '/jogadores/:id', element: <DetalheJogador /> }],
+      { initialEntries: ['/jogadores/1'] },
+    )
+    render(<RouterProvider router={router} />)
+
+    expect(await screen.findByText('C$ 2,00')).toBeInTheDocument()
+    await act(() => router.navigate('/jogadores/2'))
+    await waitFor(() => expect(mpvApi.buscarMpvAtleta).toHaveBeenCalledWith(2))
+    expect(screen.queryByText('C$ 2,00')).not.toBeInTheDocument()
+
+    resolverSegundo?.({
+      mpv_estimado: 3,
+      faixa_preco: { min: 1, max: 10 },
+      coeficientes: { a: 0.5, b: -1 },
+      amostras: 35,
+      confiavel: true,
+    })
+    expect(await screen.findByText('C$ 3,00')).toBeInTheDocument()
+
+    await act(() => router.navigate('/jogadores/3'))
+    expect(await screen.findByText('Falha temporária de MPV')).toBeInTheDocument()
+    await act(() => router.navigate('/jogadores/1'))
+    expect(await screen.findByText('C$ 2,00')).toBeInTheDocument()
+    expect(screen.queryByText('Falha temporária de MPV')).not.toBeInTheDocument()
   })
 })

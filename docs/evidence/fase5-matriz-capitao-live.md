@@ -25,11 +25,11 @@ Resultado real:
 
 ```text
 Test Files  36 passed (36)
-Tests       191 passed (191)
-Statements  97.94% (715/730)
-Branches    90.75% (471/519)
-Functions   99.22% (257/259)
-Lines       99.22% (644/649)
+Tests       192 passed (192)
+Statements  97.94% (716/731)
+Branches    90.94% (472/519)
+Functions   99.23% (258/260)
+Lines       99.23% (645/650)
 ```
 
 A suíte mantém avisos preexistentes de `act(...)` em testes de `Comparar`, `DetalheJogador` e `App`. O novo teste de `visibilitychange` também pode registrar aviso de atualização assíncrona após o evento, sem falha funcional.
@@ -52,10 +52,10 @@ Resultado real:
 
 ```text
 ✓ 66 modules transformed
-✓ built in 264ms
+✓ built in 232ms
 ```
 
-O Vite passou a avisar que o bundle principal ficou acima de 500 kB após minificação (506,78 kB). É um aviso de otimização futura, não erro de build.
+O Vite passou a avisar que o bundle principal ficou acima de 500 kB após minificação (506,88 kB). É um aviso de otimização futura, não erro de build.
 
 ## Contrato e integração real
 
