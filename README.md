@@ -8,6 +8,13 @@ Consome a API do repositório
 [`cartola-insights-backend`](https://github.com/eduardosanson/cartola-insights-backend)
 (local em `http://localhost:8000` durante o desenvolvimento).
 
+## Produção
+
+A aplicação está publicada na Vercel em
+[`cartola-insights-web.vercel.app`](https://cartola-insights-web.vercel.app).
+O projeto está conectado a este repositório e novos commits na branch `main`
+geram deployments de produção automaticamente.
+
 ## Stack
 
 TypeScript 6 · React 19 · Vite 8 · react-router-dom · Vitest + React Testing
