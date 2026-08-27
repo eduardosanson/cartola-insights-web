@@ -48,12 +48,15 @@ describe('Jogadores', () => {
     expect(atletasApi.listarTodosAtletas).toHaveBeenCalledWith()
   })
 
-  it('renders all position chips, including TEC', async () => {
+  it('renders all position options in position dropdown', async () => {
+    const user = userEvent.setup()
     renderJogadores()
     await screen.findByText('Gabigol')
 
-    for (const posicao of ['GOL', 'ZAG', 'LAT', 'MEI', 'ATA', 'TEC']) {
-      expect(screen.getByRole('button', { name: posicao })).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /Posição/i }))
+
+    for (const posicao of ['Goleiro (GOL)', 'Zagueiro (ZAG)', 'Lateral (LAT)', 'Meia (MEI)', 'Atacante (ATA)', 'Técnico (TEC)']) {
+      expect(screen.getByText(posicao)).toBeInTheDocument()
     }
   })
 
@@ -95,7 +98,7 @@ describe('Jogadores', () => {
     expect(atletasApi.listarTodosAtletas).toHaveBeenCalledTimes(1)
   })
 
-  it('filters by position when a chip is clicked (client-side)', async () => {
+  it('filters by position when an option is clicked in position dropdown (client-side)', async () => {
     vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'Atacante', posicao: 'ATA' },
       { ...atleta, id: 2, nome: 'Goleiro', posicao: 'GOL' },
@@ -104,14 +107,15 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('Atacante')
 
-    await user.click(screen.getByRole('button', { name: 'ATA' }))
+    await user.click(screen.getByRole('button', { name: /Posição/i }))
+    await user.click(screen.getByText('Atacante (ATA)'))
 
     expect(screen.getByText('Atacante')).toBeInTheDocument()
     expect(screen.queryByText('Goleiro')).not.toBeInTheDocument()
     expect(atletasApi.listarTodosAtletas).toHaveBeenCalledTimes(1)
   })
 
-  it('removes an active position filter when the chip is clicked again', async () => {
+  it('removes an active position filter when the option is clicked again', async () => {
     vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'Atacante', posicao: 'ATA' },
       { ...atleta, id: 2, nome: 'Goleiro', posicao: 'GOL' },
@@ -120,9 +124,10 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('Atacante')
 
-    const chip = screen.getByRole('button', { name: 'ATA' })
-    await user.click(chip)
-    await user.click(chip)
+    await user.click(screen.getByRole('button', { name: /Posição/i }))
+    const opcaoATA = screen.getByText('Atacante (ATA)')
+    await user.click(opcaoATA)
+    await user.click(opcaoATA)
 
     expect(screen.getByText('Atacante')).toBeInTheDocument()
     expect(screen.getByText('Goleiro')).toBeInTheDocument()
@@ -136,7 +141,8 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('Goleiro')
 
-    await user.click(screen.getByRole('button', { name: 'ATA' }))
+    await user.click(screen.getByRole('button', { name: /Posição/i }))
+    await user.click(screen.getByText('Atacante (ATA)'))
 
     expect(await screen.findByText(/nenhum jogador/i)).toBeInTheDocument()
   })
@@ -217,7 +223,7 @@ describe('Jogadores', () => {
     expect(within(rows[3]).getByText('Sem jogo')).toBeInTheDocument()
   })
 
-  it('filters by mando when a chip is clicked (client-side)', async () => {
+  it('filters by mando when an option is clicked in mando dropdown (client-side)', async () => {
     vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'Mandante', mando_rodada: 'casa' },
       { ...atleta, id: 2, nome: 'Visitante', mando_rodada: 'fora' },
@@ -226,20 +232,12 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('Mandante')
 
-    await user.click(screen.getByRole('button', { name: 'Casa' }))
+    await user.click(screen.getByRole('button', { name: /Mando/i }))
+    const listbox = screen.getByRole('listbox')
+    await user.click(within(listbox).getByText('Casa'))
 
     expect(screen.getByText('Mandante')).toBeInTheDocument()
     expect(screen.queryByText('Visitante')).not.toBeInTheDocument()
-  })
-
-  it('does not render the Todos button in the mando filter group', async () => {
-    renderJogadores()
-    await screen.findByText('Gabigol')
-
-    const mandoGroup = screen.getByRole('group', { name: /mando/i })
-    expect(within(mandoGroup).queryByRole('button', { name: 'Todos' })).not.toBeInTheDocument()
-    expect(within(mandoGroup).getByRole('button', { name: 'Casa' })).toBeInTheDocument()
-    expect(within(mandoGroup).getByRole('button', { name: 'Fora' })).toBeInTheDocument()
   })
 
   it('toggles off active mando filter when clicked again', async () => {
@@ -251,11 +249,13 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('Mandante')
 
-    const casaBtn = screen.getByRole('button', { name: 'Casa' })
-    await user.click(casaBtn)
+    await user.click(screen.getByRole('button', { name: /Mando/i }))
+    const listbox = screen.getByRole('listbox')
+    const casaOption = within(listbox).getByText('Casa')
+    await user.click(casaOption)
     expect(screen.queryByText('Visitante')).not.toBeInTheDocument()
 
-    await user.click(casaBtn)
+    await user.click(casaOption)
     expect(screen.getByText('Visitante')).toBeInTheDocument()
   })
 
@@ -378,4 +378,50 @@ describe('Jogadores', () => {
     const rows = screen.getAllByRole('row')
     expect(rows[1]).toHaveAttribute('href', '/jogadores/1')
   })
+
+  it('renders StatusBadge for players with status_nome', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Gabigol', status_nome: 'provavel', status_id: 7 },
+    ])
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    const rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByLabelText('Provável')).toBeInTheDocument()
+  })
+
+  it('filters players by multiple statuses in multi-select status dropdown', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Gabigol', status_nome: 'provavel', status_id: 7 },
+      { ...atleta, id: 2, nome: 'Pedro', status_nome: 'duvida', status_id: 2 },
+      { ...atleta, id: 3, nome: 'Weverton', status_nome: 'suspenso', status_id: 3 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    expect(screen.getByText('Pedro')).toBeInTheDocument()
+    expect(screen.getByText('Weverton')).toBeInTheDocument()
+
+    // Abre o dropdown de status
+    await user.click(screen.getByRole('button', { name: /Status/i }))
+
+    // Seleciona Provável
+    await user.click(screen.getByText('Provável'))
+    expect(screen.getByText('Gabigol')).toBeInTheDocument()
+    expect(screen.queryByText('Pedro')).not.toBeInTheDocument()
+    expect(screen.queryByText('Weverton')).not.toBeInTheDocument()
+
+    // Multi-seleção: seleciona também Dúvida
+    await user.click(screen.getByText('Dúvida'))
+    expect(screen.getByText('Gabigol')).toBeInTheDocument()
+    expect(screen.getByText('Pedro')).toBeInTheDocument()
+    expect(screen.queryByText('Weverton')).not.toBeInTheDocument()
+
+    // Desmarca Provável: fica só Dúvida (Pedro)
+    await user.click(screen.getByText('Provável'))
+    expect(screen.queryByText('Gabigol')).not.toBeInTheDocument()
+    expect(screen.getByText('Pedro')).toBeInTheDocument()
+  })
 })
+

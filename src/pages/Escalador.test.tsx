@@ -4,6 +4,7 @@ import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as atletasApi from '../api/atletas'
 import * as api from '../api/otimizador'
+import * as raioXApi from '../api/raioX'
 import Escalador from './Escalador'
 
 const esquemas = {
@@ -42,7 +43,15 @@ describe('Escalador', () => {
     vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation(async (id) => ({
       id,
       nome: `Nome ${id}`,
+      posicao: id === 12 ? 'TEC' : 'GOL',
+      clube_nome: `Clube ${id}`,
     }) as atletasApi.Atleta)
+    vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockImplementation(async (id) => ({
+      atleta_id: id,
+      mando: 'casa',
+      clube_adversario_nome: `Adversário ${id}`,
+      media_no_mando: 6.5,
+    }) as raioXApi.RaioXConfronto)
   })
 
   it('carrega formações e envia os parâmetros escolhidos', async () => {
@@ -63,6 +72,9 @@ describe('Escalador', () => {
     })
     expect(await screen.findByRole('heading', { name: /escalação sugerida/i })).toBeInTheDocument()
     expect(screen.getByText(/C\$ 40,00 de C\$ 120,00/)).toBeInTheDocument()
+    expect(screen.getByText('Pontuação esperada')).toBeInTheDocument()
+    expect(screen.getByText('45')).toBeInTheDocument()
+    expect(screen.queryByText('Total do objetivo')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /^nome 1\b/i })).toHaveAttribute(
       'href',
       '/jogadores/1',
@@ -83,6 +95,20 @@ describe('Escalador', () => {
       'Aumente o orçamento ou escolha outro esquema',
     )
     expect(screen.queryByRole('heading', { name: /escalação sugerida/i })).not.toBeInTheDocument()
+  })
+
+  it('oferece o modo Overall multifator', async () => {
+    const user = userEvent.setup()
+    renderizar()
+
+    await screen.findByRole('button', { name: /montar escalação ótima/i })
+    await user.selectOptions(screen.getByLabelText(/modo/i), 'overall')
+    expect(screen.getByText(/overall, chance de pontuar, confronto e piso/i)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /montar escalação ótima/i }))
+
+    expect(api.montarEscalacao).toHaveBeenCalledWith(
+      expect.objectContaining({ modo: 'overall' }),
+    )
   })
 
   it('mantém o formulário disponível quando os esquemas falham', async () => {

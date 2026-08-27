@@ -2,6 +2,7 @@ import { apiGet } from './client'
 
 export type Posicao = 'GOL' | 'ZAG' | 'LAT' | 'MEI' | 'ATA' | 'TEC'
 export type MandoRodada = 'casa' | 'fora' | 'sem_jogo'
+export type StatusAtletaNome = 'provavel' | 'duvida' | 'suspenso' | 'contundido' | 'nulo'
 
 export interface Atleta {
   id: number
@@ -19,12 +20,15 @@ export interface Atleta {
   chance_pontuar_classificacao: 'baixa' | 'media' | 'alta' | null
   media_basica: number
   overall_score: number | null
+  status_id?: number | null
+  status_nome?: StatusAtletaNome | null
 }
 
 export interface FiltrosAtletas {
   nome?: string
   posicao?: Posicao[]
-  clube_id?: number
+  clube_id?: number | number[]
+  status_id?: number[]
   mando?: MandoRodada
   page?: number
   page_size?: number

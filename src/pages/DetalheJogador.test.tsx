@@ -364,4 +364,45 @@ describe('DetalheJogador', () => {
     expect(await screen.findByText('C$ 2,00')).toBeInTheDocument()
     expect(screen.queryByText('Falha temporária de MPV')).not.toBeInTheDocument()
   })
+
+  it('renders StatusBadge when atleta has status_nome or status_id', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue({
+      ...atleta,
+      status_nome: 'provavel',
+      status_id: 7,
+    })
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+
+    renderDetalhe('1')
+    await screen.findByText('Gabigol')
+
+    expect(screen.getByText('Provável')).toBeInTheDocument()
+  })
+
+  it('renders the "Comparar jogador" button and opens the comparison modal when clicked', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      atleta,
+      {
+        ...atleta,
+        id: 2,
+        nome: 'Pedro',
+      },
+    ])
+
+    renderDetalhe('1')
+    await screen.findByText('Gabigol')
+
+    const btnComparar = screen.getByRole('button', { name: /Comparar jogador/i })
+    expect(btnComparar).toBeInTheDocument()
+
+    // Clica no botão e abre o modal
+    await act(async () => {
+      btnComparar.click()
+    })
+
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+    expect(screen.getByText(/Comparar com outro jogador/i)).toBeInTheDocument()
+  })
 })

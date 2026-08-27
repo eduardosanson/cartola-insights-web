@@ -16,6 +16,8 @@ import PentagonoQualidade from '../components/PentagonoQualidade'
 import RaioXConfronto from '../components/RaioXConfronto'
 import SeloRisco from '../components/SeloRisco'
 import SplitBars from '../components/SplitBars'
+import StatusBadge from '../components/StatusBadge'
+import ModalCompararJogador from '../components/ModalCompararJogador'
 
 export default function DetalheJogador() {
   const { id } = useParams<{ id: string }>()
@@ -35,6 +37,7 @@ function DetalheJogadorConteudo({ id }: { id: string | undefined }) {
   const [erroPerfilRisco, setErroPerfilRisco] = useState<string | null>(null)
   const [mpv, setMpv] = useState<MpvAtleta | null>(null)
   const [erroMpv, setErroMpv] = useState<string | null>(null)
+  const [modalCompararAberto, setModalCompararAberto] = useState(false)
 
   useEffect(() => {
     if (!id) return
@@ -102,8 +105,20 @@ function DetalheJogadorConteudo({ id }: { id: string | undefined }) {
         {atleta && (
           <header>
             <h2>{atleta.nome}</h2>
+            <p style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <span>
+                {atleta.clube_nome} · {atleta.posicao}
+              </span>
+              <StatusBadge statusNome={atleta.status_nome} statusId={atleta.status_id} />
+            </p>
             <p>
-              {atleta.clube_nome} · {atleta.posicao}
+              <button
+                type="button"
+                className="btn-acao-comparar"
+                onClick={() => setModalCompararAberto(true)}
+              >
+                ⚖️ Comparar jogador
+              </button>
             </p>
             <p>
               <MandoRodada
@@ -145,6 +160,14 @@ function DetalheJogadorConteudo({ id }: { id: string | undefined }) {
         {percentis && <PentagonoQualidade percentis={percentis} />}
         {erroPercentis && <p>{erroPercentis}</p>}
       </div>
+
+      {atleta && (
+        <ModalCompararJogador
+          atletaOrigem={atleta}
+          aberto={modalCompararAberto}
+          onFechar={() => setModalCompararAberto(false)}
+        />
+      )}
 
       {raioX && <RaioXConfronto raioX={raioX} />}
       {erroRaioX && <p>{erroRaioX}</p>}

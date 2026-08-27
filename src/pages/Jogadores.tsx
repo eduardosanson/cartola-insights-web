@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
-import { listarTodosAtletas, type Atleta, type Posicao } from '../api/atletas'
-import PositionChips from '../components/PositionChips'
+import { listarTodosAtletas, type Atleta, type Posicao, type StatusAtletaNome } from '../api/atletas'
+import DropdownFiltro from '../components/DropdownFiltro'
 import MandoRodada from '../components/MandoRodada'
 import SortableHeader from '../components/SortableHeader'
+import StatusBadge from '../components/StatusBadge'
 import { useMultiSort } from '../hooks/useMultiSort'
 import { formatNumber } from '../utils/formatNumber'
 
@@ -27,6 +28,7 @@ export default function Jogadores() {
   const [nomeInput, setNomeInput] = useState('')
   const [nomeDebounced, setNomeDebounced] = useState('')
   const [posicoes, setPosicoes] = useState<Posicao[]>([])
+  const [statusFiltros, setStatusFiltros] = useState<StatusAtletaNome[]>([])
   const [mando, setMando] = useState<'' | 'casa' | 'fora' | 'sem_jogo'>('')
   const [page, setPage] = useState(1)
   // Cache local — todos os atletas buscados uma única vez ao montar.
@@ -55,10 +57,19 @@ export default function Jogadores() {
     }
   }, [])
 
-  function togglePosicao(posicao: Posicao) {
+  function togglePosicao(posicao: string) {
     setPage(1)
+    const pos = posicao as Posicao
     setPosicoes((atual) =>
-      atual.includes(posicao) ? atual.filter((p) => p !== posicao) : [...atual, posicao],
+      atual.includes(pos) ? atual.filter((p) => p !== pos) : [...atual, pos],
+    )
+  }
+
+  function toggleStatus(status: string) {
+    setPage(1)
+    const st = status as StatusAtletaNome
+    setStatusFiltros((atual) =>
+      atual.includes(st) ? atual.filter((s) => s !== st) : [...atual, st],
     )
   }
 
@@ -68,10 +79,16 @@ export default function Jogadores() {
     return todosAtletas.filter((atleta) => {
       if (nomeBusca && !atleta.nome.toLowerCase().includes(nomeBusca)) return false
       if (posicoes.length > 0 && !posicoes.includes(atleta.posicao)) return false
+      if (
+        statusFiltros.length > 0 &&
+        (!atleta.status_nome || !statusFiltros.includes(atleta.status_nome))
+      ) {
+        return false
+      }
       if (mando && atleta.mando_rodada !== mando) return false
       return true
     })
-  }, [todosAtletas, nomeDebounced, posicoes, mando])
+  }, [todosAtletas, nomeDebounced, posicoes, statusFiltros, mando])
 
   const { criteria, sortedItems, toggleSort } = useMultiSort(filtrados, sortAccessors)
 
@@ -119,27 +136,76 @@ export default function Jogadores() {
             }}
           />
         </label>
-        <div className="filter-group">
-          <PositionChips selecionadas={posicoes} onToggle={togglePosicao} />
-        </div>
-        <div
-          className="filter-group"
-          role="group"
-          aria-label="Filtrar por mando do próximo jogo"
-        >
-          {(['casa', 'fora'] as const).map((valor) => (
-            <button
-              key={valor}
-              type="button"
-              aria-pressed={mando === valor}
-              onClick={() => {
-                setPage(1)
-                setMando((atual) => (atual === valor ? '' : valor))
-              }}
-            >
-              {valor === 'casa' ? 'Casa' : 'Fora'}
-            </button>
-          ))}
+        <div className="filter-dropdowns">
+          <DropdownFiltro
+            label="Status"
+            opcoes={[
+              {
+                valor: 'provavel',
+                label: 'Provável',
+                badge: <StatusBadge statusNome="provavel" iconeApenas />,
+              },
+              {
+                valor: 'duvida',
+                label: 'Dúvida',
+                badge: <StatusBadge statusNome="duvida" iconeApenas />,
+              },
+              {
+                valor: 'suspenso',
+                label: 'Suspenso',
+                badge: <StatusBadge statusNome="suspenso" iconeApenas />,
+              },
+              {
+                valor: 'contundido',
+                label: 'Contundido',
+                badge: <StatusBadge statusNome="contundido" iconeApenas />,
+              },
+              {
+                valor: 'nulo',
+                label: 'Nulo',
+                badge: <StatusBadge statusNome="nulo" iconeApenas />,
+              },
+            ]}
+            selecionados={statusFiltros}
+            onToggle={toggleStatus}
+            onLimpar={() => {
+              setPage(1)
+              setStatusFiltros([])
+            }}
+          />
+          <DropdownFiltro
+            label="Posição"
+            opcoes={[
+              { valor: 'GOL', label: 'Goleiro (GOL)' },
+              { valor: 'ZAG', label: 'Zagueiro (ZAG)' },
+              { valor: 'LAT', label: 'Lateral (LAT)' },
+              { valor: 'MEI', label: 'Meia (MEI)' },
+              { valor: 'ATA', label: 'Atacante (ATA)' },
+              { valor: 'TEC', label: 'Técnico (TEC)' },
+            ]}
+            selecionados={posicoes}
+            onToggle={togglePosicao}
+            onLimpar={() => {
+              setPage(1)
+              setPosicoes([])
+            }}
+          />
+          <DropdownFiltro
+            label="Mando"
+            opcoes={[
+              { valor: 'casa', label: 'Casa' },
+              { valor: 'fora', label: 'Fora' },
+            ]}
+            selecionados={mando ? [mando] : []}
+            onToggle={(v) => {
+              setPage(1)
+              setMando((atual) => (atual === v ? '' : (v as 'casa' | 'fora')))
+            }}
+            onLimpar={() => {
+              setPage(1)
+              setMando('')
+            }}
+          />
         </div>
       </div>
 
@@ -152,6 +218,9 @@ export default function Jogadores() {
           <div className="players-list-inner">
             <div className="player-row-header" role="row">
               <div role="columnheader">Nome</div>
+              <div role="columnheader" title="Status no mercado" style={{ textAlign: 'center' }}>
+                St
+              </div>
               <div role="columnheader">Clube</div>
               <div role="columnheader">Posição</div>
               <div role="columnheader">Mando</div>
@@ -209,6 +278,13 @@ export default function Jogadores() {
                 >
                   <span role="cell" className="name-cell">
                     <strong>{atleta.nome}</strong>
+                  </span>
+                  <span role="cell" style={{ display: 'flex', justifyContent: 'center' }}>
+                    <StatusBadge
+                      statusNome={atleta.status_nome}
+                      statusId={atleta.status_id}
+                      iconeApenas
+                    />
                   </span>
                   <span role="cell" className="club-cell-text">
                     {atleta.clube_nome}

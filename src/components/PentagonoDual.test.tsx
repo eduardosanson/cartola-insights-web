@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { render, screen } from '@testing-library/react'
+import { fireEvent, render, screen } from '@testing-library/react'
 import PentagonoDual from './PentagonoDual'
 import type { PercentisPadrao, PercentisGol } from '../api/percentis'
 
@@ -67,5 +67,27 @@ describe('PentagonoDual', () => {
     )
 
     expect(container).toBeEmptyDOMElement()
+  })
+
+  it('exibe o número resumido de cada jogador apenas ao passar pelo respectivo vértice', () => {
+    render(<PentagonoDual percentisA={percentisA} percentisB={percentisB} nomeA="Atleta A" nomeB="Atleta B" />)
+
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
+
+    fireEvent.mouseEnter(screen.getByTestId('vertice-a-0'))
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Atleta A')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Poder de Fogo')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('94')
+
+    fireEvent.mouseLeave(screen.getByTestId('vertice-a-0'))
+    fireEvent.mouseEnter(screen.getByTestId('vertice-b-0'))
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Atleta B')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('60')
+
+    fireEvent.mouseLeave(screen.getByTestId('vertice-b-0'))
+    fireEvent.focus(screen.getByTestId('vertice-a-1'))
+    expect(screen.getByRole('tooltip')).toHaveTextContent('Atleta A')
+    fireEvent.blur(screen.getByTestId('vertice-a-1'))
+    expect(screen.queryByRole('tooltip')).not.toBeInTheDocument()
   })
 })

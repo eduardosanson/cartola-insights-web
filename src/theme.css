@@ -292,6 +292,17 @@ button {
   font-size: 0.82rem;
 }
 
+.campo-atleta .campo-atleta-clube {
+  color: var(--accent-home);
+  font-weight: 700;
+}
+
+.campo-atleta .campo-atleta-confronto {
+  margin-top: 0.15rem;
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--border);
+}
+
 .campo-tecnico .campo-atleta {
   margin-inline: auto;
 }
@@ -339,10 +350,10 @@ button {
 .player-row {
   display: grid;
   grid-template-columns:
-    minmax(112px, 1.6fr) minmax(48px, 0.8fr) 56px 76px 60px 66px 66px 66px
-    66px 66px 100px;
+    minmax(110px, 1.5fr) 34px minmax(48px, 0.8fr) 52px 72px 58px 64px 64px 64px
+    64px 64px 96px;
   align-items: center;
-  gap: 0.4rem;
+  gap: 0.35rem;
   padding: 0.55rem 0.6rem;
 }
 
@@ -449,6 +460,62 @@ button {
 .chance-alta {
   background: color-mix(in srgb, var(--accent-home) 14%, transparent);
   color: var(--accent-home);
+}
+
+.status-badge {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.15rem 0.55rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.status-badge.status-badge-icon {
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.status-provavel {
+  background: color-mix(in srgb, var(--accent-home) 15%, transparent);
+  color: var(--accent-home);
+  border: 1px solid color-mix(in srgb, var(--accent-home) 30%, transparent);
+}
+
+.status-duvida {
+  background: color-mix(in srgb, var(--accent-away) 15%, transparent);
+  color: var(--accent-away);
+  border: 1px solid color-mix(in srgb, var(--accent-away) 30%, transparent);
+}
+
+.status-suspenso {
+  background: color-mix(in srgb, #f97316 15%, transparent);
+  color: #ea580c;
+  border: 1px solid color-mix(in srgb, #f97316 30%, transparent);
+}
+
+.status-contundido {
+  background: color-mix(in srgb, var(--danger) 15%, transparent);
+  color: var(--danger);
+  border: 1px solid color-mix(in srgb, var(--danger) 30%, transparent);
+}
+
+.status-nulo {
+  background: color-mix(in srgb, var(--text-muted) 15%, transparent);
+  color: var(--text-muted);
+  border: 1px solid color-mix(in srgb, var(--text-muted) 30%, transparent);
 }
 
 /* Barras horizontais casa/fora (SplitBars, Fase 7) */
@@ -958,3 +1025,325 @@ figure {
   border-radius: 999px;
   padding: 0.15rem 0.5rem;
 }
+
+/* Modal de Comparação de Jogador */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 1rem;
+}
+
+.modal-container {
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.35);
+  width: min(920px, 96vw);
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 1.15rem 1.4rem;
+  border-bottom: 1px solid var(--border);
+  margin: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1.35rem;
+}
+
+.modal-subtitulo {
+  margin: 0.25rem 0 0;
+  font-size: 0.88rem;
+  color: var(--text-muted);
+}
+
+.modal-btn-fechar {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  cursor: pointer;
+  padding: 0.3rem 0.65rem;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.modal-btn-fechar:hover {
+  color: var(--text);
+  border-color: var(--text);
+}
+
+.modal-toolbar {
+  padding: 0.85rem 1.4rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  border-bottom: 1px solid var(--border);
+  background: color-mix(in srgb, var(--accent-home) 3%, var(--bg-elevated));
+}
+
+.modal-toolbar .modal-search {
+  flex: 1 1 200px;
+}
+
+.modal-list-wrapper {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 240px;
+}
+
+.modal-table-header,
+.modal-table-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 1.8fr) 34px 54px 64px 68px 68px 68px;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.6rem 1.2rem;
+}
+
+.modal-table-header {
+  font-family: var(--font-heading);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  background: color-mix(in srgb, var(--accent-home) 6%, var(--bg-elevated));
+  border-bottom: 1px solid var(--border);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.modal-table-row {
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.modal-table-row:last-child {
+  border-bottom: none;
+}
+
+.modal-table-row:hover,
+.modal-table-row:focus-visible {
+  background: color-mix(in srgb, var(--accent-home) 8%, var(--bg-elevated));
+  outline: none;
+}
+
+.modal-table-row .name-cell {
+  display: flex;
+  flex-direction: column;
+}
+
+.modal-empty {
+  padding: 2rem;
+  text-align: center;
+  color: var(--text-muted);
+}
+
+.modal-footer {
+  padding: 0.75rem 1.4rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  background: var(--bg-elevated);
+}
+
+.modal-footer button {
+  padding: 0.35rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.modal-footer button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Botão de ação para comparar no detalhe do jogador */
+.btn-acao-comparar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.95rem;
+  border-radius: 8px;
+  border: 1px solid var(--accent-home);
+  background: color-mix(in srgb, var(--accent-home) 12%, var(--bg-elevated));
+  color: var(--accent-home);
+  font-weight: 600;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin: 0.5rem 0;
+}
+
+.btn-acao-comparar:hover {
+  background: var(--accent-home);
+  color: white;
+}
+
+/* Dropdown de Filtros Compacto e Multi-seleção */
+.dropdown-filtro-container {
+  position: relative;
+  display: inline-block;
+}
+
+.dropdown-filtro-gatilho {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.4rem 0.85rem;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  font-family: var(--font-heading);
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.dropdown-filtro-gatilho:hover {
+  border-color: var(--accent-home);
+}
+
+.dropdown-filtro-gatilho.ativo {
+  border-color: var(--accent-home);
+  background: color-mix(in srgb, var(--accent-home) 10%, var(--bg-elevated));
+  color: var(--accent-home);
+}
+
+.dropdown-filtro-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: var(--accent-home);
+  color: white;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-weight: 700;
+}
+
+.dropdown-filtro-chevron {
+  transition: transform 0.2s ease;
+  color: var(--text-muted);
+}
+
+.dropdown-filtro-chevron.aberto {
+  transform: rotate(180deg);
+}
+
+.dropdown-filtro-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  min-width: 190px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+  z-index: 100;
+  overflow: hidden;
+}
+
+.dropdown-filtro-opcoes {
+  max-height: 250px;
+  overflow-y: auto;
+  padding: 0.35rem;
+}
+
+.dropdown-filtro-opcao {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  user-select: none;
+  font-size: 0.86rem;
+  color: var(--text);
+}
+
+.dropdown-filtro-opcao:hover,
+.dropdown-filtro-opcao:focus-visible {
+  background: color-mix(in srgb, var(--accent-home) 10%, var(--bg-elevated));
+  outline: none;
+}
+
+.dropdown-filtro-opcao.selecionada {
+  background: color-mix(in srgb, var(--accent-home) 14%, var(--bg-elevated));
+}
+
+.dropdown-filtro-checkbox {
+  cursor: pointer;
+  accent-color: var(--accent-home);
+}
+
+.dropdown-filtro-badge {
+  display: inline-flex;
+  align-items: center;
+}
+
+.dropdown-filtro-label {
+  flex: 1;
+}
+
+.dropdown-filtro-rodape {
+  padding: 0.35rem 0.6rem;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: flex-end;
+  background: var(--bg);
+}
+
+.dropdown-filtro-btn-limpar {
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.76rem;
+  cursor: pointer;
+  font-family: var(--font-heading);
+}
+
+.dropdown-filtro-btn-limpar:hover {
+  color: var(--danger);
+}
+
+.filter-dropdowns {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+
