@@ -118,7 +118,7 @@ export default function PentagonoQualidade({
             />
           ))}
 
-          {/* Rótulos com Percentil Real em volta do Pentágono */}
+          {/* Rótulos fixos sem números; valores aparecem ao interagir */}
           {eixos.map((eixo, i) => (
             <text
               key={eixo.rotulo}
@@ -127,7 +127,7 @@ export default function PentagonoQualidade({
               y={POSICOES_ROTULOS[i].y}
               textAnchor={POSICOES_ROTULOS[i].anchor}
             >
-              {eixo.rotulo} {eixo.valor.toFixed(0)}
+              {eixo.rotulo}
             </text>
           ))}
         </svg>
@@ -135,10 +135,7 @@ export default function PentagonoQualidade({
         {ativo !== null && (
           <div id="pentagono-tooltip" role="tooltip" className="pentagono-tooltip">
             <strong>{eixos[ativo].rotulo}</strong>
-            <div>{eixos[ativo].valor.toFixed(0)}º percentil</div>
-            {eixos[ativo].bruto !== undefined && (
-              <div>Média: {formatNumber(eixos[ativo].bruto)}</div>
-            )}
+            <div>{eixos[ativo].valor.toFixed(0)}</div>
           </div>
         )}
       </div>

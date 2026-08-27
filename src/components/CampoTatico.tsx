@@ -1,12 +1,7 @@
 import { Link } from 'react-router-dom'
-import type { AtletaEscalado, EscalacaoOtima, ModoOtimizacao } from '../api/otimizador'
+import type { Mando } from '../api/atletas'
+import type { AtletaEscalado, EscalacaoOtima } from '../api/otimizador'
 import { formatCurrency, formatNumber } from '../utils/formatNumber'
-
-const ROTULO_OBJETIVO: Record<ModoOtimizacao, string> = {
-  classica: 'Média básica',
-  tiro_curto: 'Teto estimado',
-  patrimonio: 'Margem sobre MPV',
-}
 
 const LINHAS = [
   { nome: 'Ataque', posicoes: ['ATA'] },
@@ -15,18 +10,36 @@ const LINHAS = [
   { nome: 'Gol', posicoes: ['GOL'] },
 ] as const
 
-interface Props {
-  escalacao: EscalacaoOtima
-  nomes: Record<number, string>
+function ordenarDefesa(atletas: AtletaEscalado[]) {
+  const laterais = atletas.filter((atleta) => atleta.posicao === 'LAT')
+  const zagueiros = atletas.filter((atleta) => atleta.posicao === 'ZAG')
+
+  if (laterais.length < 2) return atletas
+
+  return [laterais[0], ...zagueiros, ...laterais.slice(1)]
 }
 
-export default function CampoTatico({ escalacao, nomes }: Props) {
+interface Props {
+  escalacao: EscalacaoOtima
+  detalhes: Record<number, DetalhesAtletaCampo>
+}
+
+export interface DetalhesAtletaCampo {
+  nome: string
+  clubeNome?: string
+  adversarioNome?: string
+  mando?: Mando
+  mediaNoMando?: number
+}
+
+export default function CampoTatico({ escalacao, detalhes }: Props) {
   return (
     <div className="campo-tatico" aria-label={`Campo tático ${escalacao.esquema}`}>
       {LINHAS.map((linha) => {
-        const atletas = escalacao.titulares.filter((atleta) =>
+        const atletasDaLinha = escalacao.titulares.filter((atleta) =>
           linha.posicoes.some((posicao) => posicao === atleta.posicao),
         )
+        const atletas = linha.nome === 'Defesa' ? ordenarDefesa(atletasDaLinha) : atletasDaLinha
         return (
           <div className="campo-linha" key={linha.nome} aria-label={linha.nome}>
             <span className="campo-linha-rotulo">{linha.nome}</span>
@@ -35,8 +48,7 @@ export default function CampoTatico({ escalacao, nomes }: Props) {
                 <CardAtleta
                   key={atleta.atleta_id}
                   atleta={atleta}
-                  nome={nomes[atleta.atleta_id] ?? `Atleta #${atleta.atleta_id}`}
-                  modo={escalacao.modo}
+                  detalhes={detalhes[atleta.atleta_id]}
                 />
               ))}
             </div>
@@ -46,8 +58,14 @@ export default function CampoTatico({ escalacao, nomes }: Props) {
       <div className="campo-linha campo-tecnico" aria-label="Técnico">
         <span className="campo-linha-rotulo">Técnico</span>
         <Link className="campo-atleta" to={`/jogadores/${escalacao.tecnico.atleta_id}`}>
-          <strong>{nomes[escalacao.tecnico.atleta_id] ?? `Técnico #${escalacao.tecnico.atleta_id}`}</strong>
-          <span>{formatCurrency(escalacao.tecnico.preco)}</span>
+          <strong>
+            {detalhes[escalacao.tecnico.atleta_id]?.nome ??
+              `Técnico #${escalacao.tecnico.atleta_id}`}
+          </strong>
+          <span className="campo-atleta-clube">
+            {detalhes[escalacao.tecnico.atleta_id]?.clubeNome ?? 'Time não disponível'}
+          </span>
+          <span>TEC · {formatCurrency(escalacao.tecnico.preco)}</span>
         </Link>
       </div>
     </div>
@@ -56,21 +74,49 @@ export default function CampoTatico({ escalacao, nomes }: Props) {
 
 function CardAtleta({
   atleta,
-  nome,
-  modo,
+  detalhes,
 }: {
   atleta: AtletaEscalado
-  nome: string
-  modo: ModoOtimizacao
+  detalhes?: DetalhesAtletaCampo
 }) {
   return (
     <Link className="campo-atleta" to={`/jogadores/${atleta.atleta_id}`}>
-      <strong>{nome}</strong>
-      <span>{atleta.posicao}</span>
-      <span>{formatCurrency(atleta.preco)}</span>
+      <strong>{detalhes?.nome ?? `Atleta #${atleta.atleta_id}`}</strong>
+      <Confronto detalhes={detalhes} />
       <span>
-        {ROTULO_OBJETIVO[modo]}: {formatNumber(atleta.pontuacao_esperada)}
+        {atleta.posicao} · {formatCurrency(atleta.preco)}
       </span>
+      {detalhes?.mediaNoMando !== undefined && detalhes.mando && (
+        <span>
+          Média {detalhes.mando}: {formatNumber(detalhes.mediaNoMando)}
+        </span>
+      )}
     </Link>
   )
+}
+
+function Confronto({ detalhes }: { detalhes?: DetalhesAtletaCampo }) {
+  if (!detalhes?.clubeNome || !detalhes.adversarioNome || !detalhes.mando) {
+    return <span className="campo-atleta-confronto">Confronto não disponível</span>
+  }
+  const clube = (
+    <strong className="campo-atleta-clube">{abreviarClube(detalhes.clubeNome)}</strong>
+  )
+  const adversario = <span>{abreviarClube(detalhes.adversarioNome)}</span>
+  return (
+    <span className="campo-atleta-confronto">
+      {detalhes.mando === 'casa' ? clube : adversario}
+      {' x '}
+      {detalhes.mando === 'casa' ? adversario : clube}
+    </span>
+  )
+}
+
+function abreviarClube(nome: string) {
+  return nome
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .split(/[\s-]+/)[0]
+    .slice(0, 3)
+    .toUpperCase()
 }

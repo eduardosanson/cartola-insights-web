@@ -24,12 +24,16 @@ const confronto = (atletaId: number) => ({
   veredito: 'referencia_do_time' as const,
 })
 
+const status = ['provavel', 'provavel', 'duvida', 'nulo', 'duvida'] as const
+const statusId = [7, 7, 2, 6, 2]
 const candidatos: api.CandidatoCapitao[] = [3, 1, 2, 5, 4].map((atletaId, indice) => ({
   atleta_id: atletaId,
   capitao_score: 20 - indice,
   media_geral: 7,
   chance_pontuar_percentual: 80,
   fator_confronto: 1.2,
+  status_id: statusId[indice],
+  status_nome: status[indice],
   proximo_confronto: confronto(atletaId),
 }))
 
@@ -59,6 +63,10 @@ describe('MatrizCapitao', () => {
       'Atleta 4',
     ])
     expect(screen.getByText('1º lugar')).toBeInTheDocument()
+    expect(screen.getByText(/prováveis primeiro/i)).toBeInTheDocument()
+    expect(screen.getAllByText('Provável')).toHaveLength(2)
+    expect(screen.getAllByText('Dúvida')).toHaveLength(2)
+    expect(screen.getByText('Nulo')).toBeInTheDocument()
     expect(screen.getAllByTestId('raio-x')).toHaveLength(5)
     await waitFor(() => expect(api.buscarMatrizCapitao).toHaveBeenCalledTimes(1))
   })

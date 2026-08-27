@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { ehPercentisGol, type PercentisAtleta } from '../api/percentis'
 import {
   calcularPonto,
@@ -19,6 +20,7 @@ interface Props {
 }
 
 export default function PentagonoDual({ percentisA, percentisB, nomeA, nomeB }: Props) {
+  const [ativo, setAtivo] = useState<{ jogador: 'a' | 'b'; indice: number } | null>(null)
   // Posições incompatíveis (GOL vs. linha) não podem sobrepor eixos — o
   // caller decide o fallback (ver RF05/CA03 do spec).
   if (ehPercentisGol(percentisA) !== ehPercentisGol(percentisB)) {
@@ -29,16 +31,16 @@ export default function PentagonoDual({ percentisA, percentisB, nomeA, nomeB }: 
   const eixosB = calcularEixos(percentisB)
   const totalEixos = eixosA.length
 
-  const pontosA = eixosA
-    .map((eixo, i) => calcularPonto(i, totalEixos, eixo.valor, CENTRO_X_PADRAO, CENTRO_Y_PADRAO, RAIO_PADRAO).str)
-    .join(' ')
-  const pontosB = eixosB
-    .map((eixo, i) => calcularPonto(i, totalEixos, eixo.valor, CENTRO_X_PADRAO, CENTRO_Y_PADRAO, RAIO_PADRAO).str)
-    .join(' ')
+  const pontosA = eixosA.map((eixo, i) =>
+    calcularPonto(i, totalEixos, eixo.valor, CENTRO_X_PADRAO, CENTRO_Y_PADRAO, RAIO_PADRAO),
+  )
+  const pontosB = eixosB.map((eixo, i) =>
+    calcularPonto(i, totalEixos, eixo.valor, CENTRO_X_PADRAO, CENTRO_Y_PADRAO, RAIO_PADRAO),
+  )
 
   return (
     <figure>
-      <div className="diagram-wrap">
+      <div className="diagram-wrap" style={{ position: 'relative' }}>
         <svg
           viewBox="-20 0 380 320"
           role="img"
@@ -70,7 +72,7 @@ export default function PentagonoDual({ percentisA, percentisB, nomeA, nomeB }: 
             data-testid="pentagono-jogador-a"
             data-atleta="a"
             className="pentagon-player-poly"
-            points={pontosA}
+            points={pontosA.map((ponto) => ponto.str).join(' ')}
           />
 
           {/* Polígono do Atleta B */}
@@ -78,8 +80,34 @@ export default function PentagonoDual({ percentisA, percentisB, nomeA, nomeB }: 
             data-testid="pentagono-jogador-b"
             data-atleta="b"
             className="pentagon-player-poly-b"
-            points={pontosB}
+            points={pontosB.map((ponto) => ponto.str).join(' ')}
           />
+
+          {([['a', pontosA, eixosA, nomeA], ['b', pontosB, eixosB, nomeB]] as const).flatMap(
+            ([jogador, pontos, eixos, nome]) =>
+              pontos.map((ponto, indice) => (
+                <circle
+                  key={`${jogador}-${indice}`}
+                  data-testid={`vertice-${jogador}-${indice}`}
+                  className="pentagon-vertex"
+                  style={jogador === 'b' ? { fill: 'var(--accent-away)' } : undefined}
+                  cx={ponto.x}
+                  cy={ponto.y}
+                  r={3.5}
+                  tabIndex={0}
+                  onMouseEnter={() => setAtivo({ jogador, indice })}
+                  onMouseLeave={() => setAtivo(null)}
+                  onFocus={() => setAtivo({ jogador, indice })}
+                  onBlur={() => setAtivo(null)}
+                  aria-label={`${nome}, ${eixos[indice].rotulo}: ${eixos[indice].valor.toFixed(0)}`}
+                  aria-describedby={
+                    ativo?.jogador === jogador && ativo.indice === indice
+                      ? 'pentagono-dual-tooltip'
+                      : undefined
+                  }
+                />
+              )),
+          )}
 
           {/* Rótulos dos eixos (comuns aos dois atletas, mesma posição) */}
           {eixosA.map((eixo, i) => (
@@ -94,6 +122,15 @@ export default function PentagonoDual({ percentisA, percentisB, nomeA, nomeB }: 
             </text>
           ))}
         </svg>
+        {ativo && (
+          <div id="pentagono-dual-tooltip" role="tooltip" className="pentagono-tooltip">
+            <strong>{ativo.jogador === 'a' ? nomeA : nomeB}</strong>
+            <div>
+              {eixosA[ativo.indice].rotulo}:{' '}
+              {(ativo.jogador === 'a' ? eixosA : eixosB)[ativo.indice].valor.toFixed(0)}
+            </div>
+          </div>
+        )}
       </div>
 
       <figcaption>

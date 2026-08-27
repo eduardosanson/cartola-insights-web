@@ -9,7 +9,8 @@ import {
   type EsquemasDisponiveis,
   type ModoOtimizacao,
 } from '../api/otimizador'
-import CampoTatico from '../components/CampoTatico'
+import { buscarRaioXConfronto } from '../api/raioX'
+import CampoTatico, { type DetalhesAtletaCampo } from '../components/CampoTatico'
 import { formatCurrency, formatNumber } from '../utils/formatNumber'
 
 const MODOS: Record<ModoOtimizacao, { nome: string; descricao: string }> = {
@@ -19,11 +20,15 @@ const MODOS: Record<ModoOtimizacao, { nome: string; descricao: string }> = {
     nome: 'Patrimônio',
     descricao: 'Prioriza atletas com maior margem histórica de valorização.',
   },
+  overall: {
+    nome: 'Overall equilibrado',
+    descricao: 'Combina overall, chance de pontuar, confronto e piso básico.',
+  },
 }
 
 interface ResultadoCompleto {
   escalacao: EscalacaoOtima
-  nomes: Record<number, string>
+  detalhes: Record<number, DetalhesAtletaCampo>
   orcamento: number
 }
 
@@ -57,13 +62,34 @@ export default function Escalador() {
     setResultado(null)
     try {
       const escalacao = await montarEscalacao({ orcamento, esquema, modo })
-      const ids = [...escalacao.titulares.map((atleta) => atleta.atleta_id), escalacao.tecnico.atleta_id]
-      const atletas = await Promise.allSettled(ids.map((id) => buscarAtleta(id)))
-      const nomes: Record<number, string> = {}
+      const idsTitulares = escalacao.titulares.map((atleta) => atleta.atleta_id)
+      const ids = [...idsTitulares, escalacao.tecnico.atleta_id]
+      const [atletas, confrontos] = await Promise.all([
+        Promise.allSettled(ids.map((id) => buscarAtleta(id))),
+        Promise.allSettled(idsTitulares.map((id) => buscarRaioXConfronto(id))),
+      ])
+      const detalhes: Record<number, DetalhesAtletaCampo> = {}
       atletas.forEach((resposta, indice) => {
-        if (resposta.status === 'fulfilled') nomes[ids[indice]] = resposta.value.nome
+        if (resposta.status === 'fulfilled') {
+          detalhes[ids[indice]] = {
+            nome: resposta.value.nome,
+            clubeNome: resposta.value.clube_nome,
+          }
+        }
       })
-      setResultado({ escalacao, nomes, orcamento })
+      confrontos.forEach((resposta, indice) => {
+        if (resposta.status === 'fulfilled') {
+          const atletaId = idsTitulares[indice]
+          detalhes[atletaId] = {
+            nome: detalhes[atletaId]?.nome ?? `Atleta #${atletaId}`,
+            clubeNome: detalhes[atletaId]?.clubeNome,
+            adversarioNome: resposta.value.clube_adversario_nome,
+            mando: resposta.value.mando,
+            mediaNoMando: resposta.value.media_no_mando,
+          }
+        }
+      })
+      setResultado({ escalacao, detalhes, orcamento })
     } catch (err) {
       setErro(
         err instanceof EscalacaoInviavelError
@@ -146,7 +172,7 @@ export default function Escalador() {
 }
 
 function ResultadoEscalacao({ resultado }: { resultado: ResultadoCompleto }) {
-  const { escalacao, nomes, orcamento } = resultado
+  const { escalacao, detalhes, orcamento } = resultado
   const sobra = Math.max(0, orcamento - escalacao.custo_total)
 
   return (
@@ -161,7 +187,7 @@ function ResultadoEscalacao({ resultado }: { resultado: ResultadoCompleto }) {
           </dd>
         </div>
         <div>
-          <dt>Total do objetivo</dt>
+          <dt>Pontuação esperada</dt>
           <dd className="numeric">{formatNumber(escalacao.pontuacao_esperada_total)}</dd>
         </div>
         <div>
@@ -169,7 +195,7 @@ function ResultadoEscalacao({ resultado }: { resultado: ResultadoCompleto }) {
           <dd>{MODOS[escalacao.modo].nome}</dd>
         </div>
       </dl>
-      <CampoTatico escalacao={escalacao} nomes={nomes} />
+      <CampoTatico escalacao={escalacao} detalhes={detalhes} />
       <p className="estimativa-nota">
         Os valores são estimativas históricas e não representam promessa de pontuação oficial.
       </p>

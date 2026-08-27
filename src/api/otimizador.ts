@@ -1,8 +1,8 @@
 import { ApiError, apiGet, apiPost } from './client'
-import type { Posicao } from './atletas'
+import type { Posicao, StatusAtletaNome } from './atletas'
 import type { RaioXConfronto } from './raioX'
 
-export type ModoOtimizacao = 'classica' | 'tiro_curto' | 'patrimonio'
+export type ModoOtimizacao = 'classica' | 'tiro_curto' | 'patrimonio' | 'overall'
 export type EsquemaTatico = '4-3-3' | '3-4-3' | '4-4-2' | '3-5-2' | '5-3-2' | '5-4-1'
 
 export type EsquemasDisponiveis = Record<EsquemaTatico, Record<Posicao, number>>
@@ -36,6 +36,8 @@ export interface ParametrosOtimizacao {
 
 export interface CandidatoCapitao {
   atleta_id: number
+  status_id: number
+  status_nome: StatusAtletaNome
   capitao_score: number
   media_geral: number
   chance_pontuar_percentual: number

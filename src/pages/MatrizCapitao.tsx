@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { buscarAtleta } from '../api/atletas'
 import { buscarMatrizCapitao, type CandidatoCapitao } from '../api/otimizador'
 import RaioXConfronto from '../components/RaioXConfronto'
+import StatusBadge from '../components/StatusBadge'
 import { formatNumber } from '../utils/formatNumber'
 
 export default function MatrizCapitao() {
@@ -39,7 +40,9 @@ export default function MatrizCapitao() {
     <main>
       <header>
         <h2>Matriz de Capitão</h2>
-        <p>Top 5 por consistência, chance de pontuar e força do próximo confronto.</p>
+        <p>
+          Prováveis primeiro; depois dúvidas e nulos por consistência, chance e confronto.
+        </p>
       </header>
       {!candidatos && !erro && <p>Calculando candidatos…</p>}
       {erro && <p role="alert">{erro}</p>}
@@ -56,6 +59,10 @@ export default function MatrizCapitao() {
                       {nomes[candidato.atleta_id] ?? `Atleta #${candidato.atleta_id}`}
                     </Link>
                   </h3>
+                  <StatusBadge
+                    statusId={candidato.status_id}
+                    statusNome={candidato.status_nome}
+                  />
                 </div>
                 <strong>{formatNumber(candidato.capitao_score)} pts</strong>
               </header>

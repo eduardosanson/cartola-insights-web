@@ -141,11 +141,11 @@ describe('PentagonoQualidade', () => {
     expect(overall).toHaveTextContent('77,4')
   })
 
-  it('rótulos dos eixos mostram o número sem o sinal de %', () => {
+  it('mantém os números fora dos rótulos fixos dos eixos', () => {
     render(<PentagonoQualidade percentis={percentisLinha} />)
 
-    expect(screen.getByText('Poder de Fogo 94')).toBeInTheDocument()
-    expect(screen.queryByText(/94%/)).not.toBeInTheDocument()
+    expect(screen.getByText('Poder de Fogo')).toBeInTheDocument()
+    expect(screen.queryByText('Poder de Fogo 94')).not.toBeInTheDocument()
   })
 
   it('exibe e esconde tooltip no mouseEnter / mouseLeave', () => {
@@ -157,8 +157,9 @@ describe('PentagonoQualidade', () => {
     let tooltip = screen.queryByRole('tooltip')
     expect(tooltip).toBeInTheDocument()
     expect(tooltip).toHaveTextContent(/poder de fogo/i)
-    expect(tooltip).toHaveTextContent('94º percentil')
-    expect(tooltip).toHaveTextContent('8,45')
+    expect(tooltip).toHaveTextContent('94')
+    expect(tooltip).not.toHaveTextContent(/percentil/i)
+    expect(tooltip).not.toHaveTextContent(/média/i)
 
     fireEvent.mouseLeave(vertice0)
     tooltip = screen.queryByRole('tooltip')
@@ -196,7 +197,7 @@ describe('PentagonoQualidade', () => {
 
     const tooltip = screen.getByRole('tooltip')
     expect(tooltip).toBeInTheDocument()
-    expect(tooltip).toHaveTextContent('50º percentil')
+    expect(tooltip).toHaveTextContent('50')
     expect(tooltip).not.toHaveTextContent('Média:')
   })
 
@@ -217,7 +218,7 @@ describe('PentagonoQualidade', () => {
     const tooltip = screen.getByRole('tooltip')
     expect(tooltip).toBeInTheDocument()
     expect(tooltip).toHaveTextContent('Defesas')
-    expect(tooltip).toHaveTextContent('70º percentil')
+    expect(tooltip).toHaveTextContent('70')
   })
 
   it('suporta brutos com chaves indicador2 e indicador3 da API do backend', () => {
@@ -245,7 +246,7 @@ describe('PentagonoQualidade', () => {
     const tooltip = screen.getByRole('tooltip')
     expect(tooltip).toBeInTheDocument()
     expect(tooltip).toHaveTextContent('Criação')
-    expect(tooltip).toHaveTextContent('89º percentil')
-    expect(tooltip).toHaveTextContent('0,38')
+    expect(tooltip).toHaveTextContent('89')
+    expect(tooltip).not.toHaveTextContent('0,38')
   })
 })
