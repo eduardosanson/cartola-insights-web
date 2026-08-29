@@ -9,8 +9,6 @@ permissions:
 jobs:
   test:
     runs-on: ubuntu-latest
-    env:
-      NODE_ENV: test
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
@@ -20,4 +18,4 @@ jobs:
       - run: npm ci
       - run: npm run lint
       - run: npm run build
-      - run: npm test -- --run --coverage
+      - run: NODE_ENV=test npm test -- --run --coverage

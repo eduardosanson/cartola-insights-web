@@ -30,11 +30,6 @@ describe("CI GitHub Actions Configuration", () => {
     expect(content).toContain("cache: npm");
   });
 
-  it("should force test environment for dependency install and Vitest", () => {
-    const content = readFileSync(workflowPath, "utf8");
-    expect(content).toContain("NODE_ENV: test");
-  });
-
   it("should restrict the workflow token to read-only contents (least privilege)", () => {
     const content = readFileSync(workflowPath, "utf8");
     expect(content).toContain("permissions:");
@@ -46,7 +41,14 @@ describe("CI GitHub Actions Configuration", () => {
     expect(content).toContain("run: npm ci");
     expect(content).toContain("run: npm run lint");
     expect(content).toContain("run: npm run build");
-    expect(content).toContain("run: npm test -- --run --coverage");
+    expect(content).toContain("npm test -- --run --coverage");
+  });
+
+  it("should scope NODE_ENV=test to the test/coverage step only, not the job (so it never leaks into the Vite production build)", () => {
+    const content = readFileSync(workflowPath, "utf8");
+    const jobHeader = content.split(/^\s*steps:/m)[0];
+    expect(jobHeader).not.toContain("NODE_ENV");
+    expect(content).toContain("run: NODE_ENV=test npm test -- --run --coverage");
   });
 
   it("should run the real Vite production build instead of a standalone typecheck", () => {

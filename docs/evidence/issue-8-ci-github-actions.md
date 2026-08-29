@@ -9,7 +9,7 @@ Configuração do pipeline de Integração Contínua do frontend (`cartola-insig
 - Workflow `.github/workflows/ci.yml` acionado em `push` para `main` e `pull_request` contra `main`.
 - Runner `ubuntu-latest`.
 - Setup Node.js 20 com cache npm por `actions/setup-node@v4`.
-- Execução sequencial de `npm ci`, `npm run lint`, `npx tsc -b` e `npm test -- --run --coverage`.
+- Execução sequencial de `npm ci`, `npm run lint`, `npm run build` (`tsc -b && vite build`) e `NODE_ENV=test npm test -- --run --coverage`.
 - Teste estrutural `src/ci-config.test.ts` validando existência, gatilhos e comandos obrigatórios do workflow.
 - Ajuste de `tsconfig.app.json` para incluir tipos Node no projeto de testes que lê arquivos via `node:fs`/`node:path`.
 
@@ -94,17 +94,7 @@ EXIT_CODE=0
 
 ## 4. Typecheck
 
-Comando executado:
-
-```bash
-npx tsc -b
-```
-
-Output:
-
-```text
-EXIT_CODE=0
-```
+O typecheck (`tsc -b`) não roda mais como step isolado no CI — passou a fazer parte de `npm run build` (seção 5), que executa `tsc -b && vite build` em sequência. Isso garante que o CI valide tipos **e** o bundle real do Vite no mesmo comando (ver seção 9).
 
 ---
 
@@ -155,14 +145,14 @@ EXIT_CODE=0
    2. `actions/setup-node@v4` com Node 20 e cache npm
    3. `npm ci`
    4. `npm run lint`
-   5. `npx tsc -b`
-   6. `npm test -- --run --coverage`
+   5. `npm run build` (`tsc -b && vite build`)
+   6. `NODE_ENV=test npm test -- --run --coverage`
 5. Confirme que o check conclui com sucesso antes do merge.
 
 ### Casos de Borda
 
 - Alterar um teste para falhar deve deixar o step de testes vermelho e bloquear o merge.
-- Introduzir erro TypeScript deve falhar no step `npx tsc -b`.
+- Introduzir erro TypeScript ou quebrar o bundle Vite (ex.: import inválido) deve falhar no step `npm run build`.
 - Introduzir erro de lint deve falhar no step `npm run lint`.
 
 ---
@@ -222,6 +212,32 @@ Testes ajustados/adicionados em `src/ci-config.test.ts` (Red → Green):
 ```
 
 `.github/workflows/ci.yml` passou a rodar `npm run build` (`tsc -b && vite build`) no lugar de `npx tsc -b`.
+
+Verificação local pós-fix:
+
+```bash
+npx vitest run src/ci-config.test.ts   # 7 passed (7)
+npm run lint                            # exit 0 (só warnings preexistentes em AuthContext.tsx)
+npm run coverage                        # exit 0
+npm run build                           # tsc -b && vite build — exit 0
+```
+
+---
+
+## 10. Fix pós-review (Codex Review, 3ª rodada, commit `78b9754`)
+
+Dois achados do Codex:
+
+- **P1**: `NODE_ENV: test` estava no nível do job, afetando também o novo step `npm run build`. Vite trata `NODE_ENV` e `mode` de forma independente — um build com `NODE_ENV` não-produção não exercita branches `import.meta.env.PROD`, deixando o CI passar sem validar o caminho real de produção.
+- **P2**: as seções 4 e 6 deste documento ainda citavam `npx tsc -b` como step isolado, desatualizado desde o fix da seção 9 — corrigido diretamente nessas seções (não apenas anexado aqui).
+
+Teste adicionado em `src/ci-config.test.ts` (Red → Green):
+
+```text
+✓ should scope NODE_ENV=test to the test/coverage step only, not the job (so it never leaks into the Vite production build)
+```
+
+`.github/workflows/ci.yml`: removido o `env: NODE_ENV: test` do nível do job; `NODE_ENV=test` passou a ser inline apenas no step de testes: `run: NODE_ENV=test npm test -- --run --coverage`. Assim `npm run build` roda com o `NODE_ENV` real do runner (sem override), preservando `import.meta.env.PROD` como o deploy real da Vercel.
 
 Verificação local pós-fix:
 

@@ -41,3 +41,9 @@
 - Decisão: substituir o step `npx tsc -b` por `npm run build` (`tsc -b && vite build`) em resposta ao achado P1 do Codex Review no commit `935db7b` — o step antigo não rodava o bundler Vite/Rollup, então uma quebra exclusiva do build (ex.: `index.html`, assets, plugins) passaria no CI e só falharia no deploy.
 - Decisão: manter um único step de build cobrindo typecheck + bundle em vez de dois steps redundantes, já que `npm run build` já inclui `tsc -b`.
 - Risco aceito: nenhum — o novo step é estritamente mais abrangente que o anterior (mesmo typecheck, mais a validação do bundler).
+
+## PR REVIEW (Codex, 3ª rodada) → FIX — 2026-08-29
+
+- Decisão: remover `NODE_ENV: test` do nível do job e aplicá-lo apenas inline no step de testes (`run: NODE_ENV=test npm test -- --run --coverage`), em resposta ao achado P1 no commit `78b9754` — o valor no nível do job vazava pro step `npm run build`, e Vite trata `NODE_ENV`/`mode` de forma independente, então o build em CI não exercitava branches `import.meta.env.PROD` reais.
+- Decisão: corrigir as seções 4 e 6 de `docs/evidence/issue-8-ci-github-actions.md` diretamente (não só anexar nota), em resposta ao achado P2 — o guia de validação humana precisa refletir os steps reais do workflow para ser útil.
+- Risco aceito: nenhum — `npm ci` e `npm run build` agora rodam com o `NODE_ENV` real do runner, mais próximo do ambiente de deploy da Vercel.
