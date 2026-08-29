@@ -35,3 +35,9 @@
 - Decisão: aplicar `permissions: contents: read` no nível do workflow em resposta ao achado P2 do Codex Review na PR #12 — RNF02 ("Permissões mínimas quando aplicável") já estava escrito no spec original mas não tinha sido implementado.
 - Decisão: cobrir a permissão com teste estrutural adicional em `src/ci-config.test.ts` (Red → Green) em vez de confiar só em revisão manual do YAML.
 - Risco aceito: nenhum — mudança restringe permissões sem afetar os steps existentes (checkout, setup-node, lint, tsc, test não precisam de escrita no repositório).
+
+## PR REVIEW (Codex, 2ª rodada) → FIX — 2026-08-29
+
+- Decisão: substituir o step `npx tsc -b` por `npm run build` (`tsc -b && vite build`) em resposta ao achado P1 do Codex Review no commit `935db7b` — o step antigo não rodava o bundler Vite/Rollup, então uma quebra exclusiva do build (ex.: `index.html`, assets, plugins) passaria no CI e só falharia no deploy.
+- Decisão: manter um único step de build cobrindo typecheck + bundle em vez de dois steps redundantes, já que `npm run build` já inclui `tsc -b`.
+- Risco aceito: nenhum — o novo step é estritamente mais abrangente que o anterior (mesmo typecheck, mais a validação do bundler).

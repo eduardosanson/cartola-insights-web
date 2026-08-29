@@ -207,3 +207,27 @@ npm run lint                            # exit 0 (só warnings preexistentes em 
 npm run coverage                        # 96.37% statements, exit 0
 npm run build                           # tsc -b && vite build — exit 0
 ```
+
+---
+
+## 9. Fix pós-review (Codex Review, 2ª rodada, commit `935db7b`)
+
+Achado P1 do Codex: o CI parava em `npx tsc -b` (só typecheck), sem rodar o bundler Vite/Rollup — uma quebra exclusiva do build (ex.: `index.html`, assets, plugins) passaria no CI e só falharia no deploy.
+
+Testes ajustados/adicionados em `src/ci-config.test.ts` (Red → Green):
+
+```text
+✓ should run all required validation steps: npm ci, lint, production build, and test with coverage
+✓ should run the real Vite production build instead of a standalone typecheck
+```
+
+`.github/workflows/ci.yml` passou a rodar `npm run build` (`tsc -b && vite build`) no lugar de `npx tsc -b`.
+
+Verificação local pós-fix:
+
+```bash
+npx vitest run src/ci-config.test.ts   # 7 passed (7)
+npm run lint                            # exit 0 (só warnings preexistentes em AuthContext.tsx)
+npm run coverage                        # exit 0
+npm run build                           # tsc -b && vite build — exit 0
+```

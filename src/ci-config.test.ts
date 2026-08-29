@@ -41,11 +41,16 @@ describe("CI GitHub Actions Configuration", () => {
     expect(content).toContain("contents: read");
   });
 
-  it("should run all required validation steps: npm ci, lint, tsc, and test with coverage", () => {
+  it("should run all required validation steps: npm ci, lint, production build, and test with coverage", () => {
     const content = readFileSync(workflowPath, "utf8");
     expect(content).toContain("run: npm ci");
     expect(content).toContain("run: npm run lint");
-    expect(content).toContain("run: npx tsc -b");
+    expect(content).toContain("run: npm run build");
     expect(content).toContain("run: npm test -- --run --coverage");
+  });
+
+  it("should run the real Vite production build instead of a standalone typecheck", () => {
+    const content = readFileSync(workflowPath, "utf8");
+    expect(content).not.toContain("run: npx tsc -b");
   });
 });
