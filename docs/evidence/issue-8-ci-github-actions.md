@@ -177,5 +177,33 @@ EXIT_CODE=0
 - [x] Pre-commit hook existente verificado em `.githooks/pre-commit`.
 - [x] Evidências capturadas.
 - [x] Passo a passo de validação humana escrito.
-- [ ] PR aberta contra `main`.
+- [x] PR aberta contra `main` (#12).
 - [ ] GitHub Project atualizado para revisão.
+
+---
+
+## 8. Fix pós-review (Codex Review, PR #12)
+
+Achado P2 do Codex: workflow sem bloco `permissions`, rodando com token padrão (read/write) em vez de least-privilege.
+
+Teste adicionado em `src/ci-config.test.ts` (Red → Green):
+
+```text
+✓ should restrict the workflow token to read-only contents (least privilege)
+```
+
+`.github/workflows/ci.yml` passou a declarar:
+
+```yaml
+permissions:
+  contents: read
+```
+
+Verificação local pós-fix:
+
+```bash
+npx vitest run src/ci-config.test.ts   # 6 passed (6)
+npm run lint                            # exit 0 (só warnings preexistentes em AuthContext.tsx)
+npm run coverage                        # 96.37% statements, exit 0
+npm run build                           # tsc -b && vite build — exit 0
+```

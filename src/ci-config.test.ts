@@ -35,6 +35,12 @@ describe("CI GitHub Actions Configuration", () => {
     expect(content).toContain("NODE_ENV: test");
   });
 
+  it("should restrict the workflow token to read-only contents (least privilege)", () => {
+    const content = readFileSync(workflowPath, "utf8");
+    expect(content).toContain("permissions:");
+    expect(content).toContain("contents: read");
+  });
+
   it("should run all required validation steps: npm ci, lint, tsc, and test with coverage", () => {
     const content = readFileSync(workflowPath, "utf8");
     expect(content).toContain("run: npm ci");

@@ -29,3 +29,9 @@
 - Decisão: registrar warnings preexistentes do oxlint como evidência não-bloqueante porque o comando retorna exit code 0 e a issue não altera `AuthContext.tsx`.
 - Decisão: documentar o hook `.githooks/pre-commit` existente como compatível com a sequência lint → coverage → build.
 - Risco aceito: a evidência da execução remota do GitHub Actions só fica disponível após push e criação da PR.
+
+## PR REVIEW (Codex) → FIX — 2026-08-29
+
+- Decisão: aplicar `permissions: contents: read` no nível do workflow em resposta ao achado P2 do Codex Review na PR #12 — RNF02 ("Permissões mínimas quando aplicável") já estava escrito no spec original mas não tinha sido implementado.
+- Decisão: cobrir a permissão com teste estrutural adicional em `src/ci-config.test.ts` (Red → Green) em vez de confiar só em revisão manual do YAML.
+- Risco aceito: nenhum — mudança restringe permissões sem afetar os steps existentes (checkout, setup-node, lint, tsc, test não precisam de escrita no repositório).
