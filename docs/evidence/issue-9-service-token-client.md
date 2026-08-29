@@ -47,3 +47,10 @@ dist/assets/index-DhnrX-Xj.js   291.64 kB │ gzip: 89.06 kB
 3. Abra o DevTools na aba **Network** e acesse a listagem de atletas (`/jogadores`).
 4. Verifique no cabeçalho das requisições HTTP se `X-Service-Token: meu-token-teste` está presente.
 5. Simule uma resposta 401 ou 403 do backend e confirme que o cliente emite `ApiError` estruturado sem travar a interface.
+
+## Achado de Review (Codex, PR #13) — não corrigido nesta issue
+
+O Codex Review apontou que `VITE_SERVICE_TOKEN` é embutido em texto plano no bundle JS de produção (comportamento padrão de variáveis `VITE_*` no Vite), ficando visível a qualquer visitante via DevTools/bundle — o que anula a barreira de acesso restrito.
+
+- Confirmação local: `dist/assets/index-*.js` gerado por `npm run build` contém o valor de `VITE_SERVICE_TOKEN` definido em `.env` no momento do build.
+- Decisão registrada em `docs/decisions/issue-9-service-token-client.md`: fix arquitetural (proxy server-side) fica fora do escopo desta issue e foi movido para a **issue #18**.

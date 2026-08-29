@@ -42,3 +42,9 @@
 - Decisão: registrar 235 testes passando com 96.41% de cobertura global em `docs/evidence/issue-9-service-token-client.md`.
 - Decisão: documentar passo a passo de validação humana e configuração de variáveis de ambiente para deploy Vercel.
 
+## PR REVIEW (Codex) — 2026-08-29
+
+- Decisão: não corrigir nesta PR o achado P1 do Codex Review (`VITE_SERVICE_TOKEN` embutido em texto plano no bundle público, visível via DevTools) — o fix correto exige um proxy/edge function server-side, e o spec desta issue declara explicitamente "Fora de Escopo: Alterações no backend". Corrigir aqui expandiria o escopo aprovado.
+- Decisão: abrir a issue #18 ("[Pilar 3] Isolar Service Token do Bundle Público via Proxy Server-Side") para rastrear o fix arquitetural como unidade de trabalho independente.
+- Risco aceito (documentado, decisão do product owner): `VITE_SERVICE_TOKEN` permanece público no bundle até a issue #18 ser implementada — a proteção atual é apenas uma barreira leve (obscuridade), não um segredo real. Não bloqueia o merge desta PR.
+
