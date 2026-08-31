@@ -4,6 +4,7 @@ import { apiDelete, apiGet, apiPost } from './client'
 describe('apiGet', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
   })
 
   it('returns parsed JSON on a 2xx response', async () => {
@@ -59,11 +60,30 @@ describe('apiGet', () => {
 
     await expect(apiGet('/clubes')).rejects.toThrow(/Falha de rede/)
   })
+
+  it('envia X-Service-Token quando VITE_SERVICE_TOKEN está configurada', async () => {
+    vi.stubEnv('VITE_SERVICE_TOKEN', 'segredo-e2e-123')
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => ({}),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiGet('/clubes')
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/clubes', {
+      credentials: 'include',
+      headers: { 'X-Service-Token': 'segredo-e2e-123' },
+    })
+  })
 })
 
 describe('apiPost', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
   })
 
   it('sends a JSON body and returns the parsed response', async () => {
@@ -124,11 +144,32 @@ describe('apiPost', () => {
       'email já cadastrado: a@b.com',
     )
   })
+
+  it('envia Content-Type e X-Service-Token juntos quando o token está configurado', async () => {
+    vi.stubEnv('VITE_SERVICE_TOKEN', 'segredo-e2e-123')
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 201,
+      statusText: 'Created',
+      json: async () => ({ id: 1 }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiPost('/contas/registro', { email: 'a@b.com' })
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/contas/registro', {
+      credentials: 'include',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Service-Token': 'segredo-e2e-123' },
+      body: JSON.stringify({ email: 'a@b.com' }),
+    })
+  })
 })
 
 describe('apiDelete', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
   })
 
   it('sends a DELETE request and resolves with no value', async () => {
@@ -146,6 +187,25 @@ describe('apiDelete', () => {
     expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/contas/tokens/1', {
       credentials: 'include',
       method: 'DELETE',
+    })
+  })
+
+  it('envia X-Service-Token quando o token está configurado', async () => {
+    vi.stubEnv('VITE_SERVICE_TOKEN', 'segredo-e2e-123')
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 204,
+      statusText: 'No Content',
+      json: async () => ({}),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiDelete('/contas/tokens/1')
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/contas/tokens/1', {
+      credentials: 'include',
+      method: 'DELETE',
+      headers: { 'X-Service-Token': 'segredo-e2e-123' },
     })
   })
 })

@@ -1,5 +1,28 @@
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
 
+/**
+ * Header exigido pelo backend blindado por service token. Só é injetado quando
+ * `VITE_SERVICE_TOKEN` está configurada para o ambiente (ex.: E2E/staging) —
+ * em produção essa var não é definida, então nenhum segredo real é embutido
+ * no bundle público por efeito desta mudança.
+ *
+ * Débito técnico conhecido: por ser lida via `import.meta.env` (prefixo
+ * `VITE_`), caso a var venha a ser configurada em produção, seu valor fica
+ * em texto plano no bundle. A correção definitiva (proxy server-side) está
+ * rastreada na issue #18.
+ */
+function headerServiceToken(): HeadersInit | undefined {
+  const token = import.meta.env.VITE_SERVICE_TOKEN
+  return token ? { 'X-Service-Token': token } : undefined
+}
+
+/** Mescla o X-Service-Token com os headers explícitos do chamador, sem que um sobrescreva o outro. */
+function mesclarHeaders(headers?: HeadersInit): HeadersInit | undefined {
+  const tokenHeader = headerServiceToken()
+  if (!tokenHeader && !headers) return undefined
+  return { ...tokenHeader, ...headers }
+}
+
 export class ApiError extends Error {
   readonly status: number
 
@@ -23,7 +46,11 @@ async function extrairMensagemDeErro(path: string, response: Response): Promise<
 async function requisitar<T>(path: string, init?: RequestInit): Promise<T> {
   let response: Response
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, { credentials: 'include', ...init })
+    response = await fetch(`${API_BASE_URL}${path}`, {
+      credentials: 'include',
+      ...init,
+      headers: mesclarHeaders(init?.headers),
+    })
   } catch (cause) {
     throw new Error(`Falha de rede ao acessar ${path}: ${(cause as Error).message}`)
   }
