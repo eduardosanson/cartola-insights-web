@@ -32,7 +32,7 @@ Sem esse header, nenhuma chamada real do frontend a um backend blindado por serv
 - [x] Testes unitários escritos e passando
 - [ ] Testes de integração E2E (`auth-service-token.spec.ts` em `chromium`/`mobile-chrome`) — **fora do alcance desta sessão**: a stack Docker/Playwright do ambiente E2E isolado não existe neste repositório (vive na integração frontend+backend externa citada na evidência da issue). Não reexecutável a partir daqui; ver observação abaixo.
 - [x] Lint sem erros
-- [ ] Pre-commit hooks passando (repo usa `.githooks/`; validado via skills equivalentes `cartola-insights-web-test`/`build`)
+- [x] Pre-commit hooks passando (`.githooks/pre-commit`: lint + coverage + build, `EXIT_CODE=0`)
 - [x] Evidências capturadas
 - [x] Passo a passo de validação humana escrito (inclui como reexecutar a suíte E2E isolada manualmente)
 - [x] PR aberta com link no Linear/GitHub (`Closes #19`)
