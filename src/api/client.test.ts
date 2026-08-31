@@ -149,3 +149,143 @@ describe('apiDelete', () => {
     })
   })
 })
+
+describe('X-Service-Token e tratamento de autenticação (Issue #9)', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+    vi.unstubAllEnvs()
+  })
+
+  it('injeta X-Service-Token nas chamadas GET quando VITE_SERVICE_TOKEN está configurado', async () => {
+    vi.stubEnv('VITE_SERVICE_TOKEN', 'token-secreto-123')
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => ({ status: 'ok' }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiGet('/clubes')
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/clubes', {
+      credentials: 'include',
+      headers: {
+        'X-Service-Token': 'token-secreto-123',
+      },
+    })
+  })
+
+  it('injeta X-Service-Token nas chamadas POST preservando Content-Type', async () => {
+    vi.stubEnv('VITE_SERVICE_TOKEN', 'token-secreto-123')
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => ({ success: true }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiPost('/otimizador/escalacao', { esquema: '4-3-3' })
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/otimizador/escalacao', {
+      credentials: 'include',
+      method: 'POST',
+      headers: {
+        'X-Service-Token': 'token-secreto-123',
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ esquema: '4-3-3' }),
+    })
+  })
+
+  it('injeta X-Service-Token nas chamadas DELETE', async () => {
+    vi.stubEnv('VITE_SERVICE_TOKEN', 'token-secreto-123')
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 204,
+      statusText: 'No Content',
+      json: async () => ({}),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiDelete('/contas/tokens/1')
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/contas/tokens/1', {
+      credentials: 'include',
+      method: 'DELETE',
+      headers: {
+        'X-Service-Token': 'token-secreto-123',
+      },
+    })
+  })
+
+  it('não envia X-Service-Token e não quebra quando a variável não está definida', async () => {
+    vi.stubEnv('VITE_SERVICE_TOKEN', '')
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => ({ ok: true }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiGet('/clubes')
+
+    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/clubes', {
+      credentials: 'include',
+    })
+  })
+
+  it('retorna mensagem "Acesso não autorizado" para erro 401 sem detail', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: async () => ({}),
+      }),
+    )
+
+    await expect(apiGet('/admin/logs')).rejects.toMatchObject({
+      message: 'Acesso não autorizado',
+      status: 401,
+    })
+  })
+
+  it('retorna mensagem "Acesso negado" para erro 403 sem detail', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+        json: async () => ({}),
+      }),
+    )
+
+    await expect(apiGet('/admin/logs')).rejects.toMatchObject({
+      message: 'Acesso negado',
+      status: 403,
+    })
+  })
+
+  it('preserva mensagem detail do backend em caso de 401/403 com payload', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 401,
+        statusText: 'Unauthorized',
+        json: async () => ({ detail: 'Service token inválido ou expirado' }),
+      }),
+    )
+
+    await expect(apiGet('/admin/logs')).rejects.toMatchObject({
+      message: 'Service token inválido ou expirado',
+      status: 401,
+    })
+  })
+})
+
