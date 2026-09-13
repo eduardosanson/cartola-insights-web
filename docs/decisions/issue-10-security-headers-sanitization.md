@@ -1,0 +1,15 @@
+# Log de Decisões — Issue #10 — Security headers e sanitização defensiva
+
+## DOR → SPEC — 2026-09-12
+
+- Decisão: tratar a issue GitHub #10 como unidade independente de entrega, executada de forma autônoma e não-supervisionada (disparo do board); aprovação humana ocorre na revisão do PR, não em checkpoint intermediário.
+- Decisão: manter a branch de trabalho `eduardosanson/10-hardening-de-seguranca` já provisionada para este worktree em vez de criar `feature/10` — esse nome de branch já existe, sem push, em outro worktree local do mesmo repositório (`docs: plan issue 10 security headers`, 2026-08-29), abandonado antes de qualquer implementação; recriá-lo aqui exigiria tocar outro worktree, o que este fluxo não deve fazer sem necessidade. A branch atual já parte de `main` (mesmo commit de `origin/main`), preservando a intenção do guardrail G2.
+- Decisão: escopo de "sanitização de parâmetros de busca" restrito aos dois campos de busca livre existentes (`AtletaAutocomplete`, `Jogadores`) — não inclui campos de autenticação (login/registro), que já são validados/tratados pelo backend e não são "busca".
+- Risco aceito: o whitelist de domínios da CSP inclui `s.glbimg.com`/`s3.glbimg.com` (CDN de assets Cartola/Globo) mencionado no DoR como "já mapeado", mesmo sem uso atual no código — é uma concessão preventiva de baixo risco (`img-src` não executa script) para não bloquear uma futura integração de escudos/fotos sem exigir novo PR de CSP.
+
+## SPEC → PROMPT PLAN — 2026-09-12
+
+- Decisão: CSP usa `style-src 'self' 'unsafe-inline' ...` porque a maior parte dos componentes usa `style={{...}}` (atributo inline) extensivamente; sem essa concessão o app quebraria visualmente em produção. Trade-off documentado — inline `style` não é vetor de execução de script.
+- Decisão: `connect-src` da CSP inclui apenas o domínio de produção do backend (`https://backend-production-9114.up.railway.app`, lido de `.env.production`), não `localhost` — os headers do `vercel.json` só se aplicam ao build servido pela Vercel, nunca ao `vite dev` local.
+- Decisão: além dos 4 headers pedidos literalmente na issue (CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy), adicionar `Permissions-Policy` e `Strict-Transport-Security` — necessários na prática para nota A/A+ no securityheaders.com, que é o próprio critério do DoD desta issue.
+- Risco aceito: validação real em securityheaders.com/curl contra HTTPS de produção só é possível após deploy (merge); evidência local usa `curl -I` contra `vercel dev`/build servido localmente ou inspeção estática do `vercel.json`, com o passo remoto documentado como validação manual pós-merge.
