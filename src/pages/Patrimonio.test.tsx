@@ -26,9 +26,30 @@ describe('Patrimonio', () => {
     render(<Patrimonio />)
 
     expect(await screen.findByRole('img', { name: /curva histórica/i })).toBeInTheDocument()
+    expect(screen.queryByText(/carregando curva de valorização/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
     await userEvent.click(screen.getByRole('button', { name: /selecionar pedro/i }))
     expect(screen.getByText('Simulador do atleta 9')).toBeInTheDocument()
     expect(mpvApi.buscarCurvaValorizacao).toHaveBeenCalledTimes(1)
+  })
+
+  it('mostra estado de carregamento antes da curva ou erro chegarem', async () => {
+    let resolverCurva: (valor: mpvApi.PontoCurvaValorizacao[]) => void = () => {}
+    vi.mocked(mpvApi.buscarCurvaValorizacao).mockReturnValue(
+      new Promise((resolve) => {
+        resolverCurva = resolve
+      }),
+    )
+
+    render(<Patrimonio />)
+
+    expect(screen.getByText('Carregando curva de valorização…')).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: /curva histórica/i })).not.toBeInTheDocument()
+
+    resolverCurva([{ rodada: 1, variacao_media: -0.8 }])
+    expect(await screen.findByRole('img', { name: /curva histórica/i })).toBeInTheDocument()
+    expect(screen.queryByText(/carregando curva de valorização/i)).not.toBeInTheDocument()
   })
 
   it('mostra erro da curva sem esconder o simulador avulso', async () => {
@@ -37,6 +58,8 @@ describe('Patrimonio', () => {
     render(<Patrimonio />)
 
     expect(await screen.findByRole('alert')).toHaveTextContent('Curva indisponível')
+    expect(screen.queryByText(/carregando curva de valorização/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('img', { name: /curva histórica/i })).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /selecionar pedro/i })).toBeInTheDocument()
   })
 })
