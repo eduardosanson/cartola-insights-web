@@ -11,13 +11,24 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000
  * em texto plano no bundle. A correção definitiva (proxy server-side) está
  * rastreada na issue #18.
  */
-function headerServiceToken(): HeadersInit | undefined {
+function headerServiceToken(): Record<string, string> | undefined {
   const token = import.meta.env.VITE_SERVICE_TOKEN
   return token ? { 'X-Service-Token': token } : undefined
 }
 
-/** Mescla o X-Service-Token com os headers explícitos do chamador, sem que um sobrescreva o outro. */
-function mesclarHeaders(headers?: HeadersInit): HeadersInit | undefined {
+/**
+ * Mescla o X-Service-Token com os headers explícitos do chamador. Em caso de
+ * colisão de chave, o header explícito do chamador tem prioridade — nunca é
+ * sobrescrito pelo token (hoje nenhum chamador colide, já que usam chaves
+ * diferentes: `Content-Type` vs `X-Service-Token`).
+ *
+ * Recebe `Record<string, string>` em vez de `HeadersInit` de propósito: os
+ * únicos chamadores (`apiPost`) sempre passam objeto literal, e essa
+ * assinatura mais estreita faz o TypeScript acusar em tempo de compilação
+ * caso um chamador futuro tente passar uma instância de `Headers` ou um
+ * array de tuplas — formatos que o spread abaixo não mesclaria corretamente.
+ */
+function mesclarHeaders(headers?: Record<string, string>): Record<string, string> | undefined {
   const tokenHeader = headerServiceToken()
   if (!tokenHeader && !headers) return undefined
   return { ...tokenHeader, ...headers }
@@ -43,7 +54,12 @@ async function extrairMensagemDeErro(path: string, response: Response): Promise<
   return `Erro ${response.status} ao acessar ${path}: ${response.statusText}`
 }
 
-async function requisitar<T>(path: string, init?: RequestInit): Promise<T> {
+/** Como `RequestInit`, mas `headers` restrito a objeto literal — ver JSDoc de `mesclarHeaders`. */
+interface RequisicaoInit extends Omit<RequestInit, 'headers'> {
+  headers?: Record<string, string>
+}
+
+async function requisitar<T>(path: string, init?: RequisicaoInit): Promise<T> {
   let response: Response
   try {
     response = await fetch(`${API_BASE_URL}${path}`, {
