@@ -1,3 +1,5 @@
+// Code points, não code units — o loop abaixo trunca durante a própria
+// iteração por code point para nunca cortar um par surrogate pela metade.
 const MAX_LENGTH = 100
 const TAG_HTML = /<[^>]*>?/g
 
@@ -18,8 +20,12 @@ function ehCaractereDeControle(caractere: string): boolean {
 export function sanitizeSearchInput(valor: string): string {
   const semTags = valor.replace(TAG_HTML, '')
   let resultado = ''
+  let quantidade = 0
   for (const caractere of semTags) {
-    if (!ehCaractereDeControle(caractere)) resultado += caractere
+    if (quantidade >= MAX_LENGTH) break
+    if (ehCaractereDeControle(caractere)) continue
+    resultado += caractere
+    quantidade++
   }
-  return resultado.slice(0, MAX_LENGTH)
+  return resultado
 }
