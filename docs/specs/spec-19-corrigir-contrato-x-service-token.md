@@ -35,8 +35,8 @@ Sem esse header, nenhuma chamada real do frontend a um backend blindado por serv
 - [x] Pre-commit hooks passando (`.githooks/pre-commit`: lint + coverage + build, `EXIT_CODE=0`)
 - [x] Evidências capturadas
 - [x] Passo a passo de validação humana escrito (inclui como reexecutar a suíte E2E isolada manualmente)
-- [x] PR aberta com link no Linear/GitHub (`Closes #19`)
-- [ ] Issue movida para In Review (via script do board, fase 7)
+- [x] PR aberta com link no Linear/GitHub (`Closes #19`) — https://github.com/eduardosanson/cartola-insights-web/pull/21
+- [ ] Issue movida para In Review (repositório usa GitHub Issues puro, sem board Linear neste projeto; `Closes #19` fecha automaticamente ao mergear a PR)
 
 ## Fora de Escopo
 
