@@ -19,3 +19,9 @@
 - Decisão: sanitizar por remoção de código de caractere (`codePointAt <= 0x1f || === 0x7f`) em vez de regex com classe de caracteres de controle — no ambiente de escrita desta sessão, escapes `\u`/`\x` dentro de literais de regex foram gravados como bytes de controle crus no arquivo-fonte; a versão numérica evita esse risco de forma equivalente e mais legível.
 - Decisão: CLI da Vercel não está disponível neste ambiente sandboxed; a validação de headers ficou limitada a testes que fazem parse estático do `vercel.json` (`src/security-headers.test.ts`) mais inspeção manual — `curl -I`/securityheaders.com contra produção fica registrado como passo de validação humana pós-merge em `docs/evidence/issue-10-security-headers-sanitization.md`.
 - Risco aceito: 264 testes passando, 96.45% de cobertura de statements (piso do projeto é 90%); build de produção verde sem novos warnings de lint além dos 2 pré-existentes em `AuthContext.tsx`, não relacionados a esta issue.
+
+## PR REVIEW (chatgpt-codex-connector, PR #22) — 2026-09-13
+
+- Decisão: aplicar `sanitizeSearchInput` também em `ModalCompararJogador.tsx` — terceiro campo de busca livre com o mesmo padrão de `AtletaAutocomplete`/`Jogadores`, que ficou fora do escopo original por não ter sido mapeado como página distinta na spec.
+- Decisão: trocar a checagem manual de código de caractere (`<= 0x1f || === 0x7f`) por `/\p{Cc}/u.test(caractere)` — cobre a categoria Unicode "Control" completa (C0+C1+DEL) num único critério semântico, corrigindo a lacuna do range C1 (0x80-0x9F) apontada pelo review.
+- Risco aceito: nenhum — ambos os achados eram P2 procedentes com cenário de falha real e correção de baixo risco; 266 testes passando após as correções.
