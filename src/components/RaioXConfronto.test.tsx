@@ -44,7 +44,7 @@ describe('RaioXConfronto', () => {
   })
 
   it('nao escolhe um rotulo de veredito quando veredito e null', () => {
-    render(
+    const { container } = render(
       <RaioXConfronto
         raioX={{ ...base, participacao_pontuacao_time_media: null, veredito: null }}
       />,
@@ -54,6 +54,26 @@ describe('RaioXConfronto', () => {
     expect(screen.queryByText('Contribuição dividida')).not.toBeInTheDocument()
     expect(screen.queryByText('Pontuação diluída')).not.toBeInTheDocument()
     expect(screen.getByText(/sem veredito/i)).toBeInTheDocument()
+    // veredito null não deve nem renderizar o <span> do selo (mata mutante que troca `!== null` por `true`)
+    expect(container.querySelector('.verdict-badge')).not.toBeInTheDocument()
+  })
+
+  it('mostra "sem dado suficiente" na participação quando ela e null, mesmo com veredito preenchido', () => {
+    render(
+      <RaioXConfronto raioX={{ ...base, participacao_pontuacao_time_media: null }} />,
+    )
+
+    // veredito continua preenchido, então o único "sem dado suficiente" na tela é o da participação
+    expect(screen.getByText('sem dado suficiente')).toBeInTheDocument()
+    expect(screen.getByText('Referência do time')).toBeInTheDocument()
+    expect(screen.queryByText('12,4%')).not.toBeInTheDocument()
+  })
+
+  it('aplica a cor de destaque correta nos valores de média em casa e média cedida pelo adversário', () => {
+    render(<RaioXConfronto raioX={base} />)
+
+    expect(screen.getByText('7,15')).toHaveStyle({ color: 'var(--accent-home)' })
+    expect(screen.getByText('4,89')).toHaveStyle({ color: 'var(--accent-away)' })
   })
 
   it('usa um tom diferente de badge por veredito: positivo, neutro e negativo', () => {
