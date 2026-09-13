@@ -12,7 +12,7 @@ describe('formatNumber', () => {
     expect(formatNumber(value)).toBe(expected)
   })
 
-  it.each([null, undefined])('formats %s as em dash', (value) => {
+  it.each([null, undefined, Number.NaN])('formats %s as em dash', (value) => {
     expect(formatNumber(value)).toBe('—')
   })
 })
@@ -26,7 +26,7 @@ describe('formatCurrency', () => {
     expect(formatCurrency(4.567)).toBe('C$ 4,57')
   })
 
-  it.each([null, undefined])('formats %s as em dash', (value) => {
+  it.each([null, undefined, Number.NaN])('formats %s as em dash', (value) => {
     expect(formatCurrency(value)).toBe('—')
   })
 })
@@ -42,7 +42,7 @@ describe('formatPercent', () => {
     expect(formatPercent(value)).toBe(expected)
   })
 
-  it.each([null, undefined])('formats %s as em dash', (value) => {
+  it.each([null, undefined, Number.NaN])('formats %s as em dash', (value) => {
     expect(formatPercent(value)).toBe('—')
   })
 })
@@ -58,7 +58,7 @@ describe('formatInteger', () => {
     expect(formatInteger(value)).toBe(expected)
   })
 
-  it.each([null, undefined])('formats %s as em dash', (value) => {
+  it.each([null, undefined, Number.NaN])('formats %s as em dash', (value) => {
     expect(formatInteger(value)).toBe('—')
   })
 })
@@ -77,7 +77,7 @@ describe('formatDecimal', () => {
     expect(formatDecimal(4.56)).toBe('4,6')
   })
 
-  it.each([null, undefined])('formats %s as em dash', (value) => {
+  it.each([null, undefined, Number.NaN])('formats %s as em dash', (value) => {
     expect(formatDecimal(value)).toBe('—')
   })
 })

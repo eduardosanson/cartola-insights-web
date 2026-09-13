@@ -49,7 +49,7 @@ $ npm run lint
 
 $ npm run coverage
  Test Files  40 passed (40)
-      Tests  269 passed (269)   # 242 baseline + 27 novos em formatNumber.test.ts
+      Tests  274 passed (274)   # 242 baseline + 32 novos em formatNumber.test.ts
 Statements   : 96.44%
 Branches     : 91.13%
 Functions    : 96.15%
@@ -72,8 +72,8 @@ tocados é equivalente ao anterior (CA06).
 
 ### Passo a passo
 
-1. Rode `npm run coverage` — os 32 testes de `formatNumber.test.ts` cobrem moeda, porcentagem,
-   inteiro, decimal, arredondamento e `null`/`undefined`. ✅
+1. Rode `npm run coverage` — os 37 testes de `formatNumber.test.ts` cobrem moeda, porcentagem,
+   inteiro, decimal, arredondamento, `NaN` e `null`/`undefined`. ✅
 2. Rode `npm run build` — TypeScript e bundle de produção sem erros. ✅
 3. Abra `src/pages/Comparar.tsx` (via `/comparar`) ou `/jogadores/:id` e confira que os valores
    percentuais (`SeloRisco`, `RaioXConfronto`) e o Simulador de Valorização exibem números com
@@ -82,7 +82,7 @@ tocados é equivalente ao anterior (CA06).
 
 ### Casos de borda
 
-- Valor `null`/`undefined` em qualquer formatador → exibe `—` (testado).
+- Valor `null`/`undefined`/`NaN` em qualquer formatador → exibe `—` (testado).
 - Valor negativo (`-0.806`) → `formatNumber` mantém o sinal (`-0,81`, testado).
 - Percentual inteiro (`80`) → `formatPercent` não força casa decimal (`80%`, sem `80,0%`).
 

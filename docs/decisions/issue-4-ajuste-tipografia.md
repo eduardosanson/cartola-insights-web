@@ -21,3 +21,8 @@
 ## TDD → BUILD — 2026-09-13
 
 - Decisão: aplicar `.text-title` no `<h3>` do `SimuladorValorizacao` (e `.text-label`/`.text-aux`/`.text-value` em `DetalheJogador.tsx`) em vez do `<h2>` do nome do atleta, como o prompt plan previa — o `<h2>` sem classe hoje herda o tamanho padrão do browser (~1.5em), maior que `--fs-md` (1.15rem); trocar encolheria visivelmente o título mais proeminente da página (RNF01/RNF02). O `<h3>` já renderiza perto de `--fs-md` (≈18,7px vs 18,4px), troca visualmente neutra.
+
+## CODE REVIEW → REFINEMENT — 2026-09-13
+
+- Decisão: cachear instâncias de `Intl.NumberFormat` por número de casas decimais em `formatDecimal` via `Map<number, Intl.NumberFormat>`, evitando overhead de recriação a cada chamada.
+- Decisão: estender `isAbsent` em `formatNumber.ts` para cobrir `Number.isNaN(value)`, garantindo retorno uniforme de `—` também para cálculos inválidos.

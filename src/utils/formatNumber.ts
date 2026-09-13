@@ -20,7 +20,7 @@ const integerFormatter = new Intl.NumberFormat('pt-BR', {
 type Value = number | null | undefined
 
 function isAbsent(value: Value): value is null | undefined {
-  return value === null || value === undefined
+  return value === null || value === undefined || Number.isNaN(value)
 }
 
 export function formatNumber(value: Value): string {
@@ -39,10 +39,21 @@ export function formatInteger(value: Value): string {
   return isAbsent(value) ? EM_DASH : integerFormatter.format(value)
 }
 
+const decimalFormatters = new Map<number, Intl.NumberFormat>()
+
+function getDecimalFormatter(decimals: number): Intl.NumberFormat {
+  let formatter = decimalFormatters.get(decimals)
+  if (!formatter) {
+    formatter = new Intl.NumberFormat('pt-BR', {
+      minimumFractionDigits: decimals,
+      maximumFractionDigits: decimals,
+    })
+    decimalFormatters.set(decimals, formatter)
+  }
+  return formatter
+}
+
 export function formatDecimal(value: Value, decimals = 1): string {
   if (isAbsent(value)) return EM_DASH
-  return new Intl.NumberFormat('pt-BR', {
-    minimumFractionDigits: decimals,
-    maximumFractionDigits: decimals,
-  }).format(value)
+  return getDecimalFormatter(decimals).format(value)
 }
