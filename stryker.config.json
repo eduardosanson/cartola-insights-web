@@ -3,6 +3,7 @@
   "packageManager": "npm",
   "testRunner": "vitest",
   "coverageAnalysis": "perTest",
+  "concurrency": 4,
   "reporters": ["html", "clear-text", "progress"],
   "htmlReporter": {
     "fileName": "reports/mutation/html/index.html"
