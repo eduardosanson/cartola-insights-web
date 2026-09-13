@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
-import { render, screen, fireEvent, waitFor, within } from '@testing-library/react'
-import { MemoryRouter } from 'react-router-dom'
+import { act, render, screen, fireEvent, waitFor, within } from '@testing-library/react'
+import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import Jogadores from './Jogadores'
 import * as atletasApi from '../api/atletas'
@@ -66,14 +66,44 @@ describe('Jogadores', () => {
     expect(await screen.findByText('Gabigol')).toBeInTheDocument()
     expect(screen.getByText('Flamengo')).toBeInTheDocument()
     expect(screen.getByText('12,57')).toBeInTheDocument()
+    // apenas o estado de tabela carregada deve estar visível
+    expect(screen.getByRole('table')).toBeInTheDocument()
+    expect(screen.queryByText(/carregando/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByText(/nenhum jogador/i)).not.toBeInTheDocument()
   })
 
-  it('shows an error message when the API call fails', async () => {
+  it('shows the loading message before the atletas request resolves, and only that message', async () => {
+    let resolveAtletas: (value: (typeof atleta)[]) => void = () => {}
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockReturnValue(
+      new Promise((resolve) => {
+        resolveAtletas = resolve
+      }),
+    )
+
+    renderJogadores()
+
+    expect(screen.getByText('Carregando jogadores…')).toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByText(/nenhum jogador/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+
+    await act(async () => {
+      resolveAtletas([atleta])
+      await Promise.resolve()
+    })
+  })
+
+  it('shows an error message when the API call fails, and only that message', async () => {
     vi.spyOn(atletasApi, 'listarTodosAtletas').mockRejectedValue(new Error('Falha de rede'))
 
     renderJogadores()
 
     await waitFor(() => expect(screen.getByRole('alert')).toBeInTheDocument())
+    expect(screen.getByRole('alert')).toHaveTextContent('Falha de rede')
+    expect(screen.queryByText(/carregando/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/nenhum jogador/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
   it('filters by nome (client-side, sem nova chamada à API) após o debounce de 300ms', async () => {
@@ -155,6 +185,9 @@ describe('Jogadores', () => {
     await user.click(screen.getByText('Atacante (ATA)'))
 
     expect(await screen.findByText(/nenhum jogador/i)).toBeInTheDocument()
+    expect(screen.queryByText(/carregando/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
   it('navigates forward and backward through client-side pages without new requests', async () => {
@@ -169,16 +202,40 @@ describe('Jogadores', () => {
     await screen.findByText('Jogador 1')
 
     expect(screen.queryByText('Jogador 21')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled()
 
     await user.click(screen.getByRole('button', { name: 'Próxima' }))
     expect(await screen.findByText('Jogador 21')).toBeInTheDocument()
     expect(screen.queryByText('Jogador 1')).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Anterior' })).not.toBeDisabled()
 
     await user.click(screen.getByRole('button', { name: 'Anterior' }))
     expect(await screen.findByText('Jogador 1')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Anterior' })).toBeDisabled()
 
     // paginação inteira client-side — nenhuma nova busca ao backend
     expect(atletasApi.listarTodosAtletas).toHaveBeenCalledTimes(1)
+  })
+
+  it('disables Próxima when there is only a single page of results', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([atleta])
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    expect(screen.getByRole('button', { name: 'Próxima' })).toBeDisabled()
+  })
+
+  it('disables Próxima when exactly one full page of results exists (boundary at PAGE_SIZE)', async () => {
+    const paginaExata = Array.from({ length: 20 }, (_, index) => ({
+      ...atleta,
+      id: index + 1,
+      nome: `Jogador ${index + 1}`,
+    }))
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue(paginaExata)
+    renderJogadores()
+    await screen.findByText('Jogador 1')
+
+    expect(screen.getByRole('button', { name: 'Próxima' })).toBeDisabled()
   })
 
   it('combines price and average sorting across the whole dataset, not just the current page', async () => {
@@ -213,9 +270,11 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('Jogador 1')
 
-    await user.click(screen.getByRole('button', { name: /overall/i }))
+    const btnOverall = screen.getByRole('button', { name: /overall/i })
+    await user.click(btnOverall)
 
     expect(within(screen.getAllByRole('row')[1]).getByText('Jogador 25')).toBeInTheDocument()
+    expect(btnOverall).toHaveTextContent('↓ 1')
   })
 
   it('shows whether each athlete plays at home, away or has no match', async () => {
@@ -244,10 +303,15 @@ describe('Jogadores', () => {
 
     await user.click(screen.getByRole('button', { name: /Mando/i }))
     const listbox = screen.getByRole('listbox')
+    // antes de selecionar, nenhuma opção deve constar como selecionada nem exibir "Limpar"
+    expect(within(listbox).queryByText('Limpar')).not.toBeInTheDocument()
+
     await user.click(within(listbox).getByText('Casa'))
 
     expect(screen.getByText('Mandante')).toBeInTheDocument()
     expect(screen.queryByText('Visitante')).not.toBeInTheDocument()
+    expect(screen.getByRole('option', { name: 'Casa' })).toHaveAttribute('aria-selected', 'true')
+    expect(within(listbox).getByText('Limpar')).toBeInTheDocument()
   })
 
   it('toggles off active mando filter when clicked again', async () => {
@@ -269,17 +333,28 @@ describe('Jogadores', () => {
     expect(screen.getByText('Visitante')).toBeInTheDocument()
   })
 
-  it('shows the chance de pontuar classification, and a dash when unknown', async () => {
+  it('shows the chance de pontuar classification for alta/media/baixa, and a dash when unknown', async () => {
     vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'Artilheiro', chance_pontuar_classificacao: 'alta' },
-      { ...atleta, id: 2, nome: 'Reserva', chance_pontuar_classificacao: null },
+      { ...atleta, id: 2, nome: 'Mediano', chance_pontuar_classificacao: 'media' },
+      { ...atleta, id: 3, nome: 'Reservinha', chance_pontuar_classificacao: 'baixa' },
+      { ...atleta, id: 4, nome: 'Reserva', chance_pontuar_classificacao: null },
     ])
     renderJogadores()
     await screen.findByText('Artilheiro')
 
     const rows = screen.getAllByRole('row')
-    expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
-    expect(within(rows[2]).getByText('—')).toBeInTheDocument()
+    const badgeAlta = within(rows[1]).getByText('Alta')
+    expect(badgeAlta).toBeInTheDocument()
+    expect(badgeAlta).toHaveClass('chance-badge', 'chance-alta')
+
+    const badgeMedia = within(rows[2]).getByText('Média')
+    expect(badgeMedia).toHaveClass('chance-badge', 'chance-media')
+
+    const badgeBaixa = within(rows[3]).getByText('Baixa')
+    expect(badgeBaixa).toHaveClass('chance-badge', 'chance-baixa')
+
+    expect(within(rows[4]).getByText('—')).toBeInTheDocument()
   })
 
   it('shows the media basica column', async () => {
@@ -299,9 +374,11 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('A')
 
-    await user.click(screen.getByRole('button', { name: /média básica/i }))
+    const btnBasica = screen.getByRole('button', { name: /média básica/i })
+    await user.click(btnBasica)
 
     expect(within(screen.getAllByRole('row')[1]).getByText('B')).toBeInTheDocument()
+    expect(btnBasica).toHaveTextContent('↓ 1')
   })
 
   it('shows the overall column, and a dash when there is no data (e.g. TEC)', async () => {
@@ -333,11 +410,31 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('Media')
 
-    await user.click(screen.getByRole('button', { name: /chance de pontuar/i }))
+    const btnChance = screen.getByRole('button', { name: /chance de pontuar/i })
+    await user.click(btnChance)
 
     const rows = screen.getAllByRole('row')
     expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
     expect(within(rows[2]).getByText('Media')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
+    expect(btnChance).toHaveTextContent('↓ 1')
+  })
+
+  it('treats a missing chance de pontuar as lower than an actual zero when sorting descending', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Outro', chance_pontuar_percentual: 50 },
+      { ...atleta, id: 2, nome: 'Zero', chance_pontuar_percentual: 0 },
+      { ...atleta, id: 3, nome: 'SemDado', chance_pontuar_percentual: null },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Outro')
+
+    await user.click(screen.getByRole('button', { name: /chance de pontuar/i }))
+
+    const rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('Outro')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('Zero')).toBeInTheDocument()
     expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
   })
 
@@ -359,6 +456,24 @@ describe('Jogadores', () => {
     expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
   })
 
+  it('treats a missing overall score as lower than an actual zero when sorting descending', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Outro', overall_score: 50 },
+      { ...atleta, id: 2, nome: 'Zero', overall_score: 0 },
+      { ...atleta, id: 3, nome: 'SemDado', overall_score: null },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Outro')
+
+    await user.click(screen.getByRole('button', { name: /overall/i }))
+
+    const rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('Outro')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('Zero')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
+  })
+
   it('sorts by media casa and media fora when header is clicked', async () => {
     vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'A', media_casa: 3, media_fora: 8 },
@@ -371,6 +486,7 @@ describe('Jogadores', () => {
     const btnCasa = screen.getByRole('button', { name: /média casa/i })
     await user.click(btnCasa)
     expect(within(screen.getAllByRole('row')[1]).getByText('B')).toBeInTheDocument()
+    expect(btnCasa).toHaveTextContent('↓ 1')
 
     // untoggle casa (click 2 more times: desc -> asc -> none)
     await user.click(btnCasa)
@@ -379,6 +495,21 @@ describe('Jogadores', () => {
     const btnFora = screen.getByRole('button', { name: /média fora/i })
     await user.click(btnFora)
     expect(within(screen.getAllByRole('row')[1]).getByText('A')).toBeInTheDocument()
+    expect(btnFora).toHaveTextContent('↓ 1')
+  })
+
+  it('sorts by media fora using the athlete-specific value (not a fixed order)', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Baixo', media_fora: 2 },
+      { ...atleta, id: 2, nome: 'Alto', media_fora: 9 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Baixo')
+
+    await user.click(screen.getByRole('button', { name: /média fora/i }))
+
+    expect(within(screen.getAllByRole('row')[1]).getByText('Alto')).toBeInTheDocument()
   })
 
   it('renders each player row as a single link to the detail page, not just the name', async () => {
@@ -397,7 +528,12 @@ describe('Jogadores', () => {
     await screen.findByText('Gabigol')
 
     const rows = screen.getAllByRole('row')
-    expect(within(rows[1]).getByLabelText('Provável')).toBeInTheDocument()
+    const badge = within(rows[1]).getByLabelText('Provável')
+    expect(badge).toBeInTheDocument()
+    expect(badge.closest('[role="cell"]')).toHaveStyle({
+      display: 'flex',
+      justifyContent: 'center',
+    })
   })
 
   it('filters players by multiple statuses in multi-select status dropdown', async () => {
@@ -432,6 +568,471 @@ describe('Jogadores', () => {
     await user.click(screen.getByText('Provável'))
     expect(screen.queryByText('Gabigol')).not.toBeInTheDocument()
     expect(screen.getByText('Pedro')).toBeInTheDocument()
+  })
+
+  it('starts with the search field empty', async () => {
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    expect(screen.getByPlaceholderText(/buscar/i)).toHaveValue('')
+  })
+
+  it('does not filter out players before the name debounce timer fires (initial debounced value is empty)', async () => {
+    vi.useFakeTimers()
+
+    renderJogadores()
+
+    // deixa a promise de busca de atletas resolver, sem avançar o timer de debounce
+    await act(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+
+    expect(screen.getByText('Gabigol')).toBeInTheDocument()
+  })
+
+  it('resets the debounce timer on each keystroke (does not apply a stale filter)', async () => {
+    vi.useFakeTimers()
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Gabigol' },
+      { ...atleta, id: 2, nome: 'Guilherme' },
+    ])
+    renderJogadores()
+
+    await act(async () => {
+      await Promise.resolve()
+      await Promise.resolve()
+    })
+    expect(screen.getByText('Gabigol')).toBeInTheDocument()
+
+    const input = screen.getByPlaceholderText(/buscar/i)
+
+    fireEvent.change(input, { target: { value: 'Gab' } })
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+    fireEvent.change(input, { target: { value: 'Gui' } })
+    act(() => {
+      vi.advanceTimersByTime(100)
+    })
+
+    // 300ms se passaram desde o 1º keystroke ('Gab'), mas só 100ms desde o
+    // 2º ('Gui') — se o timer do 1º keystroke não tiver sido cancelado, ele
+    // já teria disparado e aplicado o filtro errado ('gab'), escondendo
+    // 'Guilherme'
+    expect(screen.getByText('Gabigol')).toBeInTheDocument()
+    expect(screen.getByText('Guilherme')).toBeInTheDocument()
+
+    act(() => {
+      vi.advanceTimersByTime(200)
+    })
+
+    // agora sim, 300ms se passaram desde 'Gui'
+    expect(screen.queryByText('Gabigol')).not.toBeInTheDocument()
+    expect(screen.getByText('Guilherme')).toBeInTheDocument()
+  })
+
+  it('trims whitespace from the search term before filtering', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Gabigol' },
+      { ...atleta, id: 2, nome: 'Pedro' },
+    ])
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    const input = screen.getByPlaceholderText(/buscar/i)
+    fireEvent.change(input, { target: { value: '  Gabi  ' } })
+
+    await waitFor(() => expect(screen.queryByText('Pedro')).not.toBeInTheDocument(), {
+      timeout: 1000,
+    })
+    expect(screen.getByText('Gabigol')).toBeInTheDocument()
+  })
+
+  it('resets to page 1 when the search term changes while on a later page', async () => {
+    const dataset = Array.from({ length: 25 }, (_, index) => ({
+      ...atleta,
+      id: index + 1,
+      nome: `Jogador ${index + 1}`,
+    }))
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue(dataset)
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Jogador 1')
+
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+    await screen.findByText('Jogador 21')
+
+    const input = screen.getByPlaceholderText(/buscar/i)
+    fireEvent.change(input, { target: { value: 'Jogador' } })
+
+    expect(await screen.findByText('Jogador 1')).toBeInTheDocument()
+  })
+
+  it('does not update state after unmount when the atletas request resolves later', async () => {
+    let resolveAtletas: (value: (typeof atleta)[]) => void = () => {}
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockReturnValue(
+      new Promise((resolve) => {
+        resolveAtletas = resolve
+      }),
+    )
+    const { unmount } = renderJogadores()
+    unmount()
+
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    await act(async () => {
+      resolveAtletas([atleta])
+      await Promise.resolve()
+    })
+
+    expect(consoleError).not.toHaveBeenCalled()
+    consoleError.mockRestore()
+  })
+
+  it('does not update state after unmount when the atletas request fails later', async () => {
+    let rejectAtletas: (err: Error) => void = () => {}
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockReturnValue(
+      new Promise((_resolve, reject) => {
+        rejectAtletas = reject
+      }),
+    )
+    const { unmount } = renderJogadores()
+    unmount()
+
+    const consoleError = vi.spyOn(console, 'error').mockImplementation(() => {})
+
+    await act(async () => {
+      rejectAtletas(new Error('Falha de rede'))
+      await Promise.resolve()
+    })
+
+    expect(consoleError).not.toHaveBeenCalled()
+    consoleError.mockRestore()
+  })
+
+  it('resets to page 1 when a position filter is toggled while on a later page', async () => {
+    const dataset = Array.from({ length: 25 }, (_, index) => ({
+      ...atleta,
+      id: index + 1,
+      nome: `Jogador ${index + 1}`,
+      posicao: 'ATA' as const,
+    }))
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue(dataset)
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Jogador 1')
+
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+    await screen.findByText('Jogador 21')
+
+    await user.click(screen.getByRole('button', { name: /Posição/i }))
+    await user.click(screen.getByText('Atacante (ATA)'))
+
+    expect(await screen.findByText('Jogador 1')).toBeInTheDocument()
+  })
+
+  it('removes only the toggled position, keeping other active position filters', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Atacante', posicao: 'ATA' },
+      { ...atleta, id: 2, nome: 'Zagueiro', posicao: 'ZAG' },
+      { ...atleta, id: 3, nome: 'Lateral', posicao: 'LAT' },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Atacante')
+
+    await user.click(screen.getByRole('button', { name: /Posição/i }))
+    await user.click(screen.getByText('Atacante (ATA)'))
+    await user.click(screen.getByText('Zagueiro (ZAG)'))
+
+    expect(screen.getByText('Atacante')).toBeInTheDocument()
+    expect(screen.getByText('Zagueiro')).toBeInTheDocument()
+    expect(screen.queryByText('Lateral')).not.toBeInTheDocument()
+
+    // desmarca apenas ATA, mantendo o filtro de ZAG ativo
+    await user.click(screen.getByText('Atacante (ATA)'))
+
+    expect(screen.queryByText('Atacante')).not.toBeInTheDocument()
+    expect(screen.getByText('Zagueiro')).toBeInTheDocument()
+    expect(screen.queryByText('Lateral')).not.toBeInTheDocument()
+  })
+
+  it('filters correctly for every position value (GOL, ZAG, LAT, MEI, TEC)', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Goleiro', posicao: 'GOL' },
+      { ...atleta, id: 2, nome: 'Zagueiro', posicao: 'ZAG' },
+      { ...atleta, id: 3, nome: 'Lateral', posicao: 'LAT' },
+      { ...atleta, id: 4, nome: 'Meia', posicao: 'MEI' },
+      { ...atleta, id: 5, nome: 'Tecnico', posicao: 'TEC' },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Goleiro')
+
+    await user.click(screen.getByRole('button', { name: /Posição/i }))
+
+    const casos: Array<[string, string]> = [
+      ['Goleiro (GOL)', 'Goleiro'],
+      ['Zagueiro (ZAG)', 'Zagueiro'],
+      ['Lateral (LAT)', 'Lateral'],
+      ['Meia (MEI)', 'Meia'],
+      ['Técnico (TEC)', 'Tecnico'],
+    ]
+
+    for (const [opcaoLabel, nomeEsperado] of casos) {
+      await user.click(screen.getByText(opcaoLabel))
+      expect(screen.getByText(nomeEsperado)).toBeInTheDocument()
+      await user.click(screen.getByText(opcaoLabel)) // desmarca antes do próximo caso
+    }
+  })
+
+  it('clears position filters and resets to page 1 via the Limpar button', async () => {
+    const dataset = [
+      ...Array.from({ length: 25 }, (_, index) => ({
+        ...atleta,
+        id: index + 1,
+        nome: `Atacante ${index + 1}`,
+        posicao: 'ATA' as const,
+      })),
+      ...Array.from({ length: 5 }, (_, index) => ({
+        ...atleta,
+        id: 100 + index,
+        nome: `Zagueiro ${index + 1}`,
+        posicao: 'ZAG' as const,
+      })),
+    ]
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue(dataset)
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Atacante 1')
+
+    await user.click(screen.getByRole('button', { name: /Posição/i }))
+    await user.click(screen.getByText('Atacante (ATA)'))
+    expect(screen.queryByText('Zagueiro 1')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+    await screen.findByText('Atacante 21')
+
+    await user.click(screen.getByRole('button', { name: /Posição/i }))
+    await user.click(screen.getByText('Limpar'))
+
+    expect(await screen.findByText('Atacante 1')).toBeInTheDocument()
+    // confirma que o filtro foi realmente limpo (não só a paginação): o
+    // grupo antes escondido volta a existir no dataset completo (página 2)
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+    expect(await screen.findByText('Zagueiro 1')).toBeInTheDocument()
+  })
+
+  it('resets to page 1 when a status filter is toggled while on a later page', async () => {
+    const dataset = Array.from({ length: 25 }, (_, index) => ({
+      ...atleta,
+      id: index + 1,
+      nome: `Jogador ${index + 1}`,
+      status_nome: 'provavel' as const,
+      status_id: 7,
+    }))
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue(dataset)
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Jogador 1')
+
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+    await screen.findByText('Jogador 21')
+
+    await user.click(screen.getByRole('button', { name: /Status/i }))
+    await user.click(screen.getByText('Provável'))
+
+    expect(await screen.findByText('Jogador 1')).toBeInTheDocument()
+  })
+
+  it('renders all status options in status dropdown', async () => {
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    await user.click(screen.getByRole('button', { name: /Status/i }))
+
+    for (const label of ['Provável', 'Dúvida', 'Suspenso', 'Contundido', 'Nulo']) {
+      expect(screen.getByText(label)).toBeInTheDocument()
+    }
+  })
+
+  it('filters by additional statuses: suspenso, contundido and nulo', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Suspenso1', status_nome: 'suspenso', status_id: 3 },
+      { ...atleta, id: 2, nome: 'Contundido1', status_nome: 'contundido', status_id: 5 },
+      { ...atleta, id: 3, nome: 'Nulo1', status_nome: 'nulo', status_id: 6 },
+      { ...atleta, id: 4, nome: 'SemStatus', status_nome: undefined },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Suspenso1')
+
+    await user.click(screen.getByRole('button', { name: /Status/i }))
+
+    await user.click(screen.getByText('Suspenso'))
+    expect(screen.getByText('Suspenso1')).toBeInTheDocument()
+    expect(screen.queryByText('Contundido1')).not.toBeInTheDocument()
+    expect(screen.queryByText('Nulo1')).not.toBeInTheDocument()
+    expect(screen.queryByText('SemStatus')).not.toBeInTheDocument()
+    await user.click(screen.getByText('Suspenso')) // desmarca
+
+    await user.click(screen.getByText('Contundido'))
+    expect(screen.getByText('Contundido1')).toBeInTheDocument()
+    expect(screen.queryByText('Suspenso1')).not.toBeInTheDocument()
+    expect(screen.queryByText('Nulo1')).not.toBeInTheDocument()
+    await user.click(screen.getByText('Contundido')) // desmarca
+
+    await user.click(screen.getByText('Nulo'))
+    expect(screen.getByText('Nulo1')).toBeInTheDocument()
+    expect(screen.queryByText('Suspenso1')).not.toBeInTheDocument()
+    expect(screen.queryByText('Contundido1')).not.toBeInTheDocument()
+  })
+
+  it('clears status filters and resets to page 1 via the Limpar button', async () => {
+    const dataset = [
+      ...Array.from({ length: 25 }, (_, index) => ({
+        ...atleta,
+        id: index + 1,
+        nome: `Provavel ${index + 1}`,
+        status_nome: 'provavel' as const,
+        status_id: 7,
+      })),
+      ...Array.from({ length: 5 }, (_, index) => ({
+        ...atleta,
+        id: 100 + index,
+        nome: `SemStatus ${index + 1}`,
+        status_nome: undefined,
+      })),
+    ]
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue(dataset)
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Provavel 1')
+
+    await user.click(screen.getByRole('button', { name: /Status/i }))
+    await user.click(screen.getByText('Provável'))
+    expect(screen.queryByText('SemStatus 1')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+    await screen.findByText('Provavel 21')
+
+    await user.click(screen.getByRole('button', { name: /Status/i }))
+    await user.click(screen.getByText('Limpar'))
+
+    expect(await screen.findByText('Provavel 1')).toBeInTheDocument()
+    // confirma que o filtro foi realmente limpo (não só a paginação): o
+    // grupo antes escondido volta a existir no dataset completo (página 2)
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+    expect(await screen.findByText('SemStatus 1')).toBeInTheDocument()
+  })
+
+  it('filters by mando "fora" using the dropdown option', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Mandante', mando_rodada: 'casa' },
+      { ...atleta, id: 2, nome: 'Visitante', mando_rodada: 'fora' },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Mandante')
+
+    await user.click(screen.getByRole('button', { name: /Mando/i }))
+    const listbox = screen.getByRole('listbox')
+    expect(within(listbox).getByText('Fora')).toBeInTheDocument()
+    await user.click(within(listbox).getByText('Fora'))
+
+    expect(screen.getByText('Visitante')).toBeInTheDocument()
+    expect(screen.queryByText('Mandante')).not.toBeInTheDocument()
+  })
+
+  it('resets to page 1 when a mando filter is toggled while on a later page', async () => {
+    const dataset = Array.from({ length: 25 }, (_, index) => ({
+      ...atleta,
+      id: index + 1,
+      nome: `Jogador ${index + 1}`,
+      mando_rodada: 'casa' as const,
+    }))
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue(dataset)
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Jogador 1')
+
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+    await screen.findByText('Jogador 21')
+
+    await user.click(screen.getByRole('button', { name: /Mando/i }))
+    await user.click(within(screen.getByRole('listbox')).getByText('Casa'))
+
+    expect(await screen.findByText('Jogador 1')).toBeInTheDocument()
+  })
+
+  it('clears the mando filter and resets to page 1 via the Limpar button', async () => {
+    const dataset = [
+      ...Array.from({ length: 25 }, (_, index) => ({
+        ...atleta,
+        id: index + 1,
+        nome: `Casa ${index + 1}`,
+        mando_rodada: 'casa' as const,
+      })),
+      ...Array.from({ length: 5 }, (_, index) => ({
+        ...atleta,
+        id: 100 + index,
+        nome: `Fora ${index + 1}`,
+        mando_rodada: 'fora' as const,
+      })),
+    ]
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue(dataset)
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Casa 1')
+
+    await user.click(screen.getByRole('button', { name: /Mando/i }))
+    await user.click(within(screen.getByRole('listbox')).getByText('Casa'))
+    expect(screen.queryByText('Fora 1')).not.toBeInTheDocument()
+
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+    await screen.findByText('Casa 21')
+
+    await user.click(screen.getByRole('button', { name: /Mando/i }))
+    await user.click(within(screen.getByRole('listbox')).getByText('Limpar'))
+
+    expect(await screen.findByText('Casa 1')).toBeInTheDocument()
+    // confirma que o filtro foi realmente limpo (não só a paginação): o
+    // grupo antes escondido volta a existir no dataset completo (página 2)
+    await user.click(screen.getByRole('button', { name: 'Próxima' }))
+    expect(await screen.findByText('Fora 1')).toBeInTheDocument()
+  })
+
+  it('centers the status column header', async () => {
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    expect(screen.getByText('St')).toHaveStyle({ textAlign: 'center' })
+  })
+
+  it('passes the full atleta object as router state when navigating to the detail page', async () => {
+    function CapturaEstado() {
+      const estado = useLocation().state
+      return <pre data-testid="estado-recebido">{JSON.stringify(estado)}</pre>
+    }
+
+    render(
+      <MemoryRouter initialEntries={['/']}>
+        <Routes>
+          <Route path="/" element={<Jogadores />} />
+          <Route path="/jogadores/:id" element={<CapturaEstado />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+    const user = userEvent.setup()
+    await screen.findByText('Gabigol')
+
+    await user.click(screen.getByText('Gabigol'))
+
+    expect(await screen.findByTestId('estado-recebido')).toHaveTextContent(
+      JSON.stringify({ atleta }),
+    )
   })
 })
 
