@@ -117,6 +117,20 @@ describe('Comparar', () => {
     expect(perfilRiscoApi.buscarPerfilRiscoAtleta).toHaveBeenCalledTimes(2)
   })
 
+  it('mostra "Carregando atleta…" para os dois atletas enquanto as 4 chamadas ainda não resolveram', () => {
+    // promises que nunca resolvem — mantém o estado "carregando" travado
+    // de propósito, pra observar o placeholder inicial de cache (o objeto
+    // { status: 'carregando', ... } setado antes do Promise.allSettled).
+    vi.spyOn(atletasApi, 'buscarAtleta').mockReturnValue(new Promise(() => {}))
+    vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockReturnValue(new Promise(() => {}))
+    vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockReturnValue(new Promise(() => {}))
+    vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockReturnValue(new Promise(() => {}))
+
+    renderComparar('?a=123&b=456')
+
+    expect(screen.getAllByText('Carregando atleta…')).toHaveLength(2)
+  })
+
   it('não duplica a busca quando "a" e "b" apontam pro mesmo id (dedupe dentro da mesma execução do efeito)', async () => {
     vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(criarAtleta({ id: 123, nome: 'Atleta A' }))
     vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockResolvedValue(percentisPadrao)
@@ -148,6 +162,61 @@ describe('Comparar', () => {
     expect(await screen.findByText('Dados insuficientes')).toBeInTheDocument()
     // não houve erro global nem travamento do Atleta A
     expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    // status ficou 'erro-parcial' de verdade (não "ok" por engano) — os
+    // blocos analíticos (que exigem os dois atletas com status 'ok') não
+    // devem aparecer quando um dos dois está incompleto.
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('pentagono-jogador-a')).not.toBeInTheDocument()
+  })
+
+  it('isola a falha do atleta B quando só buscarAtleta rejeita (percentis, raio-x e perfil de risco ok)', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation((id) =>
+      id === 456
+        ? Promise.reject(new Error('atleta não encontrado'))
+        : Promise.resolve(criarAtleta({ id, nome: 'Atleta A' })),
+    )
+    vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockResolvedValue(percentisPadrao)
+    vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockResolvedValue(raioXPadrao)
+    vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockResolvedValue(perfilRiscoPadrao)
+
+    renderComparar('?a=123&b=456')
+
+    expect(await screen.findByText('Atleta A')).toBeInTheDocument()
+    expect(await screen.findByText('Dados insuficientes')).toBeInTheDocument()
+  })
+
+  it('isola a falha do atleta B quando só o raio-x rejeita (atleta, percentis e perfil de risco ok)', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation((id) =>
+      Promise.resolve(criarAtleta({ id, nome: id === 123 ? 'Atleta A' : 'Atleta B' })),
+    )
+    vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockResolvedValue(percentisPadrao)
+    vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockImplementation((id) =>
+      id === 456 ? Promise.reject(new Error('raio-x indisponível')) : Promise.resolve(raioXPadrao),
+    )
+    vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockResolvedValue(perfilRiscoPadrao)
+
+    renderComparar('?a=123&b=456')
+
+    expect(await screen.findByText('Atleta B')).toBeInTheDocument()
+    expect(await screen.findByText('Dados insuficientes')).toBeInTheDocument()
+  })
+
+  it('isola a falha do atleta B quando só o perfil de risco rejeita (atleta, percentis e raio-x ok)', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation((id) =>
+      Promise.resolve(criarAtleta({ id, nome: id === 123 ? 'Atleta A' : 'Atleta B' })),
+    )
+    vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockResolvedValue(percentisPadrao)
+    vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockResolvedValue(raioXPadrao)
+    vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockImplementation((id) =>
+      id === 456
+        ? Promise.reject(new Error('perfil de risco indisponível'))
+        : Promise.resolve(perfilRiscoPadrao),
+    )
+
+    renderComparar('?a=123&b=456')
+
+    expect(await screen.findByText('Atleta B')).toBeInTheDocument()
+    expect(await screen.findByText('Dados insuficientes')).toBeInTheDocument()
   })
 
   it('sem ?a=/?b= na URL, mostra os dois seletores AtletaAutocomplete vazios em vez de buscar', () => {
@@ -274,6 +343,41 @@ describe('Comparar', () => {
     expect(screen.queryByText('Carregando atleta…')).not.toBeInTheDocument()
   })
 
+  it('sob StrictMode, ignora a resposta tardia da 1ª execução do efeito quando ela chega depois da 2ª (guarda "ativo" por execução)', async () => {
+    let resolverPrimeiraChamada: ((atleta: Atleta) => void) | undefined
+    let numeroChamadaB = 0
+    vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation((id) => {
+      if (id !== 456) return Promise.resolve(criarAtleta({ id, nome: 'Atleta A' }))
+      numeroChamadaB += 1
+      if (numeroChamadaB === 1) {
+        // 1ª execução do efeito (cleanup roda antes dela resolver) —
+        // fica pendente até resolvermos manualmente, de propósito.
+        return new Promise((resolve) => {
+          resolverPrimeiraChamada = resolve
+        })
+      }
+      // 2ª execução do efeito (a que "vale", com ativo=true) resolve na hora
+      return Promise.resolve(criarAtleta({ id: 456, nome: 'Atleta B Segunda Chamada' }))
+    })
+    vi.spyOn(percentisApi, 'buscarPercentisAtleta').mockResolvedValue(percentisPadrao)
+    vi.spyOn(raioXApi, 'buscarRaioXConfronto').mockResolvedValue(raioXPadrao)
+    vi.spyOn(perfilRiscoApi, 'buscarPerfilRiscoAtleta').mockResolvedValue(perfilRiscoPadrao)
+
+    renderCompararStrictMode('?a=123&b=456')
+
+    // o nome aparece em mais de um lugar (h2, legenda do pentágono, tabela
+    // head-to-head, bloco de risco) — ver nota no teste de StrictMode acima
+    expect(await screen.findAllByText('Atleta B Segunda Chamada')).not.toHaveLength(0)
+
+    // a resposta da 1ª execução (já desativada pelo cleanup) chega tarde
+    resolverPrimeiraChamada?.(criarAtleta({ id: 456, nome: 'Atleta B Primeira Chamada (obsoleta)' }))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    // não deve reverter o nome já atualizado pela 2ª execução
+    expect(screen.queryByText('Atleta B Primeira Chamada (obsoleta)')).not.toBeInTheDocument()
+    expect(screen.getAllByText('Atleta B Segunda Chamada')).not.toHaveLength(0)
+  })
+
   describe('blocos analíticos (Bloco D)', () => {
     it('renderiza o Pentágono Dual quando os dois atletas carregam com sucesso e são da mesma categoria', async () => {
       vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation((id) =>
@@ -288,6 +392,9 @@ describe('Comparar', () => {
       expect(await screen.findByTestId('pentagono-jogador-a')).toBeInTheDocument()
       expect(screen.getByTestId('pentagono-jogador-b')).toBeInTheDocument()
       expect(screen.queryByText(/posições não comparáveis/i)).not.toBeInTheDocument()
+      // com os dois atletas 'ok', o placeholder "Dados insuficientes" não
+      // deve aparecer pra nenhum dos dois.
+      expect(screen.queryByText('Dados insuficientes')).not.toBeInTheDocument()
     })
 
     it('cai para dois pentágonos individuais lado a lado + aviso quando as posições são incompatíveis (GOL vs. linha, CA03)', async () => {

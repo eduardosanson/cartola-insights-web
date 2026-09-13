@@ -1,9 +1,20 @@
 import { render, screen, waitFor } from '@testing-library/react'
+import { StrictMode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import * as atletasApi from '../api/atletas'
 import * as api from '../api/otimizador'
 import MatrizCapitao from './MatrizCapitao'
+
+function renderizarStrict() {
+  return render(
+    <StrictMode>
+      <MemoryRouter>
+        <MatrizCapitao />
+      </MemoryRouter>
+    </StrictMode>,
+  )
+}
 
 vi.mock('../components/RaioXConfronto', () => ({
   default: ({ raioX }: { raioX: { atleta_id: number } }) => (
@@ -69,6 +80,26 @@ describe('MatrizCapitao', () => {
     expect(screen.getByText('Nulo')).toBeInTheDocument()
     expect(screen.getAllByTestId('raio-x')).toHaveLength(5)
     await waitFor(() => expect(api.buscarMatrizCapitao).toHaveBeenCalledTimes(1))
+
+    expect(screen.queryByText('Calculando candidatos…')).not.toBeInTheDocument()
+    expect(screen.queryByText(/nenhum candidato a capitão disponível/i)).not.toBeInTheDocument()
+
+    const itens = screen.getAllByRole('listitem')
+    expect(itens[0]).toHaveClass('capitao-destaque')
+    itens.slice(1).forEach((item) => expect(item).not.toHaveClass('capitao-destaque'))
+  })
+
+  it('mostra o estado de carregamento enquanto a matriz ainda não respondeu', () => {
+    vi.mocked(api.buscarMatrizCapitao).mockReturnValue(new Promise(() => {}))
+    render(
+      <MemoryRouter>
+        <MatrizCapitao />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByText('Calculando candidatos…')).toBeInTheDocument()
+    expect(screen.queryByText(/nenhum candidato a capitão disponível/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
   })
 
   it('mostra estado vazio sem inventar candidatos', async () => {
@@ -80,6 +111,7 @@ describe('MatrizCapitao', () => {
     )
 
     expect(await screen.findByText(/nenhum candidato a capitão disponível/i)).toBeInTheDocument()
+    expect(screen.queryByRole('list')).not.toBeInTheDocument()
   })
 
   it('mantém o candidato navegável quando o nome falha e mostra erros da matriz', async () => {
@@ -104,5 +136,62 @@ describe('MatrizCapitao', () => {
       </MemoryRouter>,
     )
     expect(await screen.findByRole('alert')).toHaveTextContent('Matriz indisponível')
+  })
+
+  it('ignora a resolução tardia de um efeito de busca de candidatos já cancelado (StrictMode)', async () => {
+    const candidatoObsoleto: api.CandidatoCapitao = {
+      ...candidatos[0],
+      atleta_id: 999,
+    }
+    let chamadas = 0
+    let resolverObsoleto: (value: api.CandidatoCapitao[]) => void = () => {}
+    vi.mocked(api.buscarMatrizCapitao).mockImplementation(() => {
+      chamadas += 1
+      if (chamadas === 1) {
+        return new Promise((resolve) => {
+          resolverObsoleto = resolve
+        })
+      }
+      return Promise.resolve(candidatos)
+    })
+
+    renderizarStrict()
+
+    const links = await screen.findAllByRole('link', { name: /atleta \d/i })
+    expect(links).toHaveLength(5)
+
+    // resolve tardiamente o efeito já cancelado pelo cleanup do StrictMode
+    resolverObsoleto([candidatoObsoleto])
+    await new Promise((resolve) => setTimeout(resolve, 0))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(screen.getAllByRole('link', { name: /atleta \d/i })).toHaveLength(5)
+    expect(screen.queryByText('Atleta 999')).not.toBeInTheDocument()
+  })
+
+  it('ignora a rejeição tardia de um efeito de busca de candidatos já cancelado (StrictMode)', async () => {
+    let chamadas = 0
+    let rejeitarObsoleto: (err: Error) => void = () => {}
+    vi.mocked(api.buscarMatrizCapitao).mockImplementation(() => {
+      chamadas += 1
+      if (chamadas === 1) {
+        return new Promise((_resolve, reject) => {
+          rejeitarObsoleto = reject
+        })
+      }
+      return Promise.resolve(candidatos)
+    })
+
+    renderizarStrict()
+
+    const links = await screen.findAllByRole('link', { name: /atleta \d/i })
+    expect(links).toHaveLength(5)
+
+    // rejeita tardiamente o efeito já cancelado pelo cleanup do StrictMode
+    rejeitarObsoleto(new Error('efeito obsoleto'))
+    await new Promise((resolve) => setTimeout(resolve, 0))
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.getAllByRole('link', { name: /atleta \d/i })).toHaveLength(5)
   })
 })
