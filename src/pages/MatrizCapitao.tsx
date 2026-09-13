@@ -4,7 +4,7 @@ import { buscarAtleta } from '../api/atletas'
 import { buscarMatrizCapitao, type CandidatoCapitao } from '../api/otimizador'
 import RaioXConfronto from '../components/RaioXConfronto'
 import StatusBadge from '../components/StatusBadge'
-import { formatNumber } from '../utils/formatNumber'
+import { formatNumber, formatPercent } from '../utils/formatNumber'
 
 export default function MatrizCapitao() {
   const [candidatos, setCandidatos] = useState<CandidatoCapitao[] | null>(null)
@@ -73,7 +73,7 @@ export default function MatrizCapitao() {
                 </div>
                 <div>
                   <dt>Chance de pontuar</dt>
-                  <dd>{formatNumber(candidato.chance_pontuar_percentual)}%</dd>
+                  <dd>{formatPercent(candidato.chance_pontuar_percentual)}</dd>
                 </div>
                 <div>
                   <dt>Fator confronto</dt>

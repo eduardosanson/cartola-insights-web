@@ -312,7 +312,7 @@ export default function Jogadores() {
                     {formatNumber(atleta.media_fora)}
                   </span>
                   <span role="cell" className="num">
-                    {atleta.overall_score === null ? '—' : formatNumber(atleta.overall_score)}
+                    {formatNumber(atleta.overall_score)}
                   </span>
                   <span role="cell" className="num">
                     {atleta.chance_pontuar_classificacao === null ? (
