@@ -13,3 +13,9 @@
 - Decisão: `connect-src` da CSP inclui apenas o domínio de produção do backend (`https://backend-production-9114.up.railway.app`, lido de `.env.production`), não `localhost` — os headers do `vercel.json` só se aplicam ao build servido pela Vercel, nunca ao `vite dev` local.
 - Decisão: além dos 4 headers pedidos literalmente na issue (CSP, X-Frame-Options, X-Content-Type-Options, Referrer-Policy), adicionar `Permissions-Policy` e `Strict-Transport-Security` — necessários na prática para nota A/A+ no securityheaders.com, que é o próprio critério do DoD desta issue.
 - Risco aceito: validação real em securityheaders.com/curl contra HTTPS de produção só é possível após deploy (merge); evidência local usa `curl -I` contra `vercel dev`/build servido localmente ou inspeção estática do `vercel.json`, com o passo remoto documentado como validação manual pós-merge.
+
+## TDD → BUILD → EVIDÊNCIAS — 2026-09-12
+
+- Decisão: sanitizar por remoção de código de caractere (`codePointAt <= 0x1f || === 0x7f`) em vez de regex com classe de caracteres de controle — no ambiente de escrita desta sessão, escapes `\u`/`\x` dentro de literais de regex foram gravados como bytes de controle crus no arquivo-fonte; a versão numérica evita esse risco de forma equivalente e mais legível.
+- Decisão: CLI da Vercel não está disponível neste ambiente sandboxed; a validação de headers ficou limitada a testes que fazem parse estático do `vercel.json` (`src/security-headers.test.ts`) mais inspeção manual — `curl -I`/securityheaders.com contra produção fica registrado como passo de validação humana pós-merge em `docs/evidence/issue-10-security-headers-sanitization.md`.
+- Risco aceito: 264 testes passando, 96.45% de cobertura de statements (piso do projeto é 90%); build de produção verde sem novos warnings de lint além dos 2 pré-existentes em `AuthContext.tsx`, não relacionados a esta issue.
