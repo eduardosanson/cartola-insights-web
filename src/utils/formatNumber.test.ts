@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 import { formatCurrency, formatDecimal, formatInteger, formatNumber, formatPercent } from './formatNumber'
 
 describe('formatNumber', () => {
@@ -15,6 +15,13 @@ describe('formatNumber', () => {
   it.each([null, undefined, Number.NaN])('formats %s as em dash', (value) => {
     expect(formatNumber(value)).toBe('—')
   })
+
+  it('uses pt-BR grouping (thousands separator) and decimal comma', () => {
+    // '.' as thousands separator and ',' as decimal separator only happen with
+    // the 'pt-BR' locale; an empty/invalid locale would throw or fall back to
+    // a different grouping/decimal convention (e.g. '1,234.5').
+    expect(formatNumber(1234.5)).toBe('1.234,5')
+  })
 })
 
 describe('formatCurrency', () => {
@@ -28,6 +35,10 @@ describe('formatCurrency', () => {
 
   it.each([null, undefined, Number.NaN])('formats %s as em dash', (value) => {
     expect(formatCurrency(value)).toBe('—')
+  })
+
+  it('uses pt-BR grouping (thousands separator) and decimal comma', () => {
+    expect(formatCurrency(1234.5)).toBe('C$ 1.234,50')
   })
 })
 
@@ -44,6 +55,10 @@ describe('formatPercent', () => {
 
   it.each([null, undefined, Number.NaN])('formats %s as em dash', (value) => {
     expect(formatPercent(value)).toBe('—')
+  })
+
+  it('uses pt-BR grouping (thousands separator) and decimal comma', () => {
+    expect(formatPercent(1234.5)).toBe('1.234,5%')
   })
 })
 
@@ -79,5 +94,26 @@ describe('formatDecimal', () => {
 
   it.each([null, undefined, Number.NaN])('formats %s as em dash', (value) => {
     expect(formatDecimal(value)).toBe('—')
+  })
+
+  it('reuses the cached Intl.NumberFormat instance for a decimals value already seen', () => {
+    // Use a `decimals` value not exercised by any other test in this file, so the
+    // internal cache is guaranteed empty for it when this test runs.
+    const decimals = 9
+    const OriginalNumberFormat = Intl.NumberFormat
+    const spy = vi.spyOn(Intl, 'NumberFormat').mockImplementation(function (...args: ConstructorParameters<typeof Intl.NumberFormat>) {
+      return new OriginalNumberFormat(...args)
+    })
+
+    formatDecimal(1, decimals)
+    formatDecimal(2, decimals)
+    formatDecimal(3, decimals)
+
+    // A fresh Intl.NumberFormat must be constructed only once (cache miss on the
+    // first call); subsequent calls with the same `decimals` must hit the cache
+    // instead of constructing (and storing) a new formatter every time.
+    expect(spy).toHaveBeenCalledTimes(1)
+
+    spy.mockRestore()
   })
 })
