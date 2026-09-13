@@ -311,9 +311,7 @@ export default function ModalCompararJogador({ atletaOrigem, aberto, onFechar }:
                   <div className="num">{formatNumber(atleta.preco_atual)}</div>
                   <div className="num home">{formatNumber(atleta.media_casa)}</div>
                   <div className="num away">{formatNumber(atleta.media_fora)}</div>
-                  <div className="num">
-                    {atleta.overall_score === null ? '—' : formatNumber(atleta.overall_score)}
-                  </div>
+                  <div className="num">{formatNumber(atleta.overall_score)}</div>
                 </div>
               ))}
             </div>

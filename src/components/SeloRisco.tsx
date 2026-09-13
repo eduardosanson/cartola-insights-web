@@ -1,5 +1,5 @@
 import type { PerfilRisco } from '../api/perfilRisco'
-import { formatNumber } from '../utils/formatNumber'
+import { formatPercent } from '../utils/formatNumber'
 
 const presentation = {
   baixo: { label: 'Risco baixo', color: 'var(--accent-home)' },
@@ -16,7 +16,7 @@ export default function SeloRisco({ perfil }: Props) {
 
   return (
     <span style={{ color: current.color }}>
-      {current.label} ({formatNumber(perfil.risco_percentual)}%)
+      {current.label} ({formatPercent(perfil.risco_percentual)})
     </span>
   )
 }

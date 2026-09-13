@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { buscarMpvAtleta, type MpvAtleta } from '../api/mpv'
-import { formatCurrency } from '../utils/formatNumber'
+import { formatCurrency, formatDecimal } from '../utils/formatNumber'
 
 interface Props {
   atletaId: number
@@ -43,9 +43,11 @@ export default function SimuladorValorizacao({ atletaId }: Props) {
 
   return (
     <section aria-labelledby="simulador-titulo" className="simulador-valorizacao">
-      <h3 id="simulador-titulo">Simulador de valorização</h3>
+      <h3 id="simulador-titulo" className="text-title">
+        Simulador de valorização
+      </h3>
       <label htmlFor={`pontos-projetados-${atletaId}`}>
-        Pontuação projetada: <strong>{pontos.toFixed(1)}</strong>
+        Pontuação projetada: <strong className="text-value">{formatDecimal(pontos, 1)}</strong>
       </label>
       <input
         id={`pontos-projetados-${atletaId}`}
@@ -57,9 +59,11 @@ export default function SimuladorValorizacao({ atletaId }: Props) {
         onChange={(event) => setProjecao({ atletaId, pontos: Number(event.target.value) })}
       />
       <p>
-        Variação estimada: <strong>{formatCurrency(variacaoEstimada)}</strong>
+        Variação estimada: <strong className="text-value">{formatCurrency(variacaoEstimada)}</strong>
       </p>
-      <small>Estimativa baseada em dados históricos; não é a fórmula oficial do Cartola.</small>
+      <small className="text-aux">
+        Estimativa baseada em dados históricos; não é a fórmula oficial do Cartola.
+      </small>
     </section>
   )
 }

@@ -17,3 +17,7 @@
 
 - Decisão: cobrir os novos formatadores por TDD (red → green) no arquivo de teste já existente (`formatNumber.test.ts`), mantendo os testes atuais intactos.
 - Decisão: os componentes que passam a usar `formatPercent`/`formatDecimal` já têm testes que verificam o texto renderizado (`SeloRisco.test.tsx`, `RaioXConfronto.test.tsx`) — reutilizados como rede de segurança, sem precisar duplicar asserts.
+
+## TDD → BUILD — 2026-09-13
+
+- Decisão: aplicar `.text-title` no `<h3>` do `SimuladorValorizacao` (e `.text-label`/`.text-aux`/`.text-value` em `DetalheJogador.tsx`) em vez do `<h2>` do nome do atleta, como o prompt plan previa — o `<h2>` sem classe hoje herda o tamanho padrão do browser (~1.5em), maior que `--fs-md` (1.15rem); trocar encolheria visivelmente o título mais proeminente da página (RNF01/RNF02). O `<h3>` já renderiza perto de `--fs-md` (≈18,7px vs 18,4px), troca visualmente neutra.
