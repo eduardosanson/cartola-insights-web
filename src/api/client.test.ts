@@ -49,6 +49,7 @@ describe('apiGet', () => {
     )
 
     await expect(apiGet('/clubes')).rejects.toMatchObject({
+      name: 'ApiError',
       message: 'entrada inválida',
       status: 422,
     })
@@ -123,6 +124,22 @@ describe('apiPost', () => {
     await expect(apiPost('/contas/registro', { email: 'a@b.com' })).rejects.toThrow(
       'email já cadastrado: a@b.com',
     )
+  })
+
+  it('não chama JSON.stringify quando nenhum body é fornecido', async () => {
+    const stringifySpy = vi.spyOn(JSON, 'stringify')
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 204,
+      statusText: 'No Content',
+      json: async () => ({}),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiPost('/contas/logout')
+
+    expect(stringifySpy).not.toHaveBeenCalled()
+    stringifySpy.mockRestore()
   })
 })
 
