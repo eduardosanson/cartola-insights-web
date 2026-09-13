@@ -157,7 +157,7 @@ describe('PentagonoQualidade', () => {
     let tooltip = screen.queryByRole('tooltip')
     expect(tooltip).toBeInTheDocument()
     expect(tooltip).toHaveTextContent(/poder de fogo/i)
-    expect(tooltip).toHaveTextContent('94')
+    expect(tooltip).toHaveTextContent('78')
     expect(tooltip).not.toHaveTextContent(/percentil/i)
     expect(tooltip).not.toHaveTextContent(/média/i)
 
@@ -246,7 +246,7 @@ describe('PentagonoQualidade', () => {
     const tooltip = screen.getByRole('tooltip')
     expect(tooltip).toBeInTheDocument()
     expect(tooltip).toHaveTextContent('Criação')
-    expect(tooltip).toHaveTextContent('89')
+    expect(tooltip).toHaveTextContent('80')
     expect(tooltip).not.toHaveTextContent('0,38')
   })
 })

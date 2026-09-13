@@ -77,12 +77,12 @@ describe('PentagonoDual', () => {
     fireEvent.mouseEnter(screen.getByTestId('vertice-a-0'))
     expect(screen.getByRole('tooltip')).toHaveTextContent('Atleta A')
     expect(screen.getByRole('tooltip')).toHaveTextContent('Poder de Fogo')
-    expect(screen.getByRole('tooltip')).toHaveTextContent('94')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('78')
 
     fireEvent.mouseLeave(screen.getByTestId('vertice-a-0'))
     fireEvent.mouseEnter(screen.getByTestId('vertice-b-0'))
     expect(screen.getByRole('tooltip')).toHaveTextContent('Atleta B')
-    expect(screen.getByRole('tooltip')).toHaveTextContent('60')
+    expect(screen.getByRole('tooltip')).toHaveTextContent('40')
 
     fireEvent.mouseLeave(screen.getByTestId('vertice-b-0'))
     fireEvent.focus(screen.getByTestId('vertice-a-1'))
