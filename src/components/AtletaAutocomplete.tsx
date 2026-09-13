@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import { listarTodosAtletas, type Atleta, type Posicao } from '../api/atletas'
+import { sanitizeSearchInput } from '../utils/sanitizeSearchInput'
 
 const DEBOUNCE_MS = 300
 
@@ -81,7 +82,7 @@ export default function AtletaAutocomplete({ onSelecionar, posicaoPrioritaria }:
           placeholder="Buscar atleta…"
           value={nomeInput}
           onChange={(e) => {
-            setNomeInput(e.target.value)
+            setNomeInput(sanitizeSearchInput(e.target.value))
             setAberto(true)
           }}
         />
