@@ -98,6 +98,16 @@ describe('Jogadores', () => {
     expect(atletasApi.listarTodosAtletas).toHaveBeenCalledTimes(1)
   })
 
+  it('sanitiza HTML digitado no campo de busca antes de armazenar (issue #10)', async () => {
+    renderJogadores()
+    await screen.findByText('Gabigol')
+
+    const input = screen.getByPlaceholderText(/buscar/i)
+    fireEvent.change(input, { target: { value: '<img src=x onerror=alert(1)>Gabi' } })
+
+    expect((input as HTMLInputElement).value).toBe('Gabi')
+  })
+
   it('filters by position when an option is clicked in position dropdown (client-side)', async () => {
     vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'Atacante', posicao: 'ATA' },

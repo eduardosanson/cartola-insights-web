@@ -7,6 +7,7 @@ import SortableHeader from '../components/SortableHeader'
 import StatusBadge from '../components/StatusBadge'
 import { useMultiSort } from '../hooks/useMultiSort'
 import { formatNumber } from '../utils/formatNumber'
+import { sanitizeSearchInput } from '../utils/sanitizeSearchInput'
 
 const PAGE_SIZE = 20
 const DEBOUNCE_MS = 300
@@ -132,7 +133,7 @@ export default function Jogadores() {
             value={nomeInput}
             onChange={(e) => {
               setPage(1)
-              setNomeInput(e.target.value)
+              setNomeInput(sanitizeSearchInput(e.target.value))
             }}
           />
         </label>

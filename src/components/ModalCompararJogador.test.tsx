@@ -189,6 +189,27 @@ describe('ModalCompararJogador', () => {
     })
   })
 
+  it('sanitiza HTML digitado no campo de busca antes de armazenar (issue #10)', async () => {
+    render(
+      <MemoryRouter>
+        <ModalCompararJogador
+          atletaOrigem={atletaOrigem}
+          aberto={true}
+          onFechar={vi.fn()}
+        />
+      </MemoryRouter>,
+    )
+
+    await waitFor(() => {
+      expect(screen.getByText('Garro')).toBeInTheDocument()
+    })
+
+    const inputBusca = screen.getByPlaceholderText(/Buscar por nome…/i)
+    fireEvent.change(inputBusca, { target: { value: '<img src=x onerror=alert(1)>Pedro' } })
+
+    expect((inputBusca as HTMLInputElement).value).toBe('Pedro')
+  })
+
   it('filtra atletas por posição selecionada e desmarca ao clicar novamente', async () => {
     const user = userEvent.setup()
     render(

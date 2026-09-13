@@ -86,4 +86,19 @@ describe('AtletaAutocomplete', () => {
     expect(opcoes[0]).toHaveTextContent('Casemiro Meia')
     expect(opcoes[1]).toHaveTextContent('Cassio Goleiro')
   })
+
+  it('sanitiza HTML digitado no campo de busca antes de armazenar (issue #10)', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      criarAtleta({ id: 1, nome: 'Neymar' }),
+    ])
+    const onSelecionar = vi.fn()
+
+    render(<AtletaAutocomplete onSelecionar={onSelecionar} />)
+    await waitFor(() => expect(atletasApi.listarTodosAtletas).toHaveBeenCalled())
+
+    const input = screen.getByRole('searchbox')
+    fireEvent.change(input, { target: { value: '<img src=x onerror=alert(1)>Neymar' } })
+
+    expect((input as HTMLInputElement).value).toBe('Neymar')
+  })
 })

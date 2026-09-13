@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { listarTodosAtletas, type Atleta, type Posicao, type StatusAtletaNome } from '../api/atletas'
 import { useMultiSort } from '../hooks/useMultiSort'
 import { formatNumber } from '../utils/formatNumber'
+import { sanitizeSearchInput } from '../utils/sanitizeSearchInput'
 import DropdownFiltro from './DropdownFiltro'
 import SortableHeader from './SortableHeader'
 import StatusBadge from './StatusBadge'
@@ -178,7 +179,7 @@ export default function ModalCompararJogador({ atletaOrigem, aberto, onFechar }:
               value={nomeInput}
               onChange={(e) => {
                 setPage(1)
-                setNomeInput(e.target.value)
+                setNomeInput(sanitizeSearchInput(e.target.value))
               }}
             />
           </label>
