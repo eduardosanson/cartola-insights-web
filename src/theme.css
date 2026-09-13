@@ -519,8 +519,10 @@ button {
 
 .chance-badge {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
+  /* Tokens de tipografia da issue #4 (issue #5, RF03) — substituem os
+     magic numbers 0.72rem/600 por valores equivalentes já na escala. */
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
   padding: 0.15rem 0.55rem;
   border-radius: 7px;
   white-space: nowrap;
