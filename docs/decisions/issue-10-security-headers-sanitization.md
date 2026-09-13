@@ -25,3 +25,8 @@
 - Decisão: aplicar `sanitizeSearchInput` também em `ModalCompararJogador.tsx` — terceiro campo de busca livre com o mesmo padrão de `AtletaAutocomplete`/`Jogadores`, que ficou fora do escopo original por não ter sido mapeado como página distinta na spec.
 - Decisão: trocar a checagem manual de código de caractere (`<= 0x1f || === 0x7f`) por `/\p{Cc}/u.test(caractere)` — cobre a categoria Unicode "Control" completa (C0+C1+DEL) num único critério semântico, corrigindo a lacuna do range C1 (0x80-0x9F) apontada pelo review.
 - Risco aceito: nenhum — ambos os achados eram P2 procedentes com cenário de falha real e correção de baixo risco; 266 testes passando após as correções.
+
+## PR REVIEW round 2 (chatgpt-codex-connector, PR #22) — 2026-09-13
+
+- Decisão: mover o truncamento de `resultado.slice(0, MAX_LENGTH)` (code units UTF-16) para um contador incrementado dentro do próprio loop `for...of` (code points) — corrige o corte de par surrogate na fronteira do limite, apontado pelo review (emoji na posição 99-100 sobrava como high surrogate solto, renderizando `�`).
+- Risco aceito: nenhum — achado P2 procedente com cenário de falha real; 268 testes passando após a correção.
