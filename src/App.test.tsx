@@ -19,7 +19,15 @@ describe('App', () => {
       }),
     )
     render(<App />)
-    expect(screen.getByText('Cartola Insights')).toBeInTheDocument()
+    const heading = screen.getByText('Cartola Insights')
+    expect(heading).toBeInTheDocument()
+
+    const container = heading.parentElement as HTMLElement
+    expect(container).toHaveStyle({
+      maxWidth: '960px',
+      margin: '0 auto',
+      padding: '1rem',
+    })
   })
 
   it('redireciona /conta para a tela de login quando não autenticado', async () => {

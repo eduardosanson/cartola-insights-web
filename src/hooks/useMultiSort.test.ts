@@ -20,6 +20,21 @@ const accessors = {
 }
 
 describe('useMultiSort', () => {
+  it('returns the exact same items reference when no criteria are active', () => {
+    const { result } = renderHook(() => useMultiSort(items, accessors))
+
+    expect(result.current.criteria).toEqual([])
+    expect(result.current.sortedItems).toBe(items)
+  })
+
+  it('keeps the toggleSort function reference stable across re-renders', () => {
+    const { result, rerender } = renderHook(() => useMultiSort(items, accessors))
+
+    const firstToggleSort = result.current.toggleSort
+    rerender()
+    expect(result.current.toggleSort).toBe(firstToggleSort)
+  })
+
   it('cycles a criterion through desc, asc and removed', () => {
     const { result } = renderHook(() => useMultiSort(items, accessors))
 
