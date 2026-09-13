@@ -20,3 +20,14 @@
 ## TDD → BUILD — 2026-09-13
 
 - Decisão: nenhuma decisão adicional — implementação seguiu o prompt plan sem desvios.
+
+## BUILD → PR — 2026-09-13
+
+- Decisão: commits atômicos separados por responsabilidade — fix do hook + testes genéricos,
+  fix do uso em `Jogadores.tsx` + testes de tela, refactor de tokens em `.chance-badge`.
+- Risco aceito: máquina compartilhada apresentou alta carga (load average ~40-60 em 16 cores)
+  durante a execução, causando timeouts intermitentes de 5s em testes não relacionados a esta
+  mudança (`AlertasMercado.test.tsx`, filtro multi-status de `Jogadores.test.tsx`) no hook de
+  pre-commit. Confirmado como flake de ambiente, não de código: os mesmos testes passam de
+  forma isolada e voltam a passar no full-suite após reduzir a carga — sem nenhuma alteração
+  de código entre as tentativas.
