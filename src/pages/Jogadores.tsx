@@ -17,9 +17,10 @@ const sortAccessors = {
   media_basica: (atleta: Atleta) => atleta.media_basica,
   media_casa: (atleta: Atleta) => atleta.media_casa,
   media_fora: (atleta: Atleta) => atleta.media_fora,
-  // sem dado (null) fica sempre por ultimo, tanto em ordem crescente quanto
-  // decrescente — -1 nunca colide com um percentual real (0-100).
-  chance_pontuar_percentual: (atleta: Atleta) => atleta.chance_pontuar_percentual ?? -1,
+  // null fica sempre por último, tanto em ordem crescente quanto decrescente
+  // — useMultiSort trata null como "sem dado" e nunca o deixa vencer um
+  // valor real, em nenhuma das duas direções (issue #5).
+  chance_pontuar_percentual: (atleta: Atleta) => atleta.chance_pontuar_percentual,
   overall_score: (atleta: Atleta) => atleta.overall_score ?? -1,
 }
 

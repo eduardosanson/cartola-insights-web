@@ -54,4 +54,68 @@ describe('useMultiSort', () => {
     ])
     expect(result.current.sortedItems.map((item) => item.id)).toEqual([4, 1, 2, 3])
   })
+
+  it('keeps items with a null accessor value last in descending order', () => {
+    interface ItemComNulo {
+      id: number
+      chance: number | null
+    }
+    const itensComNulo: ItemComNulo[] = [
+      { id: 1, chance: 80 },
+      { id: 2, chance: null },
+      { id: 3, chance: 95 },
+    ]
+    const accessorsComNulo = { chance: (item: ItemComNulo) => item.chance }
+    const { result } = renderHook(() => useMultiSort(itensComNulo, accessorsComNulo))
+
+    act(() => result.current.toggleSort('chance'))
+
+    expect(result.current.criteria).toEqual([{ key: 'chance', direction: 'desc' }])
+    expect(result.current.sortedItems.map((item) => item.id)).toEqual([3, 1, 2])
+  })
+
+  it('keeps items with a null accessor value last in ascending order too', () => {
+    interface ItemComNulo {
+      id: number
+      chance: number | null
+    }
+    const itensComNulo: ItemComNulo[] = [
+      { id: 1, chance: 80 },
+      { id: 2, chance: null },
+      { id: 3, chance: 95 },
+    ]
+    const accessorsComNulo = { chance: (item: ItemComNulo) => item.chance }
+    const { result } = renderHook(() => useMultiSort(itensComNulo, accessorsComNulo))
+
+    act(() => result.current.toggleSort('chance'))
+    act(() => result.current.toggleSort('chance'))
+
+    expect(result.current.criteria).toEqual([{ key: 'chance', direction: 'asc' }])
+    expect(result.current.sortedItems.map((item) => item.id)).toEqual([1, 3, 2])
+  })
+
+  it('treats two null accessor values as tied, falling back to the next criterion', () => {
+    interface ItemComNulo {
+      id: number
+      chance: number | null
+      preco: number
+    }
+    const itensComNulo: ItemComNulo[] = [
+      { id: 1, chance: null, preco: 5 },
+      { id: 2, chance: 90, preco: 3 },
+      { id: 3, chance: null, preco: 1 },
+    ]
+    const accessorsComNulo = {
+      chance: (item: ItemComNulo) => item.chance,
+      preco: (item: ItemComNulo) => item.preco,
+    }
+    const { result } = renderHook(() => useMultiSort(itensComNulo, accessorsComNulo))
+
+    act(() => result.current.toggleSort('chance'))
+    act(() => result.current.toggleSort('preco'))
+
+    // item 2 (não-nulo) vem primeiro; entre os empatados em null, preco desc
+    // (item 1 = 5 > item 3 = 1) decide o desempate.
+    expect(result.current.sortedItems.map((item) => item.id)).toEqual([2, 1, 3])
+  })
 })
