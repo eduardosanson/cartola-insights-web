@@ -1,8 +1,10 @@
 const MAX_LENGTH = 100
 const TAG_HTML = /<[^>]*>?/g
 
-function ehCaractereDeControle(codigo: number): boolean {
-  return codigo <= 0x1f || codigo === 0x7f
+// Categoria Unicode "Cc" (Control) — cobre C0 (0x00-0x1F), DEL (0x7F) e C1
+// (0x80-0x9F) num único critério semântico, em vez de listar ranges à mão.
+function ehCaractereDeControle(caractere: string): boolean {
+  return /\p{Cc}/u.test(caractere)
 }
 
 /**
@@ -17,8 +19,7 @@ export function sanitizeSearchInput(valor: string): string {
   const semTags = valor.replace(TAG_HTML, '')
   let resultado = ''
   for (const caractere of semTags) {
-    const codigo = caractere.codePointAt(0) ?? 0
-    if (!ehCaractereDeControle(codigo)) resultado += caractere
+    if (!ehCaractereDeControle(caractere)) resultado += caractere
   }
   return resultado.slice(0, MAX_LENGTH)
 }
