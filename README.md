@@ -22,6 +22,11 @@ Library · Oxlint
 
 ## Como rodar
 
+Requer **Node.js >= 22.12** (`@stryker-mutator/core`/`@stryker-mutator/vitest-runner`
+exigem Node >= 22; o `engines` do `package.json` mais o `.npmrc`
+(`engine-strict=true`) fazem `npm install`/`npm ci` falharem cedo em vez de só
+avisar em runtimes mais antigos).
+
 ```bash
 npm install
 npm run dev        # dev server em http://localhost:5173
@@ -39,6 +44,7 @@ variável `VITE_API_BASE_URL`).
 | `npm run test` | Vitest (rodada única) |
 | `npm run coverage` | Vitest com cobertura (piso de 90% em statements/branches/functions/lines) |
 | `npm run lint` | Oxlint |
+| `npm run test:mutation` | Mutation testing (Stryker Mutator + runner do Vitest; piso de 90% de mutation score) |
 
 ## Ambiente: `NODE_ENV` e os testes
 
