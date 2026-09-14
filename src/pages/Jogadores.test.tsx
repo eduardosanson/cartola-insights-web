@@ -400,7 +400,7 @@ describe('Jogadores', () => {
     expect(within(rows[2]).getByText('—')).toBeInTheDocument()
   })
 
-  it('sorts by chance de pontuar, with atletas sem dado ficando por ultimo', async () => {
+  it('sorts by chance de pontuar descending, with atletas sem dado ficando por ultimo', async () => {
     vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'Media', chance_pontuar_percentual: 80 },
       { ...atleta, id: 2, nome: 'SemDado', chance_pontuar_percentual: null },
@@ -435,6 +435,26 @@ describe('Jogadores', () => {
     const rows = screen.getAllByRole('row')
     expect(within(rows[1]).getByText('Outro')).toBeInTheDocument()
     expect(within(rows[2]).getByText('Zero')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
+  })
+
+  it('sorts by chance de pontuar ascending, with atletas sem dado ficando por ultimo (issue #5)', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Media', chance_pontuar_percentual: 80 },
+      { ...atleta, id: 2, nome: 'SemDado', chance_pontuar_percentual: null },
+      { ...atleta, id: 3, nome: 'Alta', chance_pontuar_percentual: 95 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Media')
+
+    const header = screen.getByRole('button', { name: /chance de pontuar/i })
+    await user.click(header) // desc
+    await user.click(header) // asc
+
+    const rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('Media')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('Alta')).toBeInTheDocument()
     expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
   })
 

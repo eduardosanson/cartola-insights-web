@@ -84,8 +84,8 @@ export function calcularEixos(percentis: PercentisAtleta): EixoQualidade[] {
         { rotulo: 'Disciplina', valor: percentis.disciplina ?? 0, bruto: brutos?.disciplina },
       ]
     : [
-        { rotulo: 'Poder de Fogo', valor: percentis.pontuacao_media ?? 0, bruto: brutos?.pontuacao_media },
-        { rotulo: 'Criação', valor: percentis.participacao_gol ?? 0, bruto: brutos?.indicador2 ?? brutos?.participacao_gol },
+        { rotulo: 'Poder de Fogo', valor: percentis.participacao_gol ?? 0, bruto: brutos?.indicador2 ?? brutos?.participacao_gol },
+        { rotulo: 'Criação', valor: percentis.pontuacao_media ?? 0, bruto: brutos?.pontuacao_media },
         { rotulo: 'Combate', valor: percentis.desarme ?? 0, bruto: brutos?.indicador3 ?? brutos?.desarme },
         { rotulo: 'Piso Básico', valor: percentis.media_basica ?? 0, bruto: brutos?.media_basica },
         { rotulo: 'Disciplina', valor: percentis.disciplina ?? 0, bruto: brutos?.disciplina },
