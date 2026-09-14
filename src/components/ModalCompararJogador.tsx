@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom'
 import { listarTodosAtletas, type Atleta, type Posicao, type StatusAtletaNome } from '../api/atletas'
 import { useMultiSort } from '../hooks/useMultiSort'
 import { formatNumber } from '../utils/formatNumber'
+import { sanitizeSearchInput } from '../utils/sanitizeSearchInput'
 import DropdownFiltro from './DropdownFiltro'
 import SortableHeader from './SortableHeader'
 import StatusBadge from './StatusBadge'
@@ -178,7 +179,7 @@ export default function ModalCompararJogador({ atletaOrigem, aberto, onFechar }:
               value={nomeInput}
               onChange={(e) => {
                 setPage(1)
-                setNomeInput(e.target.value)
+                setNomeInput(sanitizeSearchInput(e.target.value))
               }}
             />
           </label>
@@ -311,9 +312,7 @@ export default function ModalCompararJogador({ atletaOrigem, aberto, onFechar }:
                   <div className="num">{formatNumber(atleta.preco_atual)}</div>
                   <div className="num home">{formatNumber(atleta.media_casa)}</div>
                   <div className="num away">{formatNumber(atleta.media_fora)}</div>
-                  <div className="num">
-                    {atleta.overall_score === null ? '—' : formatNumber(atleta.overall_score)}
-                  </div>
+                  <div className="num">{formatNumber(atleta.overall_score)}</div>
                 </div>
               ))}
             </div>

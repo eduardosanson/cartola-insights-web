@@ -1,5 +1,5 @@
 import type { RaioXConfronto as RaioXConfrontoTipo, Veredito } from '../api/raioX'
-import { formatNumber } from '../utils/formatNumber'
+import { formatNumber, formatPercent } from '../utils/formatNumber'
 
 const ROTULOS_VEREDITO: Record<Veredito, string> = {
   referencia_do_time: 'Referência do time',
@@ -49,7 +49,7 @@ export default function RaioXConfronto({ raioX }: Props) {
           <p className="mb-value">
             {raioX.participacao_pontuacao_time_media === null
               ? 'sem dado suficiente'
-              : `${formatNumber(raioX.participacao_pontuacao_time_media)}%`}
+              : formatPercent(raioX.participacao_pontuacao_time_media)}
           </p>
           <p className="mb-note">Participação na pontuação do time.</p>
         </li>

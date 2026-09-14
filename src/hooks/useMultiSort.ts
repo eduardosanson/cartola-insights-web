@@ -7,7 +7,7 @@ export interface SortCriterion<K extends string> {
   direction: SortDirection
 }
 
-type Accessors<T, K extends string> = Record<K, (item: T) => number>
+type Accessors<T, K extends string> = Record<K, (item: T) => number | null>
 
 export function useMultiSort<T, K extends string>(items: T[], accessors: Accessors<T, K>) {
   const [criteria, setCriteria] = useState<SortCriterion<K>[]>([])
@@ -31,7 +31,15 @@ export function useMultiSort<T, K extends string>(items: T[], accessors: Accesso
       .map((item, index) => ({ item, index }))
       .sort((left, right) => {
         for (const criterion of criteria) {
-          const difference = accessors[criterion.key](left.item) - accessors[criterion.key](right.item)
+          const leftValue = accessors[criterion.key](left.item)
+          const rightValue = accessors[criterion.key](right.item)
+          // Nulls last, independente da direção: null nunca deve "vencer" um
+          // valor real, então não entra na inversão de sinal do desc.
+          if (leftValue === null || rightValue === null) {
+            if (leftValue === rightValue) continue
+            return leftValue === null ? 1 : -1
+          }
+          const difference = leftValue - rightValue
           if (difference !== 0) return criterion.direction === 'asc' ? difference : -difference
         }
         return left.index - right.index

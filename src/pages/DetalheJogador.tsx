@@ -140,11 +140,11 @@ function DetalheJogadorConteudo({ id }: { id: string | undefined }) {
               Média básica <span>{formatNumber(atleta.media_basica)}</span>
             </p>
             <div className="mpv-estimado">
-              <strong>MPV estimado</strong>
+              <strong className="text-label">MPV estimado</strong>
               {mpv?.confiavel && mpv.mpv_estimado !== null && (
                 <p>
-                  <span className="numeric">{formatCurrency(mpv.mpv_estimado)}</span>{' '}
-                  <small>estimativa baseada em dados históricos</small>
+                  <span className="numeric text-value">{formatCurrency(mpv.mpv_estimado)}</span>{' '}
+                  <small className="text-aux">estimativa baseada em dados históricos</small>
                 </p>
               )}
               {mpvInsuficiente && <p>Dados insuficientes ainda para estimar.</p>}

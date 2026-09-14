@@ -14,6 +14,33 @@
   --font-body: 'Karla', system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, Consolas, monospace;
 
+  /* Tokens de design derivados da paleta acima — referenciados em várias
+     regras abaixo (pentágono, tooltip, eixos) mas nunca declarados
+     (issue #4, RF01). Valores via color-mix para acompanhar o tema. */
+  --border-strong: color-mix(in srgb, var(--border) 65%, var(--text) 35%);
+  --text-faint: color-mix(in srgb, var(--text-muted) 55%, transparent);
+  --bg-sunken: color-mix(in srgb, var(--bg) 85%, black 15%);
+
+  /* Escala tipográfica (issue #4, RF05) — tamanhos, pesos e line-heights
+     reutilizáveis pelas classes utilitárias .text-* abaixo e por futuros
+     pontos de aplicação (card de refinamento de tabelas/cards). */
+  --fs-2xs: 0.7rem;
+  --fs-xs: 0.8rem;
+  --fs-sm: 0.88rem;
+  --fs-base: 1rem;
+  --fs-md: 1.15rem;
+  --fs-lg: 1.4rem;
+  --fs-xl: 1.75rem;
+
+  --lh-tight: 1.1;
+  --lh-snug: 1.25;
+  --lh-normal: 1.4;
+
+  --fw-regular: 400;
+  --fw-medium: 500;
+  --fw-semibold: 600;
+  --fw-bold: 700;
+
   color-scheme: light dark;
 }
 
@@ -28,6 +55,10 @@
     --text-muted: #a7a89c;
     --border: #34362a;
     --danger: #ff8a80;
+
+    --border-strong: color-mix(in srgb, var(--border) 55%, var(--text) 45%);
+    --text-faint: color-mix(in srgb, var(--text-muted) 55%, transparent);
+    --bg-sunken: color-mix(in srgb, var(--bg) 80%, black 20%);
   }
 }
 
@@ -57,6 +88,54 @@ td.numeric,
 .numeric * {
   font-family: var(--font-mono);
   font-variant-numeric: tabular-nums;
+}
+
+/* Classes utilitárias de hierarquia tipográfica (issue #4, RF05) — papéis
+   reutilizáveis de título, subtítulo, rótulo, valor numérico e texto
+   auxiliar, construídos sobre a escala de tokens declarada acima. Não
+   substituem os seletores específicos já existentes (ex.: .mb-value,
+   .player-row .num); ficam disponíveis para novos pontos e para a
+   migração gradual prevista no próximo card de tabelas/cards. */
+.text-title {
+  font-family: var(--font-heading);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-md);
+  line-height: var(--lh-tight);
+  letter-spacing: 0.02em;
+}
+
+.text-subtitle {
+  font-family: var(--font-body);
+  font-weight: var(--fw-medium);
+  font-size: var(--fs-sm);
+  line-height: var(--lh-snug);
+  color: var(--text-muted);
+}
+
+.text-label {
+  font-family: var(--font-heading);
+  font-weight: var(--fw-semibold);
+  font-size: var(--fs-2xs);
+  line-height: var(--lh-tight);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.text-value {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-weight: var(--fw-bold);
+  font-size: var(--fs-lg);
+  line-height: var(--lh-tight);
+}
+
+.text-aux {
+  font-family: var(--font-body);
+  font-weight: var(--fw-regular);
+  font-size: var(--fs-xs);
+  line-height: var(--lh-normal);
+  color: var(--text-muted);
 }
 
 a {
@@ -440,8 +519,10 @@ button {
 
 .chance-badge {
   font-family: var(--font-mono);
-  font-size: 0.72rem;
-  font-weight: 600;
+  /* Tokens de tipografia da issue #4 (issue #5, RF03) — substituem os
+     magic numbers 0.72rem/600 por valores equivalentes já na escala. */
+  font-size: var(--fs-2xs);
+  font-weight: var(--fw-semibold);
   padding: 0.15rem 0.55rem;
   border-radius: 7px;
   white-space: nowrap;
