@@ -32,7 +32,13 @@ export default defineConfig({
   webServer: {
     command: 'npm run dev -- --port 5173 --strictPort',
     url: 'http://localhost:5173',
-    reuseExistingServer: !process.env.CI,
+    // Nunca reaproveitar um servidor já rodando na porta: um `vite dev`
+    // que o desenvolvedor já tenha de pé (outro terminal, outro projeto)
+    // pode ter subido com um VITE_API_BASE_URL diferente do `env` abaixo
+    // — reuso ignoraria esse `env` e o e2e voltaria a vazar para a
+    // origem real (mesma falha corrigida no commit d510927, agora
+    // também coberta para o caminho de servidor reaproveitado).
+    reuseExistingServer: false,
     timeout: 60_000,
     // Força a origem da API que o app usa (src/api/client.ts) para a
     // mesma que os mocks interceptam (e2e/support/mockApi.ts) — sem
