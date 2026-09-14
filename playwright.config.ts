@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test'
+import { E2E_API_BASE_URL } from './e2e/support/env'
 
 /**
  * Infraestrutura inicial de regressão visual/estrutural (issue #6):
@@ -33,5 +34,11 @@ export default defineConfig({
     url: 'http://localhost:5173',
     reuseExistingServer: !process.env.CI,
     timeout: 60_000,
+    // Força a origem da API que o app usa (src/api/client.ts) para a
+    // mesma que os mocks interceptam (e2e/support/mockApi.ts) — sem
+    // isso, um .env/.env.local local com VITE_API_BASE_URL diferente
+    // faria o e2e vazar para uma API real, quebrando reprodutibilidade
+    // (RNF04) e isolamento de dados (RNF05).
+    env: { VITE_API_BASE_URL: E2E_API_BASE_URL },
   },
 })

@@ -1,14 +1,11 @@
 import type { Page } from '@playwright/test'
 import { atletasFixture } from '../fixtures/atletas'
+import { E2E_API_BASE_URL as API_BASE_URL } from './env'
 
-/**
- * Base da API usada pelo frontend em `vite dev` sem `.env` local
- * (ver `src/api/client.ts`). O e2e não sobe um backend real — toda
- * chamada de rede para essa origem é interceptada e respondida com
- * dados fixos, para eliminar dependência/flakiness de backend (issue
- * #6, RNF05).
- */
-const API_BASE_URL = 'http://localhost:8000'
+// A origem interceptada aqui é forçada no processo do `vite dev` por
+// `playwright.config.ts` (webServer.env), então permanece esta mesma
+// origem independentemente de qualquer `.env`/`.env.local` local do
+// desenvolvedor (ver `e2e/support/env.ts`).
 
 /**
  * Intercepta as chamadas de rede disparadas pela Listagem de Jogadores
