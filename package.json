@@ -14,6 +14,7 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "coverage": "vitest run --coverage",
+    "test:e2e": "playwright test",
     "test:mutation": "stryker run"
   },
   "dependencies": {
@@ -22,6 +23,7 @@
     "react-router-dom": "^7.1.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@stryker-mutator/core": "^10.0.0",
     "@stryker-mutator/vitest-runner": "^10.0.0",
     "@testing-library/jest-dom": "^6.6.3",
