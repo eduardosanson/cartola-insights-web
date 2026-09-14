@@ -153,9 +153,11 @@ describe('components/pentagonoGeometria', () => {
       const eixos = calcularEixos(percentisLinha)
 
       expect(eixos).toHaveLength(5)
-      expect(eixos[0]).toEqual({ rotulo: 'Poder de Fogo', valor: 65, bruto: 6.5 })
-      // indicador2 (5) tem prioridade sobre participacao_gol (88) via ??
-      expect(eixos[1]).toEqual({ rotulo: 'Criação', valor: 55, bruto: 5 })
+      // Poder de Fogo usa participacao_gol (55); indicador2 (5) tem prioridade
+      // sobre participacao_gol (88) via ?? no bruto.
+      expect(eixos[0]).toEqual({ rotulo: 'Poder de Fogo', valor: 55, bruto: 5 })
+      // Criação usa pontuacao_media (65), sem fallback de indicador no bruto.
+      expect(eixos[1]).toEqual({ rotulo: 'Criação', valor: 65, bruto: 6.5 })
       // indicador3 (4) tem prioridade sobre desarme (77) via ??
       expect(eixos[2]).toEqual({ rotulo: 'Combate', valor: 45, bruto: 4 })
       expect(eixos[3]).toEqual({ rotulo: 'Piso Básico', valor: 25, bruto: 0.3 })
@@ -194,7 +196,9 @@ describe('components/pentagonoGeometria', () => {
 
       const eixos = calcularEixos(semIndicadores)
 
-      expect(eixos[1].bruto).toBe(88)
+      // Poder de Fogo (índice 0): sem indicador2, cai no fallback participacao_gol.
+      expect(eixos[0].bruto).toBe(88)
+      // Combate (índice 2): sem indicador3, cai no fallback desarme.
       expect(eixos[2].bruto).toBe(77)
     })
 
@@ -203,7 +207,8 @@ describe('components/pentagonoGeometria', () => {
       const eixos = calcularEixos(semBrutos)
 
       expect(eixos.every((eixo) => eixo.bruto === undefined)).toBe(true)
-      expect(eixos[0].valor).toBe(65)
+      // Poder de Fogo agora usa participacao_gol (55) como valor.
+      expect(eixos[0].valor).toBe(55)
     })
   })
 })

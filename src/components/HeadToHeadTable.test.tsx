@@ -5,10 +5,13 @@ import type { PercentisPadrao } from '../api/percentis'
 
 /**
  * Fixture cobrindo, eixo a eixo, todas as combinações de "quem vence" e de
- * bruto ausente que o componente precisa distinguir:
+ * bruto ausente que o componente precisa distinguir (mapeamento pós-fix de
+ * Poder de Fogo/Criação: Poder de Fogo usa indicador2 ?? participacao_gol,
+ * Criação usa pontuacao_media direto — ver pentagonoGeometria.ts):
  *
- * - Poder de Fogo: A (60) > B (40) → badge "Maior" só em A.
- * - Criação:       bruto de A ausente (indicador2/participacao_gol não
+ * - Criação:        A (60) > B (40) → badge "Maior" só em A (bruto = pontuacao_media,
+ *                   presente nos dois lados).
+ * - Poder de Fogo:  bruto de A ausente (nem indicador2 nem participacao_gol
  *                   informados) → A mostra "—", B mostra o número, sem badge.
  * - Combate:        bruto de B ausente (indicador3/desarme não informados)
  *                   → B mostra "—", A mostra o número, sem badge.
@@ -62,10 +65,10 @@ describe('HeadToHeadTable', () => {
     expect(screen.getByRole('columnheader', { name: 'Atleta B' })).toHaveClass('numeric')
   })
 
-  it('marca com badge "Maior" só o atleta A quando o bruto de A é maior (Poder de Fogo)', () => {
+  it('marca com badge "Maior" só o atleta A quando o bruto de A é maior (Criação)', () => {
     render(<HeadToHeadTable percentisA={percentisA} percentisB={percentisB} nomeA="Atleta A" nomeB="Atleta B" />)
 
-    const [celulaA, celulaB] = celulasDaLinha('Poder de Fogo')
+    const [celulaA, celulaB] = celulasDaLinha('Criação')
     expect(celulaA.textContent).toBe('60Maior')
     expect(celulaB.textContent).toBe('40')
   })
@@ -86,10 +89,10 @@ describe('HeadToHeadTable', () => {
     expect(celulaB.textContent).toBe('30')
   })
 
-  it('mostra "—" e nenhum badge quando falta o bruto de A, mantendo o valor de B (Criação)', () => {
+  it('mostra "—" e nenhum badge quando falta o bruto de A, mantendo o valor de B (Poder de Fogo)', () => {
     render(<HeadToHeadTable percentisA={percentisA} percentisB={percentisB} nomeA="Atleta A" nomeB="Atleta B" />)
 
-    const [celulaA, celulaB] = celulasDaLinha('Criação')
+    const [celulaA, celulaB] = celulasDaLinha('Poder de Fogo')
     expect(celulaA.textContent).toBe('—')
     expect(celulaB.textContent).toBe('45')
   })

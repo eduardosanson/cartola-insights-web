@@ -175,7 +175,7 @@ describe('PentagonoDual', () => {
     const verticeA1 = screen.getByTestId('vertice-a-1')
     const verticeB0 = screen.getByTestId('vertice-b-0')
 
-    expect(verticeA0).toHaveAttribute('aria-label', 'Atleta A, Poder de Fogo: 94')
+    expect(verticeA0).toHaveAttribute('aria-label', 'Atleta A, Poder de Fogo: 78')
     expect(verticeA0).not.toHaveAttribute('aria-describedby')
 
     fireEvent.mouseEnter(verticeA0)
@@ -184,7 +184,7 @@ describe('PentagonoDual', () => {
     expect(verticeB0).not.toHaveAttribute('aria-describedby')
 
     const tooltipValor = screen.getByRole('tooltip').querySelector('div')
-    expect(tooltipValor?.textContent).toBe('Poder de Fogo: 94')
+    expect(tooltipValor?.textContent).toBe('Poder de Fogo: 78')
   })
 
   it('exibe a legenda (figcaption) com os nomes exatos dos dois atletas e o espaçamento correto', () => {

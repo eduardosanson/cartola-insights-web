@@ -186,7 +186,7 @@ describe('PentagonoQualidade', () => {
     render(<PentagonoQualidade percentis={percentisLinha} />)
 
     const vertice0 = screen.getByTestId('vertice-0')
-    expect(vertice0).toHaveAttribute('aria-label', 'Poder de Fogo: 94%')
+    expect(vertice0).toHaveAttribute('aria-label', 'Poder de Fogo: 78%')
   })
 
   it('aria-describedby só aponta para o tooltip do vértice ativo e some quando nenhum está ativo', () => {
