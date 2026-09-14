@@ -29,3 +29,9 @@
 - Decisão: usar o mock de rede (`page.route`) também para `/contas/me`, cobrindo o efeito colateral do `AuthProvider` que monta em toda página da aplicação, e não só `/atletas` — sem isso o e2e dependeria de uma tentativa real de rede mesmo fora do escopo funcional da Listagem de Jogadores.
 - Decisão: adicionar 2 testes em `src/ci-config.test.ts` cobrindo os novos steps de Playwright no workflow (instalação de browser, execução do `test:e2e`, upload de artefato em falha), seguindo o padrão já usado pela issue #8 para validar `.github/workflows/ci.yml` por asserções de texto.
 - Risco aceito: nenhum — `npm run lint`, `npm run coverage` (306 testes, cobertura ≥90% em todas as métricas) e `npm run build` passam sem regressão antes da abertura do PR.
+
+## PR REVIEW (chatgpt-codex-connector) → FIX — 2026-09-13
+
+- Decisão: forçar `VITE_API_BASE_URL` no `webServer.env` do `playwright.config.ts` em resposta ao achado P2 na PR #26 — um `.env`/`.env.local` local com origem diferente de `http://localhost:8000` fazia o `vite dev` chamar essa outra origem enquanto `mockApi.ts` só interceptava `localhost:8000`, vazando o e2e para fora do mock (quebra de RNF04/RNF05). Reproduzido localmente (`.env.local` com `localhost:9999` → teste trava por timeout esperando a tabela) e confirmado corrigido (mesmo cenário → suíte passa) antes de aplicar.
+- Decisão: extrair a origem para `e2e/support/env.ts`, compartilhada entre `playwright.config.ts` e `mockApi.ts`, em vez de manter o literal duplicado nos dois arquivos.
+- Risco aceito: nenhum — mudança aditiva e testada nos dois sentidos (com e sem o fix, reproduzindo e depois eliminando a falha).
