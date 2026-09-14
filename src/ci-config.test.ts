@@ -55,4 +55,18 @@ describe("CI GitHub Actions Configuration", () => {
     const content = readFileSync(workflowPath, "utf8");
     expect(content).not.toContain("run: npx tsc -b");
   });
+
+  it("should install Playwright's Chromium browser and run the e2e suite as a blocking gate (issue #6)", () => {
+    const content = readFileSync(workflowPath, "utf8");
+    expect(content).toContain("npx playwright install --with-deps chromium");
+    expect(content).toContain("run: npm run test:e2e");
+  });
+
+  it("should upload the Playwright report and test results as an artifact when the job fails (issue #6)", () => {
+    const content = readFileSync(workflowPath, "utf8");
+    expect(content).toContain("actions/upload-artifact@v4");
+    expect(content).toContain("if: failure()");
+    expect(content).toContain("playwright-report/");
+    expect(content).toContain("test-results/");
+  });
 });

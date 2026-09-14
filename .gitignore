@@ -17,6 +17,11 @@ dist-ssr
 coverage
 .superpowers/
 
+# Playwright (e2e)
+playwright-report/
+test-results/
+blob-report/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
