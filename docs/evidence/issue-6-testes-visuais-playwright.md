@@ -116,6 +116,7 @@ Também foi observado, durante o desenvolvimento, um caso real de falso-positivo
 - Quebrar propositalmente a Listagem de Jogadores (ex.: renomear temporariamente `role="table"` ou lançar um erro em `useEffect`) → `npm run test:e2e` deve falhar e gerar `test-results/*/test-failed-*.png` e `trace.zip`.
 - Rodar offline (sem qualquer backend em `localhost:8000`) → a suíte continua passando, pois toda chamada de rede é interceptada por `page.route` antes de qualquer requisição real.
 - Rodar com um `.env.local` definindo `VITE_API_BASE_URL` diferente (ex.: outro backend local) → a suíte continua passando, pois `playwright.config.ts` força essa variável no processo do `vite dev` que ele mesmo sobe, sobrescrevendo qualquer `.env`/`.env.local` (achado de code review na PR #26, ver `docs/decisions`).
+- Rodar com um `vite dev` já de pé na porta 5173 (outro terminal, com sua própria origem de API) → a suíte falha alto com "port already in use" em vez de silenciosamente reaproveitar esse servidor e vazar para a origem errada (`reuseExistingServer: false`, segundo achado de code review na PR #26).
 
 ## Fora de Escopo (confirmado)
 
