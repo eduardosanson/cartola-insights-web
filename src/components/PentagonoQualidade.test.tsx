@@ -121,7 +121,120 @@ describe('PentagonoQualidade', () => {
     render(<PentagonoQualidade percentis={semOverall} />)
 
     const overall = screen.getByTestId('overall-score')
-    expect(overall).toHaveTextContent('77,4')
+    // match exato (não substring): (94+78+62+85+68)/5 = 77,4 — uma soma que
+    // vira subtração daria -77,4, que "toHaveTextContent" substring deixaria
+    // passar por engano
+    expect(overall.textContent).toBe('77,4')
+  })
+
+  it('usa o Overall Score do backend mesmo quando ele diverge da média aritmética dos eixos', () => {
+    const overallDivergente: PercentisPadrao = {
+      ...percentisLinha,
+      overall_score: 12.3,
+    }
+    render(<PentagonoQualidade percentis={overallDivergente} />)
+
+    const overall = screen.getByTestId('overall-score')
+    // média aritmética dos eixos de percentisLinha é 77,4 — se o componente
+    // ignorasse o overall_score do backend e sempre recalculasse, o teste
+    // pegaria "77,4" em vez do valor do backend
+    expect(overall.textContent).toBe('12,3')
+  })
+
+  it('calcula o polígono do jogador unindo os pontos com espaço, coincidindo com o anel de 100%', () => {
+    const percentisTodosMax: PercentisPadrao = {
+      atleta_id: 6,
+      pontuacao_media: 100,
+      participacao_gol: 100,
+      desarme: 100,
+      disciplina: 100,
+      media_basica: 100,
+    }
+    render(<PentagonoQualidade percentis={percentisTodosMax} />)
+
+    const poligonoJogador = screen.getByTestId('pentagono-jogador')
+    // Com todos os eixos em 100%, os pontos do jogador ficam bem próximos do
+    // anel de referência de 100% (arredondamento de ponto flutuante à parte)
+    // — string exata, unida por espaço (não por "" e não com "undefined" no
+    // lugar de cada ponto)
+    expect(poligonoJogador).toHaveAttribute('points', '170,50 274.6,126 234.7,249 105.3,249 65.4,126')
+  })
+
+  it('aplica estilos inline no wrapper (position relative) e no svg (dimensões responsivas)', () => {
+    const { container } = render(<PentagonoQualidade percentis={percentisLinha} />)
+
+    const wrap = container.querySelector('.diagram-wrap')
+    expect(wrap).toHaveStyle({ position: 'relative' })
+
+    const svg = screen.getByRole('img', { name: /pentágono de qualidade/i })
+    expect(svg).toHaveStyle({
+      maxWidth: '380px',
+      height: 'auto',
+      display: 'block',
+      margin: '0 auto',
+    })
+  })
+
+  it('renderiza as 5 linhas radiais dos eixos (pentagon-axis)', () => {
+    const { container } = render(<PentagonoQualidade percentis={percentisLinha} />)
+
+    const linhas = container.querySelectorAll('line.pentagon-axis')
+    expect(linhas).toHaveLength(5)
+  })
+
+  it('define aria-label do vértice com rótulo e valor percentual exatos', () => {
+    render(<PentagonoQualidade percentis={percentisLinha} />)
+
+    const vertice0 = screen.getByTestId('vertice-0')
+    expect(vertice0).toHaveAttribute('aria-label', 'Poder de Fogo: 78%')
+  })
+
+  it('aria-describedby só aponta para o tooltip do vértice ativo e some quando nenhum está ativo', () => {
+    render(<PentagonoQualidade percentis={percentisLinha} />)
+
+    const vertice0 = screen.getByTestId('vertice-0')
+    const vertice1 = screen.getByTestId('vertice-1')
+
+    expect(vertice0).not.toHaveAttribute('aria-describedby')
+    expect(vertice1).not.toHaveAttribute('aria-describedby')
+
+    fireEvent.mouseEnter(vertice0)
+    expect(vertice0).toHaveAttribute('aria-describedby', 'pentagono-tooltip')
+    expect(vertice1).not.toHaveAttribute('aria-describedby')
+
+    fireEvent.mouseLeave(vertice0)
+    expect(vertice0).not.toHaveAttribute('aria-describedby')
+  })
+
+  it('marca com a classe "hi" só o rótulo cujo valor é >= 75 (limite exato incluso)', () => {
+    const percentisLimite: PercentisPadrao = {
+      atleta_id: 7,
+      pontuacao_media: 40,
+      participacao_gol: 40,
+      desarme: 40,
+      disciplina: 75,
+      media_basica: 40,
+    }
+    render(<PentagonoQualidade percentis={percentisLimite} />)
+
+    const disciplinaLabel = screen.getByText('Disciplina')
+    expect(disciplinaLabel.getAttribute('class')).toBe('pentagon-label hi')
+
+    const poderLabel = screen.getByText('Poder de Fogo')
+    expect(poderLabel.getAttribute('class')).toBe('pentagon-label ')
+  })
+
+  it('mostra "goleiros" no figcaption pra GOL e "atacantes" pra jogador de linha, sem misturar os dois', () => {
+    const { container, rerender } = render(<PentagonoQualidade percentis={percentisGol} />)
+
+    let figcaption = container.querySelector('figcaption')
+    expect(figcaption).toHaveTextContent(/goleiros/i)
+    expect(figcaption).not.toHaveTextContent(/atacantes/i)
+
+    rerender(<PentagonoQualidade percentis={percentisLinha} />)
+    figcaption = container.querySelector('figcaption')
+    expect(figcaption).toHaveTextContent(/atacantes/i)
+    expect(figcaption).not.toHaveTextContent(/goleiros/i)
   })
 
   it('renderiza o Overall Score centralizado dentro do SVG do pentágono (CA03), não como badge solto no canto', () => {

@@ -90,7 +90,7 @@ describe('DetalheJogador', () => {
     vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
     vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
 
-    renderDetalhe('1', null)
+    const { container } = renderDetalhe('1', null)
 
     expect(atletasApi.buscarAtleta).toHaveBeenCalledWith(1)
     expect(atletasApi.buscarHistoricoAtleta).toHaveBeenCalledWith(1)
@@ -102,6 +102,33 @@ describe('DetalheJogador', () => {
     expect(await screen.findByText('Vasco')).toBeInTheDocument()
     expect(screen.getByText('8,57')).toBeInTheDocument()
     expect(screen.getByText('casa')).toBeInTheDocument()
+    expect(screen.getByText('casa')).toHaveStyle({ color: 'var(--accent-home)' })
+    expect(screen.getByText('G 1, FT 2')).toBeInTheDocument()
+
+    const linhaClube = screen.getByText(`${atleta.clube_nome} · ${atleta.posicao}`)
+    expect(linhaClube.closest('p')).toHaveStyle({
+      display: 'flex',
+      alignItems: 'center',
+      gap: '0.5rem',
+      flexWrap: 'wrap',
+    })
+
+    expect(screen.queryByRole('alert')).not.toBeInTheDocument()
+    expect(screen.queryByText(/carregando/i)).not.toBeInTheDocument()
+    expect(screen.queryByText(/sem histórico/i)).not.toBeInTheDocument()
+
+    const root = container.firstElementChild
+    expect(root?.querySelectorAll(':scope > p').length).toBe(0)
+
+    // aguarda todas as chamadas paralelas (percentis, raio-x, perfil de risco, mpv)
+    // resolverem com sucesso e garante que nenhum <p> de erro "fantasma" (ex.:
+    // `cond || <p>{cond}</p>`) é renderizado quando a condição é falsy
+    await waitFor(() => expect(screen.getByText(/risco alto/i)).toBeInTheDocument())
+    await waitFor(() => expect(screen.getByText('C$ 2,00')).toBeInTheDocument())
+    const paragrafosVazios = Array.from(container.querySelectorAll('p')).filter(
+      (p) => p.textContent === '',
+    )
+    expect(paragrafosVazios).toHaveLength(0)
   })
 
   it('shows a loading state before the histórico resolves', () => {
@@ -129,6 +156,7 @@ describe('DetalheJogador', () => {
     renderDetalhe('1', null)
 
     expect(await screen.findByText(/sem histórico/i)).toBeInTheDocument()
+    expect(screen.queryByRole('table')).not.toBeInTheDocument()
   })
 
   it('renders an away match with its scouts', async () => {
@@ -139,7 +167,29 @@ describe('DetalheJogador', () => {
 
     renderDetalhe('1', null)
 
-    expect(await screen.findByText('fora')).toBeInTheDocument()
+    const celulaMando = await screen.findByText('fora')
+    expect(celulaMando).toBeInTheDocument()
+    expect(celulaMando).toHaveStyle({ color: 'var(--accent-away)' })
+  })
+
+  it('does not fetch any data when the route has no id param', () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+
+    render(
+      <MemoryRouter initialEntries={['/jogadores']}>
+        <Routes>
+          <Route path="/jogadores" element={<DetalheJogador />} />
+        </Routes>
+      </MemoryRouter>,
+    )
+
+    expect(atletasApi.buscarAtleta).not.toHaveBeenCalled()
+    expect(atletasApi.buscarHistoricoAtleta).not.toHaveBeenCalled()
+    expect(percentisApi.buscarPercentisAtleta).not.toHaveBeenCalled()
+    expect(raioXApi.buscarRaioXConfronto).not.toHaveBeenCalled()
+    expect(perfilRiscoApi.buscarPerfilRiscoAtleta).not.toHaveBeenCalled()
+    expect(mpvApi.buscarMpvAtleta).not.toHaveBeenCalled()
   })
 
   it('ignores late responses after unmount', () => {
@@ -280,8 +330,30 @@ describe('DetalheJogador', () => {
 
     renderDetalhe('1', null)
 
-    expect(await screen.findByText('C$ 2,00')).toBeInTheDocument()
+    const valorEl = await screen.findByText('C$ 2,00')
     expect(screen.getByText(/estimativa baseada em dados históricos/i)).toBeInTheDocument()
+    // garante que existe um espaço entre o valor e o texto auxiliar (não "C$ 2,00estimativa...")
+    expect(valorEl.closest('p')?.textContent).toBe(
+      'C$ 2,00 estimativa baseada em dados históricos',
+    )
+  })
+
+  it('mostra dados insuficientes quando o MPV e confiavel mas nao tem valor estimado', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([])
+    vi.mocked(mpvApi.buscarMpvAtleta).mockResolvedValue({
+      mpv_estimado: null,
+      faixa_preco: { min: 1, max: 10 },
+      coeficientes: { a: 0.5, b: -1 },
+      amostras: 35,
+      confiavel: true,
+    })
+
+    renderDetalhe('1', null)
+
+    expect(await screen.findByText(/dados insuficientes ainda para estimar/i)).toBeInTheDocument()
+    expect(screen.queryByText(/^C\$/)).not.toBeInTheDocument()
+    expect(screen.queryByText(/estimativa baseada em dados históricos/i)).not.toBeInTheDocument()
   })
 
   it('mostra dados insuficientes quando o MPV nao e confiavel', async () => {
@@ -404,5 +476,27 @@ describe('DetalheJogador', () => {
 
     expect(screen.getByRole('dialog')).toBeInTheDocument()
     expect(screen.getByText(/Comparar com outro jogador/i)).toBeInTheDocument()
+  })
+
+  it('closes the comparison modal when its close button is clicked', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([atleta])
+
+    renderDetalhe('1')
+    await screen.findByText('Gabigol')
+
+    const btnComparar = screen.getByRole('button', { name: /Comparar jogador/i })
+    await act(async () => {
+      btnComparar.click()
+    })
+    expect(screen.getByRole('dialog')).toBeInTheDocument()
+
+    const btnFechar = screen.getByRole('button', { name: /fechar modal/i })
+    await act(async () => {
+      btnFechar.click()
+    })
+
+    expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
 })

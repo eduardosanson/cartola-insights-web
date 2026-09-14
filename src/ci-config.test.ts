@@ -22,11 +22,12 @@ describe("CI GitHub Actions Configuration", () => {
     expect(content).toContain("branches: [main]");
   });
 
-  it("should use actions/checkout@v4 and actions/setup-node@v4 with Node 20 and npm cache", () => {
+  it("should use actions/checkout@v4 and actions/setup-node@v4 with Node 24 and npm cache", () => {
     const content = readFileSync(workflowPath, "utf8");
     expect(content).toContain("actions/checkout@v4");
     expect(content).toContain("actions/setup-node@v4");
-    expect(content).toContain("node-version: 20");
+    // Node 24 (issue #11): @stryker-mutator/core exige engines.node >= 22.
+    expect(content).toContain("node-version: 24");
     expect(content).toContain("cache: npm");
   });
 
@@ -68,5 +69,16 @@ describe("CI GitHub Actions Configuration", () => {
     expect(content).toContain("if: failure()");
     expect(content).toContain("playwright-report/");
     expect(content).toContain("test-results/");
+  });
+
+  it("runs mutation testing as a blocking step and uploads the HTML report as an artifact (issue #11)", () => {
+    const content = readFileSync(workflowPath, "utf8");
+    expect(content).toContain("run: NODE_ENV=test npm run test:mutation");
+    // Bloqueante: nenhum step usa continue-on-error, então uma falha do
+    // Stryker (score abaixo do threshold) derruba o job normalmente.
+    expect(content).not.toContain("continue-on-error");
+    expect(content).toContain("actions/upload-artifact@v4");
+    expect(content).toContain("mutation-report");
+    expect(content).toContain("reports/mutation/html");
   });
 });
