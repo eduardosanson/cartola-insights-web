@@ -55,9 +55,17 @@ describe('vercel.json — security headers (issue #10)', () => {
       expect(csp.length).toBeGreaterThan(0)
     })
 
-    it('restringe a origem padrão a "self" e não usa wildcard em nenhuma diretiva', () => {
+    it('restringe a origem padrão a "self"', () => {
       expect(csp).toContain("default-src 'self'")
-      expect(csp).not.toContain('*')
+    })
+
+    it('não usa wildcard fora de connect-src (única exceção documentada abaixo)', () => {
+      const diretivasSemConnectSrc = csp
+        .split(';')
+        .map((d) => d.trim())
+        .filter((d) => !d.startsWith('connect-src'))
+        .join(';')
+      expect(diretivasSemConnectSrc).not.toContain('*')
     })
 
     it('permite Google Fonts em style-src e font-src', () => {
@@ -65,8 +73,20 @@ describe('vercel.json — security headers (issue #10)', () => {
       expect(csp).toMatch(/font-src[^;]*fonts\.gstatic\.com/)
     })
 
-    it('permite o backend de produção em connect-src', () => {
-      expect(csp).toMatch(/connect-src[^;]*backend-production-9114\.up\.railway\.app/)
+    it('connect-src usa wildcard de subdomínio Railway (issue eduardosanson/cartola-insights-web#27) — exceção deliberada e escopada a *.up.railway.app, não um wildcard genérico, para permitir o backend efêmero provisionado pelo pipeline E2E multi-repo (eduardosanson/cartola-insights-e2e#3)', () => {
+      expect(csp).toMatch(/connect-src[^;]*https:\/\/\*\.up\.railway\.app/)
+    })
+
+    it('o wildcard de connect-src ainda cobre o backend de produção', () => {
+      const connectSrc = csp.split(';').find((d) => d.trim().startsWith('connect-src')) ?? ''
+      const origensPermitidas = connectSrc
+        .replace('connect-src', '')
+        .trim()
+        .split(/\s+/)
+        .map((origem) => new RegExp('^' + origem.replace(/[.]/g, '\\.').replace(/\*/g, '[^.]+') + '$'))
+      expect(
+        origensPermitidas.some((padrao) => padrao.test('https://backend-production-9114.up.railway.app'))
+      ).toBe(true)
     })
 
     it('permite os assets Cartola/Globo em img-src', () => {
