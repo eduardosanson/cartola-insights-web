@@ -82,3 +82,4 @@ Documentos de planejamento ficam em `docs/`, não na raiz do repositório.
 
 Ver [`AGENTS.md`](AGENTS.md) — TDD, cobertura ≥ 90% e o fluxo global de
 `~/.codex/AGENTS.md`.
+<!-- e2e-matrix-test -->
