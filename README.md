@@ -22,6 +22,15 @@ Library · Oxlint
 
 ## Como rodar
 
+Requer **Node.js `^22.18.0` ou `>=24.11.0`** (ex.: 22.18+, 22.20, 24.11, 24.20…;
+**não** cobre 22.12–22.17, 23.x nem 24.0–24.10). A restrição real vem do
+`@babel/core` 8 travado no lockfile (dependência do instrumentador do
+Stryker), mais estrito que o `@stryker-mutator/core`/`vitest-runner`
+(Node >= 22) e o próprio Vitest 4 (que também exclui Node 23.x). O `engines`
+do `package.json` reflete essa interseção, e o `.npmrc` (`engine-strict=true`)
+faz `npm install`/`npm ci` falharem cedo em runtime incompatível — de
+qualquer pacote do lockfile, não só do projeto — em vez de só avisar.
+
 ```bash
 npm install
 npm run dev        # dev server em http://localhost:5173
@@ -39,6 +48,7 @@ variável `VITE_API_BASE_URL`).
 | `npm run test` | Vitest (rodada única) |
 | `npm run coverage` | Vitest com cobertura (piso de 90% em statements/branches/functions/lines) |
 | `npm run lint` | Oxlint |
+| `npm run test:mutation` | Mutation testing (Stryker Mutator + runner do Vitest; piso de 90% de mutation score) |
 
 ## Ambiente: `NODE_ENV` e os testes
 

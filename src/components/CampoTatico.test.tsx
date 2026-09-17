@@ -91,6 +91,68 @@ describe('CampoTatico', () => {
     expect(screen.getAllByText('Confronto não disponível')).toHaveLength(7)
   })
 
+  it('define o aria-label do campo com o esquema tático da escalação', () => {
+    render(
+      <MemoryRouter>
+        <CampoTatico escalacao={criarEscalacao('classica')} detalhes={detalhes} />
+      </MemoryRouter>,
+    )
+
+    expect(screen.getByLabelText('Campo tático 4-3-3')).toBeInTheDocument()
+  })
+
+  it('cria o link do técnico apontando para o id correto', () => {
+    render(
+      <MemoryRouter>
+        <CampoTatico escalacao={criarEscalacao('classica')} detalhes={detalhes} />
+      </MemoryRouter>,
+    )
+
+    const tecnicoLink = screen.getByRole('link', { name: /técnico/i })
+    expect(tecnicoLink).toHaveAttribute('href', '/jogadores/6')
+  })
+
+  it('mantém a ordem original da defesa quando há apenas um lateral', () => {
+    const escalacaoUmLateral: EscalacaoOtima = {
+      ...criarEscalacao('classica'),
+      titulares: [
+        { atleta_id: 1, posicao: 'GOL', preco: 8, pontuacao_esperada: 4.5 },
+        { atleta_id: 7, posicao: 'ZAG', preco: 8, pontuacao_esperada: 5 },
+        { atleta_id: 3, posicao: 'LAT', preco: 9, pontuacao_esperada: 6.5 },
+        { atleta_id: 4, posicao: 'MEI', preco: 10, pontuacao_esperada: 7.5 },
+        { atleta_id: 5, posicao: 'ATA', preco: 11, pontuacao_esperada: 8.5 },
+      ],
+    }
+
+    render(
+      <MemoryRouter>
+        <CampoTatico escalacao={escalacaoUmLateral} detalhes={detalhes} />
+      </MemoryRouter>,
+    )
+
+    const defensores = within(screen.getByLabelText('Defesa')).getAllByRole('link')
+    expect(defensores.map((defensor) => defensor.textContent)).toEqual([
+      expect.stringContaining('Zagueiro direito'),
+      expect.stringContaining('Lateral esquerdo'),
+    ])
+  })
+
+  it('remove acentos do nome do clube ao abreviar no confronto', () => {
+    const detalhesComAcento: Record<number, DetalhesAtletaCampo> = {
+      ...detalhes,
+      5: { ...detalhes[5], clubeNome: 'São Paulo', adversarioNome: 'Vasco da Gama', mando: 'casa' },
+    }
+
+    render(
+      <MemoryRouter>
+        <CampoTatico escalacao={criarEscalacao('classica')} detalhes={detalhesComAcento} />
+      </MemoryRouter>,
+    )
+
+    const atacante = screen.getByRole('link', { name: /atacante/i })
+    expect(within(atacante).getByText('SAO')).toBeInTheDocument()
+  })
+
   it.each(['classica', 'tiro_curto', 'patrimonio', 'overall'] as const)(
     'mantém os mesmos valores visíveis no modo %s',
     (modo) => {

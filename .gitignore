@@ -17,6 +17,15 @@ dist-ssr
 coverage
 .superpowers/
 
+# Stryker (mutation testing)
+.stryker-tmp
+reports/mutation
+
+# Playwright (e2e)
+playwright-report/
+test-results/
+blob-report/
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json

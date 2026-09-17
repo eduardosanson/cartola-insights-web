@@ -17,6 +17,17 @@ function Consumidor() {
   )
 }
 
+function ConsumidorComRefetch() {
+  const { usuario, carregando, refetch } = useAuth()
+  if (carregando) return <p>carregando</p>
+  return (
+    <div>
+      <p>{usuario ? usuario.email : 'deslogado'}</p>
+      <button onClick={() => refetch()}>recarregar</button>
+    </div>
+  )
+}
+
 describe('AuthContext', () => {
   afterEach(() => {
     vi.clearAllMocks()
@@ -79,5 +90,27 @@ describe('AuthContext', () => {
       return null
     }
     expect(() => render(<ForaDoProvider />)).toThrow(/AuthProvider/)
+  })
+
+  it('refetch limpa o usuário quando uma nova chamada falha', async () => {
+    vi.mocked(contasApi.obterUsuarioAtual).mockResolvedValueOnce({
+      id: 1,
+      email: 'a@b.com',
+      role: 'usuario',
+    })
+    const user = userEvent.setup()
+
+    render(
+      <AuthProvider>
+        <ConsumidorComRefetch />
+      </AuthProvider>,
+    )
+
+    await waitFor(() => expect(screen.getByText('a@b.com')).toBeInTheDocument())
+
+    vi.mocked(contasApi.obterUsuarioAtual).mockRejectedValueOnce(new Error('401'))
+    await user.click(screen.getByText('recarregar'))
+
+    await waitFor(() => expect(screen.getByText('deslogado')).toBeInTheDocument())
   })
 })

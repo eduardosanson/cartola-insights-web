@@ -7,6 +7,10 @@ export default defineConfig({
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/setupTests.ts'],
+    // e2e/ roda sob o test runner do Playwright (playwright.config.ts),
+    // não sob o Vitest — excluir para evitar conflito entre os dois
+    // `test`/`describe` globais (issue #6).
+    exclude: ['e2e/**', 'node_modules/**'],
     env: {
       NODE_ENV: 'test',
     },

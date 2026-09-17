@@ -31,17 +31,28 @@ describe('listarAtletas', () => {
     expect(apiGetSpy).toHaveBeenCalledWith('/atletas')
   })
 
-  it('builds query params for nome, clube_id, page and page_size', async () => {
+  it('builds query params for nome, clube_id, mando, page and page_size', async () => {
     const apiGetSpy = vi.spyOn(client, 'apiGet').mockResolvedValue([])
 
-    await listarAtletas({ nome: 'Gabigol', clube_id: 5, page: 2, page_size: 20 })
+    await listarAtletas({ nome: 'Gabigol', clube_id: 5, mando: 'casa', page: 2, page_size: 20 })
 
     const calledPath = apiGetSpy.mock.calls[0][0] as string
     const url = new URLSearchParams(calledPath.split('?')[1])
     expect(url.get('nome')).toBe('Gabigol')
     expect(url.get('clube_id')).toBe('5')
+    expect(url.get('mando')).toBe('casa')
     expect(url.get('page')).toBe('2')
     expect(url.get('page_size')).toBe('20')
+  })
+
+  it('omits the mando param when not provided', async () => {
+    const apiGetSpy = vi.spyOn(client, 'apiGet').mockResolvedValue([])
+
+    await listarAtletas({ nome: 'Gabigol' })
+
+    const calledPath = apiGetSpy.mock.calls[0][0] as string
+    const url = new URLSearchParams(calledPath.split('?')[1])
+    expect(url.has('mando')).toBe(false)
   })
 
   it('repeats the posicao param for each selected position', async () => {

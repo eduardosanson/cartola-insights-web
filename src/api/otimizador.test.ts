@@ -56,9 +56,25 @@ describe('API do otimizador', () => {
       }),
     )
 
-    await expect(
-      montarEscalacao({ orcamento: 10, esquema: '4-3-3', modo: 'classica' }),
-    ).rejects.toBeInstanceOf(EscalacaoInviavelError)
+    const promise = montarEscalacao({ orcamento: 10, esquema: '4-3-3', modo: 'classica' })
+    await expect(promise).rejects.toBeInstanceOf(EscalacaoInviavelError)
+    await expect(promise).rejects.toMatchObject({
+      name: 'EscalacaoInviavelError',
+      message: 'não há escalação viável',
+    })
+  })
+
+  it('mantém o erro original quando a API responde com status diferente de 422', async () => {
+    vi.spyOn(globalThis, 'fetch').mockResolvedValue(
+      new Response(JSON.stringify({ detail: 'falha ao montar escalação' }), {
+        status: 500,
+        statusText: 'Internal Server Error',
+      }),
+    )
+
+    const promise = montarEscalacao({ orcamento: 10, esquema: '4-3-3', modo: 'classica' })
+    await expect(promise).rejects.not.toBeInstanceOf(EscalacaoInviavelError)
+    await expect(promise).rejects.toThrow('falha ao montar escalação')
   })
 
   it('busca a matriz de capitão sem reordenar o top retornado', async () => {

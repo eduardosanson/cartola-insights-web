@@ -25,6 +25,10 @@ describe('Tabela', () => {
     expect(screen.getByText('55,23')).toBeInTheDocument()
     expect(screen.getByText('48,11')).toBeInTheDocument()
     expect(screen.getByText('Vasco')).toBeInTheDocument()
+
+    const [, casaCell, foraCell] = within(screen.getAllByRole('row')[1]).getAllByRole('cell')
+    expect(casaCell).toHaveStyle({ color: 'var(--accent-home)' })
+    expect(foraCell).toHaveStyle({ color: 'var(--accent-away)' })
   })
 
   it('shows an error message when the API call fails', async () => {

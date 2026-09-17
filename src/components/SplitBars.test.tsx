@@ -12,6 +12,14 @@ describe('SplitBars', () => {
     expect(screen.getByText('5,35')).toBeInTheDocument()
   })
 
+  it('aplica a cor de destaque correta em cada valor (casa e fora)', () => {
+    render(<SplitBars mediaCasa={7.156} mediaFora={5.345} />)
+
+    const valores = document.querySelectorAll('.v')
+    expect(valores[0]).toHaveStyle({ color: 'var(--accent-home)' })
+    expect(valores[1]).toHaveStyle({ color: 'var(--accent-away)' })
+  })
+
   it('escala as barras em relação ao maior dos dois valores', () => {
     render(<SplitBars mediaCasa={10} mediaFora={5} />)
 
