@@ -1,0 +1,79 @@
+name: Pre-merge manual
+run-name: Pre-merge manual — PR #${{ inputs.pr_number }}
+on:
+  workflow_dispatch:
+    inputs:
+      pr_number:
+        description: Número do PR a validar antes do merge na main
+        required: true
+        type: string
+concurrency:
+  group: pre-merge-manual-${{ inputs.pr_number }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+  pull-requests: read
+  statuses: write
+env:
+  GH_TOKEN: ${{ github.token }}
+  PR_NUMBER: ${{ inputs.pr_number }}
+  STATUS_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Resolve PR (aborta se fechado ou de fork)
+        id: pr
+        run: |
+          [[ "$PR_NUMBER" =~ ^[0-9]+$ ]] || { echo "::error::pr_number inválido"; exit 1; }
+          pr=$(gh pr view "$PR_NUMBER" --repo "$GITHUB_REPOSITORY" \
+            --json state,isCrossRepository,headRefOid,headRefName,baseRefName)
+          [ "$(jq -r .state <<<"$pr")" = "OPEN" ] || { echo "::error::PR não está aberto"; exit 1; }
+          [ "$(jq -r .isCrossRepository <<<"$pr")" = "false" ] || { echo "::error::PR vindo de fork não é suportado"; exit 1; }
+          echo "sha=$(jq -r .headRefOid <<<"$pr")" >> "$GITHUB_OUTPUT"
+          echo "branch=$(jq -r .headRefName <<<"$pr")" >> "$GITHUB_OUTPUT"
+      - name: Status pending
+        env:
+          SHA: ${{ steps.pr.outputs.sha }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$SHA" \
+            -f state=pending -f context=pre-merge-manual \
+            -f description="Validação manual em andamento" -f target_url="$STATUS_URL"
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.pr.outputs.sha }}
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+      - run: NODE_ENV=test npm test -- --run
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+      - uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: playwright-report
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+      - name: Status success
+        if: success()
+        env:
+          SHA: ${{ steps.pr.outputs.sha }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$SHA" \
+            -f state=success -f context=pre-merge-manual \
+            -f description="Lint, build, vitest e Playwright passaram" -f target_url="$STATUS_URL"
+      - name: Status failure
+        if: failure() && steps.pr.outputs.sha != ''
+        env:
+          SHA: ${{ steps.pr.outputs.sha }}
+        run: |
+          gh api "repos/$GITHUB_REPOSITORY/statuses/$SHA" \
+            -f state=failure -f context=pre-merge-manual \
+            -f description="Validação falhou — veja os logs" -f target_url="$STATUS_URL"
