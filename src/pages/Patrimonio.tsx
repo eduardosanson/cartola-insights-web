@@ -43,7 +43,7 @@ export default function Patrimonio() {
 
       <section aria-labelledby="curva-titulo">
         <h3 id="curva-titulo">Curva de transição estratégica</h3>
-        {!curva && !erroCurva && <p>Carregando curva de valorização…</p>}
+        {!curva && !erroCurva && <p role="status">Carregando curva de valorização…</p>}
         {erroCurva && <p role="alert">{erroCurva}</p>}
         {curva && <CurvaTransicao pontos={curva} />}
       </section>

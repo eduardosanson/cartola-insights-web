@@ -11,7 +11,7 @@ const MARGEM = { topo: 24, direita: 24, baixo: 44, esquerda: 64 }
 
 export default function CurvaTransicao({ pontos }: Props) {
   if (pontos.length === 0) {
-    return <p>Nenhum histórico de valorização disponível.</p>
+    return <p role="status">Nenhum histórico de valorização disponível.</p>
   }
 
   const rodadas = pontos.map((ponto) => ponto.rodada)

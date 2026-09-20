@@ -1,7 +1,7 @@
 /* Identidade visual reaproveitada da POC (spec.md RF05). */
 :root {
   --accent-home: #1f6f4a;
-  --accent-away: #b5761e;
+  --accent-away: #966016;
 
   --bg: #f7f7f4;
   --bg-elevated: #ffffff;
@@ -974,6 +974,8 @@ figure {
 .pentagon-vertex:focus {
   r: 5;
   outline: none;
+  stroke: var(--text);
+  stroke-width: 2;
 }
 
 .pentagon-label {
@@ -1060,7 +1062,8 @@ figure {
 }
 
 .search-field input[type='search']:focus {
-  outline: none;
+  outline: 2px solid var(--accent-home);
+  outline-offset: 2px;
 }
 
 .filter-group {
@@ -1226,7 +1229,11 @@ figure {
 .modal-table-row:hover,
 .modal-table-row:focus-visible {
   background: color-mix(in srgb, var(--accent-home) 8%, var(--bg-elevated));
-  outline: none;
+}
+
+.modal-table-row:focus-visible {
+  outline: 2px solid var(--accent-home);
+  outline-offset: -2px;
 }
 
 .modal-table-row .name-cell {
@@ -1378,7 +1385,11 @@ figure {
 .dropdown-filtro-opcao:hover,
 .dropdown-filtro-opcao:focus-visible {
   background: color-mix(in srgb, var(--accent-home) 10%, var(--bg-elevated));
-  outline: none;
+}
+
+.dropdown-filtro-opcao:focus-visible {
+  outline: 2px solid var(--accent-home);
+  outline-offset: -2px;
 }
 
 .dropdown-filtro-opcao.selecionada {

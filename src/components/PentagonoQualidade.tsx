@@ -108,6 +108,7 @@ export default function PentagonoQualidade({
               cx={p.x}
               cy={p.y}
               r={3.5}
+              role="img"
               tabIndex={0}
               onMouseEnter={() => setAtivo(i)}
               onMouseLeave={() => setAtivo(null)}
