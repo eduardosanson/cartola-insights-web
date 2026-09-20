@@ -38,3 +38,6 @@ blob-report/
 *.sw?
 
 .worktrees/
+
+# Vercel CLI (link local do projeto)
+.vercel/
