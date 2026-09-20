@@ -96,9 +96,9 @@ export default function AlertasMercado() {
         <h2>Alertas de Mercado</h2>
         <p>Revise mudanças de status antes do fechamento e encontre uma troca elegível.</p>
       </header>
-      {!alteracoes && !erro && <p>Verificando mudanças de status…</p>}
+      {!alteracoes && !erro && <p role="status">Verificando mudanças de status…</p>}
       {erro && <p role="alert">{erro}</p>}
-      {alteracoes?.length === 0 && <p>Nenhuma mudança de status desde a última checagem.</p>}
+      {alteracoes?.length === 0 && <p role="status">Nenhuma mudança de status desde a última checagem.</p>}
       {alteracoes && alteracoes.length > 0 && (
         <ul className="alertas-mercado">
           {alteracoes.map((alteracao) => {

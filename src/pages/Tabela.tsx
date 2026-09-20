@@ -35,7 +35,11 @@ export default function Tabela() {
   }
 
   if (!clubes) {
-    return <p>Carregando clubes…</p>
+    return <p role="status">Carregando clubes…</p>
+  }
+
+  if (clubes.length === 0) {
+    return <p role="status">Nenhum clube encontrado.</p>
   }
 
   function sortState(key: SortKey) {

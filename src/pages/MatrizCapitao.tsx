@@ -44,9 +44,9 @@ export default function MatrizCapitao() {
           Prováveis primeiro; depois dúvidas e nulos por consistência, chance e confronto.
         </p>
       </header>
-      {!candidatos && !erro && <p>Calculando candidatos…</p>}
+      {!candidatos && !erro && <p role="status">Calculando candidatos…</p>}
       {erro && <p role="alert">{erro}</p>}
-      {candidatos?.length === 0 && <p>Nenhum candidato a capitão disponível.</p>}
+      {candidatos?.length === 0 && <p role="status">Nenhum candidato a capitão disponível.</p>}
       {candidatos && candidatos.length > 0 && (
         <ol className="matriz-capitao">
           {candidatos.map((candidato, indice) => (

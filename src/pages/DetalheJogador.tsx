@@ -155,7 +155,7 @@ function DetalheJogadorConteudo({ id }: { id: string | undefined }) {
         )}
 
         {erro && <p role="alert">{erro}</p>}
-        {!erro && (!atleta || !historico) && <p>Carregando jogador…</p>}
+        {!erro && (!atleta || !historico) && <p role="status">Carregando jogador…</p>}
 
         {percentis && <PentagonoQualidade percentis={percentis} />}
         {erroPercentis && <p>{erroPercentis}</p>}
@@ -172,7 +172,7 @@ function DetalheJogadorConteudo({ id }: { id: string | undefined }) {
       {raioX && <RaioXConfronto raioX={raioX} />}
       {erroRaioX && <p>{erroRaioX}</p>}
 
-      {!erro && historico && historico.length === 0 && <p>Sem histórico disponível.</p>}
+      {!erro && historico && historico.length === 0 && <p role="status">Sem histórico disponível.</p>}
 
       {!erro && historico && historico.length > 0 && (
         <table>

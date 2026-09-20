@@ -212,8 +212,8 @@ export default function Jogadores() {
       </div>
 
       {erro && <p role="alert">{erro}</p>}
-      {!erro && !todosAtletas && <p>Carregando jogadores…</p>}
-      {!erro && todosAtletas && sortedItems.length === 0 && <p>Nenhum jogador encontrado.</p>}
+      {!erro && !todosAtletas && <p role="status">Carregando jogadores…</p>}
+      {!erro && todosAtletas && sortedItems.length === 0 && <p role="status">Nenhum jogador encontrado.</p>}
 
       {!erro && todosAtletas && sortedItems.length > 0 && (
         <div className="players-list-card" role="table">
