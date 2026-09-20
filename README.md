@@ -50,6 +50,23 @@ variável `VITE_API_BASE_URL`).
 | `npm run lint` | Oxlint |
 | `npm run test:mutation` | Mutation testing (Stryker Mutator + runner do Vitest; piso de 90% de mutation score) |
 
+## Gate manual pré-merge (`pre-merge-manual`)
+
+O workflow `.github/workflows/pre-merge-manual.yml` (`workflow_dispatch`) valida um
+PR sob demanda e publica o commit status `pre-merge-manual` no SHA do PR.
+
+Como disparar: aba **Actions → Pre-merge manual → Run workflow** (informe o número
+do PR) ou `gh workflow run pre-merge-manual.yml -f pr_number=<N>`.
+
+O que valida: `npm ci`, `npm run lint`, `npm run build` (inclui `tsc -b`),
+`npm test -- --run` e `npm run test:e2e` (Playwright local, chromium). O status
+vai de `pending` para `success` ou `failure`, com link para a execução. Fica de
+fora o mutation testing (roda no CI) e o E2E contra o preview da Vercel.
+
+Só aceita PR aberto do próprio repositório (aborta se fechado ou de fork). Disparos
+repetidos para o mesmo PR cancelam o anterior; só o mais recente publica o status final.
+O workflow só aparece na interface depois de existir na `main`.
+
 ## Ambiente: `NODE_ENV` e os testes
 
 Se o ambiente já exporta `NODE_ENV=production`, o Vitest respeita esse valor e
