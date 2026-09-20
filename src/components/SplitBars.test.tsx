@@ -35,4 +35,22 @@ describe('SplitBars', () => {
     expect(barras[0]).toHaveStyle({ width: '0%' })
     expect(barras[1]).toHaveStyle({ width: '0%' })
   })
+
+  describe('ARIA (issue #7, RF03)', () => {
+    it('agrupa as barras com rótulo acessível', () => {
+      render(<SplitBars mediaCasa={10} mediaFora={5} />)
+      expect(screen.getByRole('group', { name: 'Média em casa e fora' })).toBeInTheDocument()
+    })
+
+    it('expõe cada barra como meter com valor, limites e rótulo', () => {
+      render(<SplitBars mediaCasa={10} mediaFora={5} />)
+      const casa = screen.getByRole('meter', { name: 'Média em casa' })
+      const fora = screen.getByRole('meter', { name: 'Média fora' })
+      expect(casa).toHaveAttribute('aria-valuenow', '10')
+      expect(casa).toHaveAttribute('aria-valuemin', '0')
+      expect(casa).toHaveAttribute('aria-valuemax', '10')
+      expect(fora).toHaveAttribute('aria-valuenow', '5')
+      expect(fora).toHaveAttribute('aria-valuemax', '10')
+    })
+  })
 })

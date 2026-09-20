@@ -362,4 +362,35 @@ describe('PentagonoQualidade', () => {
     expect(tooltip).toHaveTextContent('80')
     expect(tooltip).not.toHaveTextContent('0,38')
   })
+
+  describe('ARIA (issue #7, RF03)', () => {
+    it('expõe o SVG com role="img" e aria-label', () => {
+      render(<PentagonoQualidade percentis={percentisLinha} />)
+      expect(screen.getByRole('img', { name: 'Pentágono de Qualidade' })).toBeInTheDocument()
+    })
+
+    it('cada eixo tem role="img" e aria-label "rótulo: valor%"', () => {
+      render(<PentagonoQualidade percentis={percentisLinha} />)
+      const vertices = screen.getAllByTestId(/^vertice-/)
+      expect(vertices).toHaveLength(5)
+      vertices.forEach((v) => {
+        expect(v).toHaveAttribute('role', 'img')
+        expect(v.getAttribute('aria-label')).toMatch(/^.+: \d+%$/)
+      })
+      expect(vertices[1]).toHaveAttribute('aria-label', 'Criação: 94%')
+    })
+
+    it('liga o eixo focado ao tooltip via aria-describedby', () => {
+      render(<PentagonoQualidade percentis={percentisLinha} />)
+      const vertice = screen.getByTestId('vertice-1')
+      expect(vertice).not.toHaveAttribute('aria-describedby')
+
+      fireEvent.focus(vertice)
+
+      const tooltip = screen.getByRole('tooltip')
+      expect(vertice).toHaveAttribute('aria-describedby', tooltip.id)
+      fireEvent.blur(vertice)
+      expect(vertice).not.toHaveAttribute('aria-describedby')
+    })
+  })
 })
