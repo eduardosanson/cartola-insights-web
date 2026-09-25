@@ -476,6 +476,26 @@ describe('Jogadores', () => {
     expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
   })
 
+  it('sorts by overall ascending with atletas sem dado ficando por ultimo (issue #35)', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'SemDado', overall_score: null },
+      { ...atleta, id: 2, nome: 'Zero', overall_score: 0 },
+      { ...atleta, id: 3, nome: 'Oitenta', overall_score: 80 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('SemDado')
+
+    const header = screen.getByRole('button', { name: /overall/i })
+    await user.click(header) // desc
+    await user.click(header) // asc
+
+    const rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('Zero')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('Oitenta')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
+  })
+
   it('treats a missing overall score as lower than an actual zero when sorting descending', async () => {
     vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'Outro', overall_score: 50 },
