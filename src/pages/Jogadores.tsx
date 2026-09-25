@@ -19,9 +19,9 @@ const sortAccessors = {
   media_fora: (atleta: Atleta) => atleta.media_fora,
   // null fica sempre por último, tanto em ordem crescente quanto decrescente
   // — useMultiSort trata null como "sem dado" e nunca o deixa vencer um
-  // valor real, em nenhuma das duas direções (issue #5).
+  // valor real, em nenhuma das duas direções (issues #5 e #35).
   chance_pontuar_percentual: (atleta: Atleta) => atleta.chance_pontuar_percentual,
-  overall_score: (atleta: Atleta) => atleta.overall_score ?? -1,
+  overall_score: (atleta: Atleta) => atleta.overall_score,
 }
 
 type SortKey = keyof typeof sortAccessors
