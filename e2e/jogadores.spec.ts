@@ -45,13 +45,18 @@ test.describe('Listagem de Jogadores', () => {
     const linhas = page.getByRole('row').filter({ hasNotText: 'Nome' })
     await expect(linhas).toHaveCount(atletasFixture.length)
     await expect(page.getByText(atletasFixture[0].nome)).toBeVisible()
-    await expect(page.getByRole('status')).toContainText(/rodada 24 • sincronizado em/i)
+    await expect(page.locator('.sync-indicator-container [role="status"]')).toContainText(/rodada 24 • sincronizado em/i)
     await expect(page.getByText(atletasFixture[0].clube_nome)).toBeVisible()
 
     // Screenshot capturado não pode estar vazio/corrompido — sem baseline,
     // a checagem é um piso de tamanho de arquivo (renderização quebrada
     // tende a gerar uma página quase em branco e um PNG muito menor).
-    await page.screenshot({ path: screenshotPath('normal', testInfo), fullPage: true })
+    if (testInfo.project.name === 'desktop') {
+      await page.screenshot({ path: screenshotPath('normal', testInfo), fullPage: true })
+    } else {
+      const screenshot = await page.screenshot({ fullPage: true })
+      expect(screenshot.byteLength).toBeGreaterThan(5000)
+    }
 
     expect(errosDePagina, `erros de página: ${errosDePagina.join('; ')}`).toHaveLength(0)
     expect(errosDeConsole, `erros de console: ${errosDeConsole.join('; ')}`).toHaveLength(0)
@@ -65,7 +70,8 @@ test.describe('Listagem de Jogadores', () => {
     })
 
     await page.goto('/jogadores')
-    await expect(page.getByRole('status')).toContainText('Dados ainda não sincronizados')
+    await expect(page.getByRole('columnheader', { name: 'Nome' })).toBeVisible()
+    await expect(page.locator('.sync-indicator-container [role="status"]')).toContainText('Dados ainda não sincronizados')
     await page.screenshot({ path: screenshotPath('vazio', testInfo), fullPage: true })
   })
 
@@ -74,8 +80,8 @@ test.describe('Listagem de Jogadores', () => {
     await mockJogadoresApi(page, { status: 503 })
 
     await page.goto('/jogadores')
-    await expect(page.getByRole('status')).toContainText('Atualização indisponível')
     await expect(page.getByRole('columnheader', { name: 'Nome' })).toBeVisible()
+    await expect(page.locator('.sync-indicator-container [role="status"]')).toContainText('Atualização indisponível')
     await page.screenshot({ path: screenshotPath('erro', testInfo), fullPage: true })
   })
 })
