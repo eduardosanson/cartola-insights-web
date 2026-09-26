@@ -1,12 +1,31 @@
 import type { Page, Route } from '@playwright/test'
 import { atletasFixture } from '../fixtures/atletas'
 
+type StatusResponse = {
+  status: number
+  body?: {
+    estado: 'sincronizado' | 'sem_dados'
+    rodada: number | null
+    sincronizado_em: string | null
+  }
+}
+
 /**
  * Intercepta as chamadas de rede disparadas pela Listagem de Jogadores
  * (lista de atletas via AuthProvider/listarTodosAtletas) e responde
  * com fixtures controlados no caminho /api/proxy/*.
  */
-export async function mockJogadoresApi(page: Page): Promise<void> {
+export async function mockJogadoresApi(
+  page: Page,
+  syncStatus: StatusResponse = {
+    status: 200,
+    body: {
+      estado: 'sincronizado',
+      rodada: 24,
+      sincronizado_em: '2026-09-26T15:30:00Z',
+    },
+  },
+): Promise<void> {
   // Fallback: qualquer chamada não prevista à API cai aqui como 404
   // controlado — nunca deve haver tentativa de rede real no e2e.
   await page.route('**/api/proxy/**', async (route: Route) => {
@@ -35,6 +54,15 @@ export async function mockJogadoresApi(page: Page): Promise<void> {
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify(atletasFixture),
+    })
+  })
+
+  // Indicador de sincronização (issue #39): contrato de GET /dados/status.
+  await page.route('**/api/proxy/dados/status', async (route: Route) => {
+    await route.fulfill({
+      status: syncStatus.status,
+      contentType: 'application/json',
+      body: JSON.stringify(syncStatus.body ?? { detail: 'status unavailable' }),
     })
   })
 }

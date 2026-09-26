@@ -137,7 +137,7 @@ describe('estados de UI por página (issue #7, RF05)', () => {
       renderizar(pagina.ui)
 
       expect(await screen.findByRole('alert')).toHaveTextContent('Falha de rede')
-      expect(screen.queryByRole('status')).not.toBeInTheDocument()
+      expect(screen.queryByText(pagina.loading)).not.toBeInTheDocument()
     })
   })
 })
