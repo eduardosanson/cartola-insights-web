@@ -18,7 +18,23 @@ describe('apiGet', () => {
     const result = await apiGet<{ hello: string }>('/clubes')
 
     expect(result).toEqual({ hello: 'world' })
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/api/proxy/clubes', {
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/clubes', {
+      credentials: 'include',
+    })
+  })
+
+  it('requisita usando caminho relativo no mesmo domínio (/api/proxy/*), sem host absoluto', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => ({ status: 'ok' }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiGet('/clubes')
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/clubes', {
       credentials: 'include',
     })
   })
@@ -82,7 +98,7 @@ describe('apiPost', () => {
     })
 
     expect(result).toEqual({ id: 1 })
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/api/proxy/contas/registro', {
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/contas/registro', {
       credentials: 'include',
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -102,7 +118,7 @@ describe('apiPost', () => {
     const result = await apiPost<undefined>('/contas/logout')
 
     expect(result).toBeUndefined()
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/api/proxy/contas/logout', {
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/contas/logout', {
       credentials: 'include',
       method: 'POST',
       headers: undefined,
@@ -160,7 +176,7 @@ describe('apiDelete', () => {
     const result = await apiDelete('/contas/tokens/1')
 
     expect(result).toBeUndefined()
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/api/proxy/contas/tokens/1', {
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/contas/tokens/1', {
       credentials: 'include',
       method: 'DELETE',
     })
@@ -235,7 +251,7 @@ describe('Autenticação e tratamento de erros (Issue #38)', () => {
 
     await apiGet('/clubes')
 
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/api/proxy/clubes', {
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/clubes', {
       credentials: 'include',
     })
     expect(fetchMock.mock.calls[0][1]).not.toHaveProperty('headers.X-Service-Token')

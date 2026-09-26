@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const PROXY_PATH = '/api/proxy'
 
 export class ApiError extends Error {
   readonly status: number
@@ -23,10 +23,11 @@ async function extrairMensagemDeErro(path: string, response: Response): Promise<
 }
 
 async function requisitar<T>(path: string, init?: RequestInit): Promise<T> {
-  const proxyPath = `/api/proxy${path}`
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  const proxyPath = `${PROXY_PATH}${normalizedPath}`
   let response: Response
   try {
-    response = await fetch(`${API_BASE_URL}${proxyPath}`, {
+    response = await fetch(proxyPath, {
       credentials: 'include',
       ...init,
     })

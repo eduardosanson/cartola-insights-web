@@ -15,7 +15,7 @@ describe('API de status do mercado', () => {
 
     await expect(buscarStatusAlterados(desde)).resolves.toEqual(alteracoes)
     expect(fetch).toHaveBeenCalledWith(
-      `http://localhost:8000/api/proxy/mercado/status-alterados?desde=${encodeURIComponent(desde.toISOString())}`,
+      `/api/proxy/mercado/status-alterados?desde=${encodeURIComponent(desde.toISOString())}`,
       expect.objectContaining({ credentials: 'include' }),
     )
   })
