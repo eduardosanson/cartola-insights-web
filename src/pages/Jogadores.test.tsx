@@ -4,6 +4,7 @@ import { MemoryRouter, Route, Routes, useLocation } from 'react-router-dom'
 import userEvent from '@testing-library/user-event'
 import Jogadores from './Jogadores'
 import * as atletasApi from '../api/atletas'
+import * as sincronizacaoApi from '../api/sincronizacao'
 
 const atleta = {
   id: 1,
@@ -38,6 +39,24 @@ describe('Jogadores', () => {
 
   afterEach(() => {
     vi.useRealTimers()
+  })
+
+  it('mantém a tabela visível quando o status de sincronização falha', async () => {
+    vi.spyOn(sincronizacaoApi, 'fetchSyncStatus').mockRejectedValue(new Error('offline'))
+    renderJogadores()
+
+    expect(await screen.findByText('Gabigol')).toBeInTheDocument()
+    expect(await screen.findByText(/atualização indisponível/i)).toBeInTheDocument()
+  })
+
+  it('exibe rodada e horário da última sincronização', async () => {
+    vi.spyOn(sincronizacaoApi, 'fetchSyncStatus').mockResolvedValue({
+      round: 24,
+      timestamp: '2026-09-26T15:30:00Z',
+    })
+    renderJogadores()
+
+    expect(await screen.findByText(/rodada 24 • sincronizado em/i)).toBeInTheDocument()
   })
 
   it('busca todos os atletas uma única vez ao montar (cache local)', async () => {
