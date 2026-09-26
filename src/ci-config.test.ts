@@ -81,4 +81,36 @@ describe("CI GitHub Actions Configuration", () => {
     expect(content).toContain("mutation-report");
     expect(content).toContain("reports/mutation/html");
   });
+
+  describe("Branch Up-to-Date Check (issue #44)", () => {
+    const branchUpToDatePath = resolve(
+      process.cwd(),
+      ".github",
+      "workflows",
+      "branch-up-to-date.yml"
+    );
+
+    it("should have branch-up-to-date.yml file", () => {
+      expect(existsSync(branchUpToDatePath)).toBe(true);
+    });
+
+    it("should trigger on pull_request and push to main branch (RF02)", () => {
+      const content = readFileSync(branchUpToDatePath, "utf8");
+      expect(content).toContain("pull_request:");
+      expect(content).toContain("push:");
+      expect(content).toContain("branches: [main]");
+    });
+
+    it("should check if branch is up to date with main (RF01)", () => {
+      const content = readFileSync(branchUpToDatePath, "utf8");
+      expect(content).toContain("git fetch origin main");
+      expect(content).toContain("merge-base");
+      expect(content).toContain("origin/main");
+    });
+
+    it("should fail the check if branch is behind main", () => {
+      const content = readFileSync(branchUpToDatePath, "utf8");
+      expect(content).toContain("exit 1");
+    });
+  });
 });

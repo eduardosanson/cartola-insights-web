@@ -1,0 +1,28 @@
+name: Check Branch Up to Date
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check-branch-up-to-date:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Fetch main branch
+        run: git fetch origin main
+
+      - name: Check if branch is up to date with main
+        run: |
+          if ! git merge-base --is-ancestor origin/main HEAD; then
+            echo "❌ This branch is behind main. Please update your branch."
+            exit 1
+          fi
+          echo "✅ Branch is up to date with main."
