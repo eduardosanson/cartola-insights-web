@@ -4,7 +4,7 @@
 
 A tela de análises não informa quando o banco de dados foi atualizado. Após a API externa falhar, o usuário pode interpretar dados antigos como atuais. Este recurso resolve essa ambiguidade exibindo a rodada e timestamp da última sincronização bem-sucedida.
 
-Depende de: https://github.com/eduardosanson/cartola-insights-backend/issues/61 (que fornece `/status/sync` com `last_successful_sync` e `last_sync_round`).
+Depende de: https://github.com/eduardosanson/cartola-insights-backend/issues/61 (que fornece `/dados/status` com `last_successful_sync` e `last_sync_round`).
 
 ## Requisitos Funcionais
 
@@ -49,7 +49,7 @@ Depende de: https://github.com/eduardosanson/cartola-insights-backend/issues/61 
 
 ## Arquivos Impactados
 
-- Novo: `src/api/sincronizacao.ts` — cliente para `/status/sync`
+- Novo: `src/api/sincronizacao.ts` — cliente para `/dados/status`
 - Novo: `src/components/IndicadorSincronizacao.tsx` — componente reutilizável
 - Novo: testes correspondentes (`.test.ts` / `.test.tsx`)
 - Modif: `src/pages/Jogadores.tsx` — adicionar componente ao layout

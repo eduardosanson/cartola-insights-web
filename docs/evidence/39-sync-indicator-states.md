@@ -53,7 +53,7 @@ Rodada 42 • Atualizado em 26 de setembro de 2026, 15:30:42
 - Formats timestamp in local timezone (America/Sao_Paulo)
 - Shows day, month, year, hour, minute, second
 - UTC original value included in `title` attribute for screen readers
-- Non-blocking: renders even if backend `/status/sync` not available
+- Non-blocking: renders even if backend `/dados/status` not available
 
 ### State 2: Empty (no sync data)
 **Rendered output:**
@@ -111,7 +111,7 @@ Atualização indisponível
 
 ✅ **Expected endpoint response**
 ```typescript
-GET /status/sync
+GET /dados/status
 Response: {
   round: number,
   timestamp: string (ISO 8601)
