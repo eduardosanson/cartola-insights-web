@@ -153,4 +153,30 @@ describe('handleProxy', () => {
     expect(res.status).toBe(200)
     expect(upstream.mock.calls[0][0]).toBe('https://backend.test/atletas?pagina=1')
   })
+
+  it('preserva 204 No Content com corpo nulo', async () => {
+    upstream.mockResolvedValueOnce(new Response(null, { status: 204 }))
+    const res = await handleProxy(req('/contas/tokens/1', { method: 'DELETE' }))
+    expect(res.status).toBe(204)
+    expect(res.body).toBeNull()
+  })
+
+  it('preserva respostas com status sem corpo (ex.: 304) garantindo corpo nulo', async () => {
+    upstream.mockResolvedValueOnce({
+      status: 304,
+      headers: new Headers({ etag: '"abc"' }),
+      body: new ReadableStream(),
+    })
+    const res = await handleProxy(req('/atletas'))
+    expect(res.status).toBe(304)
+    expect(res.body).toBeNull()
+    expect(res.headers.get('etag')).toBe('"abc"')
+  })
+
+  it('rejeita requisições com URL sem o prefixo /api/proxy com 404', async () => {
+    const r = new Request('https://app.test/outra-rota')
+    const res = await handleProxy(r)
+    expect(res.status).toBe(404)
+    expect(upstream).not.toHaveBeenCalled()
+  })
 })

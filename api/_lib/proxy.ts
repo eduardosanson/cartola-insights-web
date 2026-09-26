@@ -73,5 +73,6 @@ export async function handleProxy(request: Request): Promise<Response> {
     if (name !== 'set-cookie' && !DROPPED_RESPONSE_HEADERS.includes(name)) out.set(name, value)
   })
   for (const cookie of upstream.headers.getSetCookie()) out.append('set-cookie', cookie)
-  return new Response(upstream.status === 204 ? null : upstream.body, { status: upstream.status, headers: out })
+  const nullBody = upstream.status === 204 || upstream.status === 304 || upstream.status === 205 || upstream.status === 101
+  return new Response(nullBody ? null : upstream.body, { status: upstream.status, headers: out })
 }
