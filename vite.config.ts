@@ -30,6 +30,7 @@ export default defineConfig({
       exclude: [
         'src/main.tsx',
         'src/vite-env.d.ts',
+        'api/proxy/**',
         'node_modules/**',
         'dist/**',
       ],
