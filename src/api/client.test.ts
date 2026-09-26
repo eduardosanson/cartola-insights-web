@@ -306,3 +306,105 @@ describe('X-Service-Token e tratamento de autenticação (Issue #9)', () => {
   })
 })
 
+describe('ApiError com 429 e retry', () => {
+  afterEach(() => {
+    vi.unstubAllGlobals()
+  })
+
+  it('extrai code e retryAfter de uma resposta 429 com quota válida', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+        headers: new Map([['retry-after', '8']]),
+        json: async () => ({ code: 'optimization_quota_exceeded', detail: 'quota atingida' }),
+      }),
+    )
+
+    try {
+      await apiGet('/otimizador/escalar')
+      expect.fail('deve lançar erro')
+    } catch (err) {
+      expect(err).toMatchObject({
+        name: 'ApiError',
+        status: 429,
+        code: 'optimization_quota_exceeded',
+        retryAfter: 8,
+      })
+    }
+  })
+
+  it('extrai retryAfter do header mesmo sem code no body', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+        headers: new Map([['retry-after', '5']]),
+        json: async () => ({}),
+      }),
+    )
+
+    try {
+      await apiGet('/qualquer-path')
+      expect.fail('deve lançar erro')
+    } catch (err) {
+      expect(err).toMatchObject({
+        status: 429,
+        retryAfter: 5,
+      })
+    }
+  })
+
+  it('trata 429 sem code válido como erro normal', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+        headers: new Map(),
+        json: async () => ({ detail: 'bloqueado por firewall' }),
+      }),
+    )
+
+    try {
+      await apiGet('/path')
+      expect.fail('deve lançar erro')
+    } catch (err) {
+      expect(err).toMatchObject({
+        status: 429,
+        code: undefined,
+        retryAfter: undefined,
+      })
+    }
+  })
+
+  it('retorna retryAfter como undefined se header inválido', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+        headers: new Map([['retry-after', 'not-a-number']]),
+        json: async () => ({ code: 'optimization_quota_exceeded' }),
+      }),
+    )
+
+    try {
+      await apiGet('/path')
+      expect.fail('deve lançar erro')
+    } catch (err) {
+      expect(err).toMatchObject({
+        status: 429,
+        code: 'optimization_quota_exceeded',
+        retryAfter: undefined,
+      })
+    }
+  })
+})
+

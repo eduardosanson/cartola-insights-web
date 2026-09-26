@@ -2,24 +2,54 @@ const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000
 
 export class ApiError extends Error {
   readonly status: number
+  readonly code?: string
+  readonly retryAfter?: number
 
-  constructor(message: string, status: number) {
+  constructor(message: string, status: number, code?: string, retryAfter?: number) {
     super(message)
     this.name = 'ApiError'
     this.status = status
+    this.code = code
+    this.retryAfter = retryAfter
   }
 }
 
-async function extrairMensagemDeErro(path: string, response: Response): Promise<string> {
+interface ErrorInfo {
+  message: string
+  code?: string
+  retryAfter?: number
+}
+
+async function extrairMensagemDeErro(path: string, response: Response): Promise<ErrorInfo> {
+  let code: string | undefined
+  let retryAfter: number | undefined
+  let message: string | undefined
+
   try {
-    const corpo = (await response.json()) as { detail?: unknown }
-    if (typeof corpo.detail === 'string') return corpo.detail
+    const corpo = (await response.json()) as { detail?: unknown; code?: unknown }
+    if (typeof corpo.code === 'string') code = corpo.code
+    if (typeof corpo.detail === 'string') {
+      message = corpo.detail
+    }
   } catch {
     // corpo não é JSON (ou já foi consumido) — cai no fallback abaixo
   }
-  if (response.status === 401) return 'Acesso não autorizado'
-  if (response.status === 403) return 'Acesso negado'
-  return `Erro ${response.status} ao acessar ${path}: ${response.statusText}`
+
+  if (response.status === 429) {
+    const retryAfterHeader = response.headers.get('retry-after')
+    if (retryAfterHeader) {
+      const parsed = Number.parseInt(retryAfterHeader, 10)
+      if (!Number.isNaN(parsed)) retryAfter = parsed
+    }
+  }
+
+  if (!message) {
+    if (response.status === 401) message = 'Acesso não autorizado'
+    else if (response.status === 403) message = 'Acesso negado'
+    else message = `Erro ${response.status} ao acessar ${path}: ${response.statusText}`
+  }
+
+  return { message, code, retryAfter }
 }
 
 async function requisitar<T>(path: string, init?: RequestInit): Promise<T> {
@@ -43,7 +73,8 @@ async function requisitar<T>(path: string, init?: RequestInit): Promise<T> {
   }
 
   if (!response.ok) {
-    throw new ApiError(await extrairMensagemDeErro(path, response), response.status)
+    const errorInfo = await extrairMensagemDeErro(path, response)
+    throw new ApiError(errorInfo.message, response.status, errorInfo.code, errorInfo.retryAfter)
   }
 
   if (response.status === 204) return undefined as T
