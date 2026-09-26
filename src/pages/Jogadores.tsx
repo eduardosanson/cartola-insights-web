@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { listarTodosAtletas, type Atleta, type Posicao, type StatusAtletaNome } from '../api/atletas'
 import DropdownFiltro from '../components/DropdownFiltro'
+import IndicadorSincronizacao from '../components/IndicadorSincronizacao'
 import MandoRodada from '../components/MandoRodada'
 import SortableHeader from '../components/SortableHeader'
 import StatusBadge from '../components/StatusBadge'
@@ -114,6 +115,9 @@ export default function Jogadores() {
 
   return (
     <div>
+      <div style={{ marginBottom: '1rem', padding: '0.5rem', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
+        <IndicadorSincronizacao />
+      </div>
       <div className="players-toolbar">
         <label className="search-field">
           <svg
