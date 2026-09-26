@@ -1,0 +1,44 @@
+name: Check Branch Up to Date
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  check-branch-up-to-date:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+
+      - name: Fetch main branch
+        run: git fetch origin main
+
+      - name: Check if branch is up to date with main
+        run: |
+          set -euo pipefail
+
+          BASE_SHA="$(git rev-parse origin/main)"
+          HEAD_SHA="$(git rev-parse HEAD)"
+
+          echo "main:   $BASE_SHA"
+          echo "branch: $HEAD_SHA"
+
+          if git merge-base --is-ancestor "$BASE_SHA" "$HEAD_SHA"; then
+            echo "✅ Branch is up to date with main."
+            exit 0
+          fi
+
+          MISSING="$(git rev-list --count "$HEAD_SHA".."$BASE_SHA")"
+          echo "❌ Branch is behind main: $MISSING commit(s) from main missing."
+          echo "Please update your branch before merging, for example:"
+          echo "  git fetch origin main && git merge origin/main"
+          echo "  # or, to rebase:"
+          echo "  git fetch origin main && git rebase origin/main"
+          exit 1
