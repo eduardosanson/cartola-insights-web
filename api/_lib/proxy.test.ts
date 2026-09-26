@@ -96,6 +96,26 @@ describe('handleProxy', () => {
     expect(upstream).not.toHaveBeenCalled()
   })
 
+  it('rejeita POST com Content-Length excedendo limite antes de carregar corpo na memória', async () => {
+    const stream = new ReadableStream({
+      start(controller) {
+        controller.error(new Error('não deveria tentar ler o corpo'))
+      },
+    })
+    const r = new Request('https://app.test/api/proxy/otimizador/escalar', {
+      method: 'POST',
+      headers: {
+        'content-type': 'application/json',
+        'content-length': String(1024 * 1024 + 1),
+      },
+      body: stream,
+      duplex: 'half',
+    })
+    const res = await handleProxy(r)
+    expect(res.status).toBe(413)
+    expect(upstream).not.toHaveBeenCalled()
+  })
+
   it('falha fechado em produção sem SERVICE_TOKEN', async () => {
     vi.stubEnv('SERVICE_TOKEN', '')
     const res = await handleProxy(req('/atletas'))

@@ -42,6 +42,8 @@ export async function handleProxy(request: Request): Promise<Response> {
 
   let body: ArrayBuffer | undefined
   if (method === 'POST') {
+    const contentLength = Number(request.headers.get('content-length'))
+    if (contentLength > MAX_BODY_BYTES) return erro(413, 'payload_too_large')
     body = await request.arrayBuffer()
     if (body.byteLength > MAX_BODY_BYTES) return erro(413, 'payload_too_large')
   }
