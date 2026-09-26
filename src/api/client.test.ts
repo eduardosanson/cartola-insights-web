@@ -39,6 +39,22 @@ describe('apiGet', () => {
     })
   })
 
+  it('normaliza caminhos sem barra inicial para o prefixo do proxy', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => ({ status: 'ok' }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiGet('clubes')
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/clubes', {
+      credentials: 'include',
+    })
+  })
+
   it('throws a clear error on a non-2xx response', async () => {
     vi.stubGlobal(
       'fetch',
