@@ -22,8 +22,23 @@ jobs:
 
       - name: Check if branch is up to date with main
         run: |
-          if ! git merge-base --is-ancestor origin/main HEAD; then
-            echo "❌ This branch is behind main. Please update your branch."
-            exit 1
+          set -euo pipefail
+
+          BASE_SHA="$(git rev-parse origin/main)"
+          HEAD_SHA="$(git rev-parse HEAD)"
+
+          echo "main:   $BASE_SHA"
+          echo "branch: $HEAD_SHA"
+
+          if git merge-base --is-ancestor "$BASE_SHA" "$HEAD_SHA"; then
+            echo "✅ Branch is up to date with main."
+            exit 0
           fi
-          echo "✅ Branch is up to date with main."
+
+          MISSING="$(git rev-list --count "$HEAD_SHA".."$BASE_SHA")"
+          echo "❌ Branch is behind main: $MISSING commit(s) from main missing."
+          echo "Please update your branch before merging, for example:"
+          echo "  git fetch origin main && git merge origin/main"
+          echo "  # or, to rebase:"
+          echo "  git fetch origin main && git rebase origin/main"
+          exit 1

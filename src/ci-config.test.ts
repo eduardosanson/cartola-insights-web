@@ -117,5 +117,11 @@ describe("CI GitHub Actions Configuration", () => {
       const content = readFileSync(branchUpToDatePath, "utf8");
       expect(content).toContain("github.event.pull_request.head.sha");
     });
+
+    it("should report missing commit count and remediation instructions on failure", () => {
+      const content = readFileSync(branchUpToDatePath, "utf8");
+      expect(content).toContain("git rev-list --count");
+      expect(content).toContain("git merge origin/main");
+    });
   });
 });
