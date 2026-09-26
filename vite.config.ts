@@ -1,21 +1,24 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
-// Para e2e, disable proxy e deixar Playwright mockar localmente
-const useProxy = !process.env.PLAYWRIGHT_CHROMIUM
+const proxyConfig = {
+  target: process.env.BACKEND_ORIGIN || 'http://localhost:8000',
+  changeOrigin: true,
+  rewrite: (path: string) => path.replace(/^\/api\/proxy/, ''),
+}
 
 export default defineConfig({
   plugins: [react()],
-  server: useProxy ? {
+  server: {
     proxy: {
-      '/api/proxy': 'http://localhost:8000',
+      '/api/proxy': proxyConfig,
     },
-  } : undefined,
-  preview: useProxy ? {
+  },
+  preview: {
     proxy: {
-      '/api/proxy': 'http://localhost:8000',
+      '/api/proxy': proxyConfig,
     },
-  } : undefined,
+  },
   test: {
     environment: 'jsdom',
     globals: true,
