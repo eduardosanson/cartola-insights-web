@@ -64,7 +64,6 @@ export default function Escalador() {
     ativoRef.current = true
     return () => {
       ativoRef.current = false
-      requisicaoAtivaRef.current++
       if (retryTimerRef.current) {
         clearTimeout(retryTimerRef.current)
         retryTimerRef.current = null

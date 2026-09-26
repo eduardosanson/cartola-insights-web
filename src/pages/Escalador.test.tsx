@@ -2,7 +2,7 @@ import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StrictMode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
-import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { ApiError } from '../api/client'
 import * as atletasApi from '../api/atletas'
 import * as api from '../api/otimizador'
@@ -64,6 +64,10 @@ describe('Escalador', () => {
       clube_adversario_nome: `Adversário ${id}`,
       media_no_mando: 6.5,
     }) as raioXApi.RaioXConfronto)
+  })
+
+  afterEach(() => {
+    vi.useRealTimers()
   })
 
   it('carrega formações e envia os parâmetros escolhidos', async () => {
@@ -467,10 +471,11 @@ describe('Escalador', () => {
 
     renderizar()
     const botaoMontar = await screen.findByRole('button', { name: /montar escalação ótima/i })
+    const form = botaoMontar.closest('form')!
 
     vi.useFakeTimers()
 
-    fireEvent.click(botaoMontar)
+    fireEvent.submit(form)
 
     // Durante o cálculo inicial (carregando), os campos devem estar desabilitados
     expect(screen.getByLabelText(/orçamento/i)).toBeDisabled()
