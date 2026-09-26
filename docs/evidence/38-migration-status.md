@@ -55,25 +55,28 @@ Lint: OK (apenas warnings pré-existentes em AuthContext.tsx)
 
 ### Suporte E2E
 - `e2e/support/mockApi.ts`: interceptações para `/api/proxy/**`
-- `e2e/support/env.ts`: E2E_API_BASE_URL = `http://localhost:8000`
+- `e2e/support/env.ts`: E2E_API_BASE_URL = `http://localhost:5173`
 
 ## 🔄 Status E2E
 
-**Conhecida Issue:** Testes e2e (Playwright) não estão interceptando `/api/proxy/**` routes corretamente.
-
-**Causa:** Complexidade na interação entre Vite proxy, Playwright route matching e origem local (5173) vs. backend (8000).
-
-**Próximos Passos:** Ajustar interception strategy no mock (possível: usar `page.on('beforeunload')`  ou reconfigurar o Vite proxy bypass).
-
-**Nota:** Não bloqueia aprovação da PR #45 — testes unitários (99.9% coverage) cobrem o behavior crítico. E2E é regressão visual/estrutural (issue #6), não test de contrato.
+✓ Testes e2e (Playwright) passam com 100% de sucesso (`npm run test:e2e`).
+✓ Todas as rotas `/api/proxy/**` interceptadas com fixtures controlados no mock (`mockApi.ts`), com fallback 404 sem vazamento para backend real.
 
 ## 📝 Commits
 
-1. `ea5d36e` — docs: spec, prompt plan e log de decisões iniciais
-2. `1d7f883` — feat: migrar client.ts para chamar proxy server-side
-3. `d478ca2` — test: atualizar testes de API para usar proxy
-4. `062647c` — docs: atualizar log de decisões com fases finais
-5. `b49e259` — fix: atualizar mock e2e para suportar proxy
+1. `ea5d36e` — docs: #38 — spec, prompt plan e log de decisões iniciais
+2. `1d7f883` — feat: #38 — migrar client.ts para chamar proxy server-side
+3. `d478ca2` — test: #38 — atualizar testes de API para usar proxy
+4. `062647c` — docs: #38 — atualizar log de decisões com fases finais
+5. `b49e259` — fix: #38 — atualizar mock e2e para suportar proxy
+6. `935d06f` — fix: #38 — migrar chamadas do client para caminho relativo do proxy no mesmo domínio
+7. `85cf197` — fix: #38 — configurar proxy do Vite dev server com rewrite de /api/proxy e target BACKEND_ORIGIN
+8. `6028daf` — fix: #38 — corrigir interceptação de rotas em mockApi.ts para testes e2e
+9. `2f8b6a9` — fix: #38 — aguardar assincronismo da navegação após logout em Nav.test.tsx
+10. `9e927e6` — docs: #38 — documentar fluxo do proxy em desenvolvimento local e atualizar .env.example
+11. `38da9da` — docs: #38 — status final de migração para proxy
+12. `2f60412` — chore: #38 — sincronizar branch com origin/main
+13. `f8614c7` — fix: #38 — extrair campo code de erro retornado pelo proxy em ApiError
 
 ## 🔗 Referência
 
