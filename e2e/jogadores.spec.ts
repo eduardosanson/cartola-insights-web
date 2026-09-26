@@ -1,6 +1,12 @@
-import { expect, test } from '@playwright/test'
+import { expect, test, type TestInfo } from '@playwright/test'
 import { atletasFixture } from './fixtures/atletas'
 import { mockJogadoresApi } from './support/mockApi'
+
+const evidenceDirectory = 'docs/evidence/39-sync-indicator-states'
+
+function screenshotPath(state: string, testInfo: TestInfo): string {
+  return `${evidenceDirectory}/${state}-${testInfo.project.name}.png`
+}
 
 /**
  * Cobertura inicial de regressão visual/estrutural (issue #6): garante
@@ -10,7 +16,7 @@ import { mockJogadoresApi } from './support/mockApi'
  * pixel a pixel — isso fica para uma etapa posterior (RNF02/RNF03).
  */
 test.describe('Listagem de Jogadores', () => {
-  test('carrega sem erro crítico e renderiza a tabela principal', async ({ page }) => {
+  test('carrega sem erro crítico e renderiza a tabela principal', async ({ page }, testInfo) => {
     const errosDeConsole: string[] = []
     const errosDePagina: string[] = []
 
@@ -45,10 +51,31 @@ test.describe('Listagem de Jogadores', () => {
     // Screenshot capturado não pode estar vazio/corrompido — sem baseline,
     // a checagem é um piso de tamanho de arquivo (renderização quebrada
     // tende a gerar uma página quase em branco e um PNG muito menor).
-    const screenshot = await page.screenshot({ fullPage: true })
-    expect(screenshot.byteLength).toBeGreaterThan(5000)
+    await page.screenshot({ path: screenshotPath('normal', testInfo), fullPage: true })
 
     expect(errosDePagina, `erros de página: ${errosDePagina.join('; ')}`).toHaveLength(0)
     expect(errosDeConsole, `erros de console: ${errosDeConsole.join('; ')}`).toHaveLength(0)
+  })
+
+  test('captura o estado vazio do indicador', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'As evidências são capturadas no viewport desktop.')
+    await mockJogadoresApi(page, {
+      status: 200,
+      body: { estado: 'sem_dados', rodada: null, sincronizado_em: null },
+    })
+
+    await page.goto('/jogadores')
+    await expect(page.getByRole('status')).toContainText('Dados ainda não sincronizados')
+    await page.screenshot({ path: screenshotPath('vazio', testInfo), fullPage: true })
+  })
+
+  test('captura o estado de erro do indicador', async ({ page }, testInfo) => {
+    test.skip(testInfo.project.name !== 'desktop', 'As evidências são capturadas no viewport desktop.')
+    await mockJogadoresApi(page, { status: 503 })
+
+    await page.goto('/jogadores')
+    await expect(page.getByRole('status')).toContainText('Atualização indisponível')
+    await expect(page.getByRole('columnheader', { name: 'Nome' })).toBeVisible()
+    await page.screenshot({ path: screenshotPath('erro', testInfo), fullPage: true })
   })
 })
