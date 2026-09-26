@@ -118,6 +118,8 @@ export default function Escalador() {
         retryTimerRef.current = setTimeout(() => {
           executarOtimizacao()
         }, apiError!.retryAfter! * 1000)
+      } else if (apiError?.status === 429) {
+        setErro('Serviço temporariamente indisponível. Tente novamente em instantes.')
       } else {
         setErro(
           err instanceof EscalacaoInviavelError

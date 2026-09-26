@@ -406,5 +406,29 @@ describe('ApiError com 429 e retry', () => {
       })
     }
   })
+
+  it('usa mensagem amigável quando 429 não contém detail no body', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 429,
+        statusText: 'Too Many Requests',
+        headers: new Map(),
+        json: async () => ({}),
+      }),
+    )
+
+    try {
+      await apiGet('/otimizador/escalar')
+      expect.fail('deve lançar erro')
+    } catch (err) {
+      expect(err).toMatchObject({
+        name: 'ApiError',
+        status: 429,
+        message: 'Serviço temporariamente indisponível. Tente novamente em instantes.',
+      })
+    }
+  })
 })
 

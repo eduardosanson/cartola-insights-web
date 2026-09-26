@@ -397,4 +397,22 @@ describe('Escalador', () => {
     expect(screen.getByRole('button', { name: /montar escalação ótima/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/orçamento/i)).not.toBeDisabled()
   })
+
+  it('trata 429 sem código de quota exibindo mensagem amigável sem retry', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(api, 'montarEscalacao').mockRejectedValue(
+      new ApiError('Erro técnico 429', 429),
+    )
+
+    renderizar()
+    await screen.findByRole('button', { name: /montar escalação ótima/i })
+    await user.click(screen.getByRole('button', { name: /montar escalação ótima/i }))
+
+    expect(
+      await screen.findByText('Serviço temporariamente indisponível. Tente novamente em instantes.'),
+    ).toBeInTheDocument()
+    expect(screen.queryByText(/preparando sua escalação/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /montar escalação ótima/i })).toBeInTheDocument()
+    expect(screen.getByLabelText(/orçamento/i)).not.toBeDisabled()
+  })
 })

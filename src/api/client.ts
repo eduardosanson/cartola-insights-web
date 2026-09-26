@@ -46,6 +46,7 @@ async function extrairMensagemDeErro(path: string, response: Response): Promise<
   if (!message) {
     if (response.status === 401) message = 'Acesso não autorizado'
     else if (response.status === 403) message = 'Acesso negado'
+    else if (response.status === 429) message = 'Serviço temporariamente indisponível. Tente novamente em instantes.'
     else message = `Erro ${response.status} ao acessar ${path}: ${response.statusText}`
   }
 
