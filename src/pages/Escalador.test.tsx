@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event'
 import { StrictMode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
+import { ApiError } from '../api/client'
 import * as atletasApi from '../api/atletas'
 import * as api from '../api/otimizador'
 import * as raioXApi from '../api/raioX'
@@ -355,5 +356,45 @@ describe('Escalador', () => {
     expect(
       screen.getByText('Formação: 1 GOL · 2 ZAG · 2 LAT · 2 MEI · 4 ATA · 1 TEC'),
     ).toBeInTheDocument()
+  })
+
+  it('mostra mensagem de espera quando recebe 429 com quota', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(api, 'montarEscalacao').mockRejectedValue(
+      new ApiError('quota exceeded', 429, 'optimization_quota_exceeded', 10),
+    )
+
+    renderizar()
+    await screen.findByRole('button', { name: /montar escalação ótima/i })
+    await user.click(screen.getByRole('button', { name: /montar escalação ótima/i }))
+
+    // Deve mostrar mensagem de espera
+    expect(await screen.findByText(/preparando sua escalação/i)).toBeInTheDocument()
+    // Botão de envio deve desaparecer, mostrando apenas cancelar
+    expect(screen.queryByRole('button', { name: /montar escalação ótima/i })).not.toBeInTheDocument()
+    // Formulário desabilitado
+    expect(screen.getByLabelText(/orçamento/i)).toBeDisabled()
+  })
+
+  it('cancela espera e restaura formulário quando Cancelar é clicado', async () => {
+    const user = userEvent.setup()
+    vi.spyOn(api, 'montarEscalacao').mockRejectedValue(
+      new ApiError('quota exceeded', 429, 'optimization_quota_exceeded', 10),
+    )
+
+    renderizar()
+    await screen.findByRole('button', { name: /montar escalação ótima/i })
+    await user.click(screen.getByRole('button', { name: /montar escalação ótima/i }))
+
+    expect(await screen.findByText(/preparando sua escalação/i)).toBeInTheDocument()
+
+    // Clica em Cancelar
+    const cancelButton = screen.getByRole('button', { name: /cancelar/i })
+    await user.click(cancelButton)
+
+    // Mensagem de espera desaparece, formulário é restaurado
+    expect(screen.queryByText(/preparando sua escalação/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /montar escalação ótima/i })).toBeInTheDocument()
+    expect(screen.getByLabelText(/orçamento/i)).not.toBeDisabled()
   })
 })
