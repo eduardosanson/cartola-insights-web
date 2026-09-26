@@ -495,4 +495,88 @@ describe('Escalador', () => {
 
     vi.useRealTimers()
   })
+
+  it('não publica resultado de requisição que foi cancelada enquanto estava em andamento', async () => {
+    let resolverPrimeiraChamada: () => void = () => {}
+    const primeiraPromessa = new Promise<api.EscalacaoOtima>((_, reject) => {
+      resolverPrimeiraChamada = () => {
+        reject(new ApiError('quota exceeded', 429, 'optimization_quota_exceeded', 10))
+      }
+    })
+
+    vi.spyOn(api, 'montarEscalacao').mockReturnValueOnce(primeiraPromessa)
+
+    renderizar()
+    const botaoMontar = await screen.findByRole('button', { name: /montar escalação ótima/i })
+    const form = botaoMontar.closest('form')!
+
+    vi.useFakeTimers()
+
+    fireEvent.submit(form)
+
+    await act(async () => {
+      resolverPrimeiraChamada()
+    })
+
+    expect(screen.getByText(/preparando sua escalação/i)).toBeInTheDocument()
+
+    let resolverRetry: (value: api.EscalacaoOtima) => void = () => {}
+    const promessaRetry = new Promise<api.EscalacaoOtima>((resolve) => {
+      resolverRetry = resolve
+    })
+    vi.spyOn(api, 'montarEscalacao').mockReturnValueOnce(promessaRetry)
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10000)
+    })
+
+    const botaoCancelar = screen.getByRole('button', { name: /cancelar/i })
+    fireEvent.click(botaoCancelar)
+
+    expect(screen.queryByText(/preparando sua escalação/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /montar escalação ótima/i })).toBeInTheDocument()
+
+    await act(async () => {
+      resolverRetry(escalacao)
+      await vi.advanceTimersByTimeAsync(10)
+    })
+
+    expect(screen.queryByRole('heading', { name: /escalação sugerida/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /montar escalação ótima/i })).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('não agenda novo retry nem atualiza estado após desmontar o componente durante espera', async () => {
+    let rejeitarChamada: () => void = () => {}
+    const promessa = new Promise<api.EscalacaoOtima>((_, reject) => {
+      rejeitarChamada = () => {
+        reject(new ApiError('quota exceeded', 429, 'optimization_quota_exceeded', 5))
+      }
+    })
+
+    const spyMontar = vi.spyOn(api, 'montarEscalacao').mockReturnValue(promessa)
+
+    const { unmount } = renderizar()
+    const botaoMontar = await screen.findByRole('button', { name: /montar escalação ótima/i })
+    const form = botaoMontar.closest('form')!
+
+    vi.useFakeTimers()
+
+    fireEvent.submit(form)
+
+    unmount()
+
+    await act(async () => {
+      rejeitarChamada()
+    })
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(10000)
+    })
+
+    expect(spyMontar).toHaveBeenCalledTimes(1)
+
+    vi.useRealTimers()
+  })
 })

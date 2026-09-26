@@ -43,6 +43,8 @@ export default function Escalador() {
   const [erro, setErro] = useState<string | null>(null)
   const [aguardandoRetry, setAguardandoRetry] = useState(false)
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const requisicaoAtivaRef = useRef(0)
+  const ativoRef = useRef(true)
 
   useEffect(() => {
     let ativo = true
@@ -59,8 +61,14 @@ export default function Escalador() {
   }, [])
 
   useEffect(() => {
+    ativoRef.current = true
     return () => {
-      if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
+      ativoRef.current = false
+      requisicaoAtivaRef.current++
+      if (retryTimerRef.current) {
+        clearTimeout(retryTimerRef.current)
+        retryTimerRef.current = null
+      }
     }
   }, [])
 
@@ -100,20 +108,28 @@ export default function Escalador() {
     return { escalacao, detalhes, orcamento: parametros.orcamento }
   }
 
-  async function executarOtimizacao(parametros: {
-    orcamento: number
-    esquema: EsquemaTatico
-    modo: ModoOtimizacao
-  }) {
+  async function executarOtimizacao(
+    parametros: {
+      orcamento: number
+      esquema: EsquemaTatico
+      modo: ModoOtimizacao
+    },
+    id: number,
+  ) {
+    if (!ativoRef.current || requisicaoAtivaRef.current !== id) return
+
     setCarregando(true)
     setErro(null)
     setResultado(null)
 
     try {
       const resultado = await executarEscalacao(parametros)
+      if (!ativoRef.current || requisicaoAtivaRef.current !== id) return
       setResultado(resultado)
       setAguardandoRetry(false)
     } catch (err) {
+      if (!ativoRef.current || requisicaoAtivaRef.current !== id) return
+
       const apiError = err instanceof ApiError ? err : null
       const isQuotaError =
         apiError?.status === 429 &&
@@ -124,7 +140,8 @@ export default function Escalador() {
       if (isQuotaError) {
         setAguardandoRetry(true)
         retryTimerRef.current = setTimeout(() => {
-          executarOtimizacao(parametros)
+          if (!ativoRef.current || requisicaoAtivaRef.current !== id) return
+          executarOtimizacao(parametros, id)
         }, apiError!.retryAfter! * 1000)
       } else if (apiError?.status === 429) {
         setAguardandoRetry(false)
@@ -138,7 +155,9 @@ export default function Escalador() {
         )
       }
     } finally {
-      setCarregando(false)
+      if (ativoRef.current && requisicaoAtivaRef.current === id) {
+        setCarregando(false)
+      }
     }
   }
 
@@ -147,14 +166,23 @@ export default function Escalador() {
     setAguardandoRetry(false)
 
     // Limpa retry anterior se houver
-    if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current)
+      retryTimerRef.current = null
+    }
 
-    await executarOtimizacao({ orcamento, esquema, modo })
+    const id = ++requisicaoAtivaRef.current
+    await executarOtimizacao({ orcamento, esquema, modo }, id)
   }
 
   function cancelarRetry() {
-    if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current)
+      retryTimerRef.current = null
+    }
+    requisicaoAtivaRef.current++
     setAguardandoRetry(false)
+    setCarregando(false)
     setErro(null)
   }
 
