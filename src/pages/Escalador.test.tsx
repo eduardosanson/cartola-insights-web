@@ -76,6 +76,17 @@ describe('Escalador', () => {
     expect(await screen.findByRole('heading', { name: /escalação sugerida/i })).toBeInTheDocument()
   })
 
+  it('exibe rodada e horário da última sincronização', async () => {
+    vi.spyOn(sincronizacaoApi, 'fetchSyncStatus').mockResolvedValue({
+      round: 24,
+      timestamp: '2026-09-26T15:30:00Z',
+    })
+    renderizar()
+
+    expect(await screen.findByText(/rodada 24 • sincronizado em/i)).toBeInTheDocument()
+  })
+
+
   it('carrega formações e envia os parâmetros escolhidos', async () => {
     const user = userEvent.setup()
     renderizar()
