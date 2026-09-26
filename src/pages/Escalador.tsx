@@ -119,8 +119,10 @@ export default function Escalador() {
           executarOtimizacao()
         }, apiError!.retryAfter! * 1000)
       } else if (apiError?.status === 429) {
+        setAguardandoRetry(false)
         setErro('Serviço temporariamente indisponível. Tente novamente em instantes.')
       } else {
+        setAguardandoRetry(false)
         setErro(
           err instanceof EscalacaoInviavelError
             ? 'Não há escalação viável. Aumente o orçamento ou escolha outro esquema.'

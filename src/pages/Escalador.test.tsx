@@ -1,4 +1,4 @@
-import { fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StrictMode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
@@ -414,5 +414,42 @@ describe('Escalador', () => {
     expect(screen.queryByText(/preparando sua escalação/i)).not.toBeInTheDocument()
     expect(screen.getByRole('button', { name: /montar escalação ótima/i })).toBeInTheDocument()
     expect(screen.getByLabelText(/orçamento/i)).not.toBeDisabled()
+  })
+
+  it('limpa aguardandoRetry e desbloqueia formulário se o retry falhar com erro 500', async () => {
+    let chamadas = 0
+    vi.spyOn(api, 'montarEscalacao').mockImplementation(async () => {
+      chamadas++
+      if (chamadas === 1) {
+        throw new ApiError('quota exceeded', 429, 'optimization_quota_exceeded', 5)
+      }
+      throw new Error('Erro interno do servidor (500)')
+    })
+
+    renderizar()
+    const botaoMontar = await screen.findByRole('button', { name: /montar escalação ótima/i })
+
+    vi.useFakeTimers()
+
+    await fireEvent.click(botaoMontar)
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(screen.getByText(/preparando sua escalação/i)).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /cancelar/i })).toBeInTheDocument()
+    expect(screen.getByLabelText(/orçamento/i)).toBeDisabled()
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000)
+    })
+
+    expect(screen.getByRole('alert')).toHaveTextContent('Erro interno do servidor (500)')
+    expect(screen.queryByText(/preparando sua escalação/i)).not.toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /cancelar/i })).not.toBeInTheDocument()
+    expect(screen.getByRole('button', { name: /montar escalação ótima/i })).toBeInTheDocument()
+    expect(screen.getByLabelText(/orçamento/i)).not.toBeDisabled()
+
+    vi.useRealTimers()
   })
 })
