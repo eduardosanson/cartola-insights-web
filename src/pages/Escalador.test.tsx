@@ -452,4 +452,47 @@ describe('Escalador', () => {
 
     vi.useRealTimers()
   })
+
+  it('desabilita campos durante carregamento e reenvia parâmetros congelados no retry', async () => {
+    let resolverPrimeiraChamada: () => void = () => {}
+    const primeiraPromessa = new Promise<api.EscalacaoOtima>((_, reject) => {
+      resolverPrimeiraChamada = () => {
+        reject(new ApiError('quota exceeded', 429, 'optimization_quota_exceeded', 5))
+      }
+    })
+
+    const spyMontar = vi.spyOn(api, 'montarEscalacao')
+      .mockReturnValueOnce(primeiraPromessa)
+      .mockResolvedValueOnce(escalacao)
+
+    renderizar()
+    const botaoMontar = await screen.findByRole('button', { name: /montar escalação ótima/i })
+
+    vi.useFakeTimers()
+
+    fireEvent.click(botaoMontar)
+
+    // Durante o cálculo inicial (carregando), os campos devem estar desabilitados
+    expect(screen.getByLabelText(/orçamento/i)).toBeDisabled()
+    expect(screen.getByLabelText(/esquema/i)).toBeDisabled()
+    expect(screen.getByLabelText(/modo/i)).toBeDisabled()
+
+    await act(async () => {
+      resolverPrimeiraChamada()
+    })
+
+    expect(screen.getByLabelText(/orçamento/i)).toBeDisabled()
+    expect(screen.getByLabelText(/esquema/i)).toBeDisabled()
+    expect(screen.getByLabelText(/modo/i)).toBeDisabled()
+
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000)
+    })
+
+    expect(spyMontar).toHaveBeenCalledTimes(2)
+    expect(spyMontar).toHaveBeenNthCalledWith(1, { orcamento: 100, esquema: '4-3-3', modo: 'classica' })
+    expect(spyMontar).toHaveBeenNthCalledWith(2, { orcamento: 100, esquema: '4-3-3', modo: 'classica' })
+
+    vi.useRealTimers()
+  })
 })

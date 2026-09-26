@@ -64,8 +64,12 @@ export default function Escalador() {
     }
   }, [])
 
-  async function executarEscalacao() {
-    const escalacao = await montarEscalacao({ orcamento, esquema, modo })
+  async function executarEscalacao(parametros: {
+    orcamento: number
+    esquema: EsquemaTatico
+    modo: ModoOtimizacao
+  }) {
+    const escalacao = await montarEscalacao(parametros)
     const idsTitulares = escalacao.titulares.map((atleta) => atleta.atleta_id)
     const ids = [...idsTitulares, escalacao.tecnico.atleta_id]
     const [atletas, confrontos] = await Promise.all([
@@ -93,16 +97,20 @@ export default function Escalador() {
         }
       }
     })
-    return { escalacao, detalhes, orcamento }
+    return { escalacao, detalhes, orcamento: parametros.orcamento }
   }
 
-  async function executarOtimizacao() {
+  async function executarOtimizacao(parametros: {
+    orcamento: number
+    esquema: EsquemaTatico
+    modo: ModoOtimizacao
+  }) {
     setCarregando(true)
     setErro(null)
     setResultado(null)
 
     try {
-      const resultado = await executarEscalacao()
+      const resultado = await executarEscalacao(parametros)
       setResultado(resultado)
       setAguardandoRetry(false)
     } catch (err) {
@@ -116,7 +124,7 @@ export default function Escalador() {
       if (isQuotaError) {
         setAguardandoRetry(true)
         retryTimerRef.current = setTimeout(() => {
-          executarOtimizacao()
+          executarOtimizacao(parametros)
         }, apiError!.retryAfter! * 1000)
       } else if (apiError?.status === 429) {
         setAguardandoRetry(false)
@@ -141,7 +149,7 @@ export default function Escalador() {
     // Limpa retry anterior se houver
     if (retryTimerRef.current) clearTimeout(retryTimerRef.current)
 
-    await executarOtimizacao()
+    await executarOtimizacao({ orcamento, esquema, modo })
   }
 
   function cancelarRetry() {
@@ -170,7 +178,7 @@ export default function Escalador() {
               step="0.01"
               value={orcamento}
               onChange={(event) => setOrcamento(Number(event.target.value))}
-              disabled={aguardandoRetry}
+              disabled={carregando || aguardandoRetry}
               required
             />
           </label>
@@ -179,7 +187,7 @@ export default function Escalador() {
             <select
               value={esquema}
               onChange={(event) => setEsquema(event.target.value as EsquemaTatico)}
-              disabled={!esquemas || aguardandoRetry}
+              disabled={!esquemas || carregando || aguardandoRetry}
             >
               {(Object.keys(esquemas ?? { '4-3-3': {} }) as EsquemaTatico[]).map((nome) => (
                 <option key={nome}>{nome}</option>
@@ -191,7 +199,7 @@ export default function Escalador() {
             <select
               value={modo}
               onChange={(event) => setModo(event.target.value as ModoOtimizacao)}
-              disabled={aguardandoRetry}
+              disabled={carregando || aguardandoRetry}
             >
               {Object.entries(MODOS).map(([valor, config]) => (
                 <option key={valor} value={valor}>
