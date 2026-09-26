@@ -681,4 +681,44 @@ describe('Escalador', () => {
 
     vi.useRealTimers()
   })
+
+  it('cancela timer de retry pendente e dispara novo cálculo se o formulário for submetido novamente', async () => {
+    const spyMontar = vi.spyOn(api, 'montarEscalacao')
+      .mockRejectedValueOnce(new ApiError('quota', 429, 'optimization_quota_exceeded', 8))
+      .mockResolvedValueOnce(escalacao)
+
+    renderizar()
+    const botaoMontar = await screen.findByRole('button', { name: /montar escalação ótima/i })
+    const form = botaoMontar.closest('form')!
+
+    vi.useFakeTimers()
+
+    fireEvent.submit(form)
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(spyMontar).toHaveBeenCalledTimes(1)
+    expect(screen.getByText(/preparando sua escalação/i)).toBeInTheDocument()
+
+    // Submete o formulário novamente enquanto o timer de 8s está ativo
+    fireEvent.submit(form)
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(spyMontar).toHaveBeenCalledTimes(2)
+
+    // O timer da primeira requisição (8s) não deve disparar uma chamada fantasma extra
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(8000)
+    })
+
+    expect(spyMontar).toHaveBeenCalledTimes(2)
+    expect(screen.getByRole('heading', { name: /escalação sugerida/i })).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
 })
