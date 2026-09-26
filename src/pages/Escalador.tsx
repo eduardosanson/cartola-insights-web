@@ -12,6 +12,7 @@ import {
 } from '../api/otimizador'
 import { buscarRaioXConfronto } from '../api/raioX'
 import CampoTatico, { type DetalhesAtletaCampo } from '../components/CampoTatico'
+import IndicadorSincronizacao from '../components/IndicadorSincronizacao'
 import { formatCurrency, formatNumber } from '../utils/formatNumber'
 
 const MODOS: Record<ModoOtimizacao, { nome: string; descricao: string }> = {
@@ -193,6 +194,10 @@ export default function Escalador() {
         <h2>Escalador</h2>
         <p>Monte 11 titulares e técnico respeitando orçamento, formação e limite por clube.</p>
       </header>
+
+      <div className="sync-indicator-container">
+        <IndicadorSincronizacao />
+      </div>
 
       <section aria-labelledby="parametros-escalador">
         <h3 id="parametros-escalador">Estratégia</h3>

@@ -2,6 +2,15 @@ import type { Page } from '@playwright/test'
 import { atletasFixture } from '../fixtures/atletas'
 import { E2E_API_BASE_URL as API_BASE_URL } from './env'
 
+type StatusResponse = {
+  status: number
+  body?: {
+    estado: 'sincronizado' | 'sem_dados'
+    rodada: number | null
+    sincronizado_em: string | null
+  }
+}
+
 // A origem interceptada aqui é forçada no processo do `vite dev` por
 // `playwright.config.ts` (webServer.env), então permanece esta mesma
 // origem independentemente de qualquer `.env`/`.env.local` local do
@@ -12,7 +21,17 @@ import { E2E_API_BASE_URL as API_BASE_URL } from './env'
  * (lista de atletas via `AuthProvider`/`listarTodosAtletas`) e responde
  * com um fixture controlado. Registrado antes de qualquer navegação.
  */
-export async function mockJogadoresApi(page: Page): Promise<void> {
+export async function mockJogadoresApi(
+  page: Page,
+  syncStatus: StatusResponse = {
+    status: 200,
+    body: {
+      estado: 'sincronizado',
+      rodada: 24,
+      sincronizado_em: '2026-09-26T15:30:00Z',
+    },
+  },
+): Promise<void> {
   // Fallback: qualquer chamada não prevista à API cai aqui como 404
   // controlado — nunca deve haver tentativa de rede real no e2e.
   await page.route(`${API_BASE_URL}/**`, async (route) => {
@@ -41,6 +60,15 @@ export async function mockJogadoresApi(page: Page): Promise<void> {
       status: 200,
       contentType: 'application/json',
       body: JSON.stringify(atletasFixture),
+    })
+  })
+
+  // Indicador de sincronização (issue #39): contrato de GET /dados/status.
+  await page.route(`${API_BASE_URL}/dados/status`, async (route) => {
+    await route.fulfill({
+      status: syncStatus.status,
+      contentType: 'application/json',
+      body: JSON.stringify(syncStatus.body ?? { detail: 'status unavailable' }),
     })
   })
 }

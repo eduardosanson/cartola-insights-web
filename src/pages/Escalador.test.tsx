@@ -7,6 +7,7 @@ import { ApiError } from '../api/client'
 import * as atletasApi from '../api/atletas'
 import * as api from '../api/otimizador'
 import * as raioXApi from '../api/raioX'
+import * as sincronizacaoApi from '../api/sincronizacao'
 import Escalador from './Escalador'
 
 const esquemas = {
@@ -69,6 +70,27 @@ describe('Escalador', () => {
   afterEach(() => {
     vi.useRealTimers()
   })
+
+  it('mantém o formulário utilizável quando o status de sincronização falha', async () => {
+    vi.spyOn(sincronizacaoApi, 'fetchSyncStatus').mockRejectedValue(new Error('offline'))
+    const user = userEvent.setup()
+    renderizar()
+
+    expect(await screen.findByText(/atualização indisponível/i)).toBeInTheDocument()
+    await user.click(screen.getByRole('button', { name: /montar escalação ótima/i }))
+    expect(await screen.findByRole('heading', { name: /escalação sugerida/i })).toBeInTheDocument()
+  })
+
+  it('exibe rodada e horário da última sincronização', async () => {
+    vi.spyOn(sincronizacaoApi, 'fetchSyncStatus').mockResolvedValue({
+      round: 24,
+      timestamp: '2026-09-26T15:30:00Z',
+    })
+    renderizar()
+
+    expect(await screen.findByText(/rodada 24 • sincronizado em/i)).toBeInTheDocument()
+  })
+
 
   it('carrega formações e envia os parâmetros escolhidos', async () => {
     const user = userEvent.setup()
