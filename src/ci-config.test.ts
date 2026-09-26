@@ -112,5 +112,10 @@ describe("CI GitHub Actions Configuration", () => {
       const content = readFileSync(branchUpToDatePath, "utf8");
       expect(content).toContain("exit 1");
     });
+
+    it("should checkout PR head sha to prevent false positives from synthetic merge commits", () => {
+      const content = readFileSync(branchUpToDatePath, "utf8");
+      expect(content).toContain("github.event.pull_request.head.sha");
+    });
   });
 });
