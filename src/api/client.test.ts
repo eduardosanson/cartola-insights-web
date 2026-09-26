@@ -256,4 +256,23 @@ describe('Autenticação e tratamento de erros (Issue #38)', () => {
     })
     expect(fetchMock.mock.calls[0][1]).not.toHaveProperty('headers.X-Service-Token')
   })
+
+  it('extrai campo code de erro retornado pelo proxy quando detail não existe', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+        statusText: 'Service Unavailable',
+        json: async () => ({ code: 'proxy_not_configured' }),
+      }),
+    )
+
+    await expect(apiGet('/clubes')).rejects.toMatchObject({
+      name: 'ApiError',
+      message: 'proxy_not_configured',
+      status: 503,
+    })
+  })
 })
+

@@ -12,8 +12,9 @@ export class ApiError extends Error {
 
 async function extrairMensagemDeErro(path: string, response: Response): Promise<string> {
   try {
-    const corpo = (await response.json()) as { detail?: unknown }
+    const corpo = (await response.json()) as { detail?: unknown; code?: unknown }
     if (typeof corpo.detail === 'string') return corpo.detail
+    if (typeof corpo.code === 'string') return corpo.code
   } catch {
     // corpo não é JSON (ou já foi consumido) — cai no fallback abaixo
   }
