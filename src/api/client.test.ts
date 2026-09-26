@@ -6,7 +6,7 @@ describe('apiGet', () => {
     vi.unstubAllGlobals()
   })
 
-  it('returns parsed JSON on a 2xx response', async () => {
+  it('returns parsed JSON on a 2xx response via proxy', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 200,
@@ -18,7 +18,23 @@ describe('apiGet', () => {
     const result = await apiGet<{ hello: string }>('/clubes')
 
     expect(result).toEqual({ hello: 'world' })
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/clubes', {
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/clubes', {
+      credentials: 'include',
+    })
+  })
+
+  it('requisita usando caminho relativo no mesmo domínio (/api/proxy/*), sem host absoluto', async () => {
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => ({ status: 'ok' }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiGet('/clubes')
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/clubes', {
       credentials: 'include',
     })
   })
@@ -67,7 +83,7 @@ describe('apiPost', () => {
     vi.unstubAllGlobals()
   })
 
-  it('sends a JSON body and returns the parsed response', async () => {
+  it('sends a JSON body and returns the parsed response via proxy', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 201,
@@ -82,7 +98,7 @@ describe('apiPost', () => {
     })
 
     expect(result).toEqual({ id: 1 })
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/contas/registro', {
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/contas/registro', {
       credentials: 'include',
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -90,7 +106,7 @@ describe('apiPost', () => {
     })
   })
 
-  it('posts without a body when none is given', async () => {
+  it('posts without a body when none is given via proxy', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 204,
@@ -102,7 +118,7 @@ describe('apiPost', () => {
     const result = await apiPost<undefined>('/contas/logout')
 
     expect(result).toBeUndefined()
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/contas/logout', {
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/contas/logout', {
       credentials: 'include',
       method: 'POST',
       headers: undefined,
@@ -148,7 +164,7 @@ describe('apiDelete', () => {
     vi.unstubAllGlobals()
   })
 
-  it('sends a DELETE request and resolves with no value', async () => {
+  it('sends a DELETE request and resolves with no value via proxy', async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
       status: 204,
@@ -160,98 +176,16 @@ describe('apiDelete', () => {
     const result = await apiDelete('/contas/tokens/1')
 
     expect(result).toBeUndefined()
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/contas/tokens/1', {
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/contas/tokens/1', {
       credentials: 'include',
       method: 'DELETE',
     })
   })
 })
 
-describe('X-Service-Token e tratamento de autenticação (Issue #9)', () => {
+describe('Autenticação e tratamento de erros (Issue #38)', () => {
   afterEach(() => {
     vi.unstubAllGlobals()
-    vi.unstubAllEnvs()
-  })
-
-  it('injeta X-Service-Token nas chamadas GET quando VITE_SERVICE_TOKEN está configurado', async () => {
-    vi.stubEnv('VITE_SERVICE_TOKEN', 'token-secreto-123')
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-      json: async () => ({ status: 'ok' }),
-    })
-    vi.stubGlobal('fetch', fetchMock)
-
-    await apiGet('/clubes')
-
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/clubes', {
-      credentials: 'include',
-      headers: {
-        'X-Service-Token': 'token-secreto-123',
-      },
-    })
-  })
-
-  it('injeta X-Service-Token nas chamadas POST preservando Content-Type', async () => {
-    vi.stubEnv('VITE_SERVICE_TOKEN', 'token-secreto-123')
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-      json: async () => ({ success: true }),
-    })
-    vi.stubGlobal('fetch', fetchMock)
-
-    await apiPost('/otimizador/escalacao', { esquema: '4-3-3' })
-
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/otimizador/escalacao', {
-      credentials: 'include',
-      method: 'POST',
-      headers: {
-        'X-Service-Token': 'token-secreto-123',
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ esquema: '4-3-3' }),
-    })
-  })
-
-  it('injeta X-Service-Token nas chamadas DELETE', async () => {
-    vi.stubEnv('VITE_SERVICE_TOKEN', 'token-secreto-123')
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 204,
-      statusText: 'No Content',
-      json: async () => ({}),
-    })
-    vi.stubGlobal('fetch', fetchMock)
-
-    await apiDelete('/contas/tokens/1')
-
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/contas/tokens/1', {
-      credentials: 'include',
-      method: 'DELETE',
-      headers: {
-        'X-Service-Token': 'token-secreto-123',
-      },
-    })
-  })
-
-  it('não envia X-Service-Token e não quebra quando a variável não está definida', async () => {
-    vi.stubEnv('VITE_SERVICE_TOKEN', '')
-    const fetchMock = vi.fn().mockResolvedValue({
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-      json: async () => ({ ok: true }),
-    })
-    vi.stubGlobal('fetch', fetchMock)
-
-    await apiGet('/clubes')
-
-    expect(fetchMock).toHaveBeenCalledWith('http://localhost:8000/clubes', {
-      credentials: 'include',
-    })
   })
 
   it('retorna mensagem "Acesso não autorizado" para erro 401 sem detail', async () => {
@@ -295,13 +229,49 @@ describe('X-Service-Token e tratamento de autenticação (Issue #9)', () => {
         ok: false,
         status: 401,
         statusText: 'Unauthorized',
-        json: async () => ({ detail: 'Service token inválido ou expirado' }),
+        json: async () => ({ detail: 'Token inválido ou expirado' }),
       }),
     )
 
     await expect(apiGet('/admin/logs')).rejects.toMatchObject({
-      message: 'Service token inválido ou expirado',
+      message: 'Token inválido ou expirado',
       status: 401,
+    })
+  })
+
+  it('NÃO injeta X-Service-Token mesmo com VITE_SERVICE_TOKEN definido', async () => {
+    vi.stubEnv('VITE_SERVICE_TOKEN', 'token-secreto-123')
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+      json: async () => ({ status: 'ok' }),
+    })
+    vi.stubGlobal('fetch', fetchMock)
+
+    await apiGet('/clubes')
+
+    expect(fetchMock).toHaveBeenCalledWith('/api/proxy/clubes', {
+      credentials: 'include',
+    })
+    expect(fetchMock.mock.calls[0][1]).not.toHaveProperty('headers.X-Service-Token')
+  })
+
+  it('extrai campo code de erro retornado pelo proxy quando detail não existe', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: false,
+        status: 503,
+        statusText: 'Service Unavailable',
+        json: async () => ({ code: 'proxy_not_configured' }),
+      }),
+    )
+
+    await expect(apiGet('/clubes')).rejects.toMatchObject({
+      name: 'ApiError',
+      message: 'proxy_not_configured',
+      status: 503,
     })
   })
 })

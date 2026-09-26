@@ -1,4 +1,4 @@
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:8000'
+const PROXY_PATH = '/api/proxy'
 
 export class ApiError extends Error {
   readonly status: number
@@ -12,8 +12,9 @@ export class ApiError extends Error {
 
 async function extrairMensagemDeErro(path: string, response: Response): Promise<string> {
   try {
-    const corpo = (await response.json()) as { detail?: unknown }
+    const corpo = (await response.json()) as { detail?: unknown; code?: unknown }
     if (typeof corpo.detail === 'string') return corpo.detail
+    if (typeof corpo.code === 'string') return corpo.code
   } catch {
     // corpo não é JSON (ou já foi consumido) — cai no fallback abaixo
   }
@@ -23,20 +24,13 @@ async function extrairMensagemDeErro(path: string, response: Response): Promise<
 }
 
 async function requisitar<T>(path: string, init?: RequestInit): Promise<T> {
-  const serviceToken = import.meta.env.VITE_SERVICE_TOKEN
-  const headersPadrao: Record<string, string> = serviceToken
-    ? { 'X-Service-Token': serviceToken }
-    : {}
-  const headersPersonalizados = init?.headers as Record<string, string> | undefined
-  const headersMesclados = { ...headersPadrao, ...headersPersonalizados }
-  const temHeaders = Object.keys(headersMesclados).length > 0
-
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`
+  const proxyPath = `${PROXY_PATH}${normalizedPath}`
   let response: Response
   try {
-    response = await fetch(`${API_BASE_URL}${path}`, {
+    response = await fetch(proxyPath, {
       credentials: 'include',
       ...init,
-      ...(temHeaders ? { headers: headersMesclados } : {}),
     })
   } catch (cause) {
     throw new Error(`Falha de rede ao acessar ${path}: ${(cause as Error).message}`)
@@ -51,14 +45,14 @@ async function requisitar<T>(path: string, init?: RequestInit): Promise<T> {
 }
 
 /**
- * GET JSON from the backend API. Throws a clear Error on network failure
+ * GET JSON from the backend API via proxy. Throws a clear Error on network failure
  * or a non-2xx response — callers must handle it, it is never swallowed.
  */
 export function apiGet<T>(path: string): Promise<T> {
   return requisitar<T>(path)
 }
 
-/** POST JSON to the backend API. Same error contract as apiGet. */
+/** POST JSON to the backend API via proxy. Same error contract as apiGet. */
 export function apiPost<T>(path: string, body?: unknown): Promise<T> {
   return requisitar<T>(path, {
     method: 'POST',
@@ -67,7 +61,7 @@ export function apiPost<T>(path: string, body?: unknown): Promise<T> {
   })
 }
 
-/** DELETE against the backend API. Same error contract as apiGet. */
+/** DELETE against the backend API via proxy. Same error contract as apiGet. */
 export function apiDelete(path: string): Promise<void> {
   return requisitar<void>(path, { method: 'DELETE' })
 }

@@ -36,8 +36,13 @@ npm install
 npm run dev        # dev server em http://localhost:5173
 ```
 
-O Vite espera a API do backend em `http://localhost:8000` (ajustável pela
-variável `VITE_API_BASE_URL`).
+O frontend se comunica com a API via proxy no mesmo domínio (`/api/proxy/*`).
+Em desenvolvimento local, o Vite encaminha `/api/proxy/*` para o backend em
+`http://localhost:8000` (configurável via variável `BACKEND_ORIGIN` no ambiente
+do dev server), removendo o prefixo `/api/proxy`. Em produção/preview na Vercel,
+o tráfego de `/api/proxy/*` é atendido pela função serverless
+(`api/proxy/[...path].ts`), que injeta a credencial `SERVICE_TOKEN` no servidor
+sem expô-la ao navegador.
 
 ## Scripts
 

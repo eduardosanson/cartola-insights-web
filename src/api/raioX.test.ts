@@ -43,7 +43,7 @@ describe('api/raioX', () => {
       veredito: 'referencia_do_time',
     })
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/atletas/1/raio-x',
+      '/api/proxy/atletas/1/raio-x',
       expect.objectContaining({ credentials: 'include' }),
     )
   })
