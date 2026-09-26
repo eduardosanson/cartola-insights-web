@@ -43,4 +43,17 @@ export async function mockJogadoresApi(page: Page): Promise<void> {
       body: JSON.stringify(atletasFixture),
     })
   })
+
+  // Indicador de sincronização (issue #39): contrato de GET /dados/status.
+  await page.route(`${API_BASE_URL}/dados/status`, async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: 'application/json',
+      body: JSON.stringify({
+        estado: 'sincronizado',
+        rodada: 24,
+        sincronizado_em: '2026-09-26T15:30:00Z',
+      }),
+    })
+  })
 }

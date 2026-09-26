@@ -39,6 +39,7 @@ test.describe('Listagem de Jogadores', () => {
     const linhas = page.getByRole('row').filter({ hasNotText: 'Nome' })
     await expect(linhas).toHaveCount(atletasFixture.length)
     await expect(page.getByText(atletasFixture[0].nome)).toBeVisible()
+    await expect(page.getByRole('status')).toContainText(/rodada 24 • sincronizado em/i)
     await expect(page.getByText(atletasFixture[0].clube_nome)).toBeVisible()
 
     // Screenshot capturado não pode estar vazio/corrompido — sem baseline,
