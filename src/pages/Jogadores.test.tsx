@@ -476,6 +476,58 @@ describe('Jogadores', () => {
     expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
   })
 
+  it('sorts by overall ascending with atletas sem dado ficando por ultimo (issue #35)', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'SemDado', overall_score: null },
+      { ...atleta, id: 2, nome: 'Zero', overall_score: 0 },
+      { ...atleta, id: 3, nome: 'Oitenta', overall_score: 80 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('SemDado')
+
+    const header = screen.getByRole('button', { name: /overall/i })
+    await user.click(header) // desc
+
+    let rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('Oitenta')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('Zero')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
+
+    await user.click(header) // asc
+
+    rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('Zero')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('Oitenta')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
+  })
+
+  it('mantém desempate estável ao ordenar por overall quando múltiplos atletas têm valor nulo (issue #35)', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'SemDado1', overall_score: null },
+      { ...atleta, id: 2, nome: 'ComDado', overall_score: 50 },
+      { ...atleta, id: 3, nome: 'SemDado2', overall_score: null },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('ComDado')
+
+    const header = screen.getByRole('button', { name: /overall/i })
+    await user.click(header) // desc
+
+    let rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('ComDado')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('SemDado1')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('SemDado2')).toBeInTheDocument()
+
+    await user.click(header) // asc
+
+    rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('ComDado')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('SemDado1')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('SemDado2')).toBeInTheDocument()
+  })
+
   it('treats a missing overall score as lower than an actual zero when sorting descending', async () => {
     vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
       { ...atleta, id: 1, nome: 'Outro', overall_score: 50 },
