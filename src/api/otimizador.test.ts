@@ -18,7 +18,7 @@ describe('API do otimizador', () => {
 
     await expect(buscarEsquemas()).resolves.toEqual(esquemas)
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/otimizador/esquemas',
+      'http://localhost:8000/api/proxy/otimizador/esquemas',
       expect.objectContaining({ credentials: 'include' }),
     )
   })
@@ -40,7 +40,7 @@ describe('API do otimizador', () => {
       montarEscalacao({ orcamento: 100, esquema: '4-3-3', modo: 'classica' }),
     ).resolves.toEqual(escalacao)
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/otimizador/escalar',
+      'http://localhost:8000/api/proxy/otimizador/escalar',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ orcamento: 100, esquema: '4-3-3', modo: 'classica' }),
@@ -85,7 +85,7 @@ describe('API do otimizador', () => {
 
     await expect(buscarMatrizCapitao()).resolves.toEqual(candidatos)
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/otimizador/matriz-capitao',
+      'http://localhost:8000/api/proxy/otimizador/matriz-capitao',
       expect.objectContaining({ credentials: 'include' }),
     )
   })
@@ -97,7 +97,7 @@ describe('API do otimizador', () => {
 
     await expect(buscarSubstituto(42)).resolves.toBeNull()
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/otimizador/substituto/42',
+      'http://localhost:8000/api/proxy/otimizador/substituto/42',
       expect.objectContaining({ credentials: 'include' }),
     )
   })

@@ -31,7 +31,7 @@ describe('api/contas', () => {
     const usuario = await registrar('a@b.com', 'segredo123')
     expect(usuario).toEqual({ id: 1, email: 'a@b.com', role: 'usuario' })
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/contas/registro',
+      'http://localhost:8000/api/proxy/contas/registro',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ email: 'a@b.com', senha: 'segredo123' }),
@@ -44,7 +44,7 @@ describe('api/contas', () => {
     const usuario = await login('a@b.com', 'segredo123')
     expect(usuario.email).toBe('a@b.com')
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/contas/login',
+      'http://localhost:8000/api/proxy/contas/login',
       expect.objectContaining({
         method: 'POST',
         body: JSON.stringify({ email: 'a@b.com', senha: 'segredo123' }),
@@ -56,7 +56,7 @@ describe('api/contas', () => {
     mockFetchOk(204, {})
     await logout()
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/contas/logout',
+      'http://localhost:8000/api/proxy/contas/logout',
       expect.objectContaining({ method: 'POST' }),
     )
   })
@@ -66,7 +66,7 @@ describe('api/contas', () => {
     const usuario = await obterUsuarioAtual()
     expect(usuario.role).toBe('admin')
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/contas/me',
+      'http://localhost:8000/api/proxy/contas/me',
       expect.objectContaining({ credentials: 'include' }),
     )
   })
@@ -76,7 +76,7 @@ describe('api/contas', () => {
     const criado = await gerarToken()
     expect(criado.token).toBe('abc123')
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/contas/tokens',
+      'http://localhost:8000/api/proxy/contas/tokens',
       expect.objectContaining({ method: 'POST' }),
     )
   })
@@ -86,7 +86,7 @@ describe('api/contas', () => {
     const tokens = await listarTokens()
     expect(tokens).toHaveLength(1)
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/contas/tokens',
+      'http://localhost:8000/api/proxy/contas/tokens',
       expect.objectContaining({ credentials: 'include' }),
     )
   })
@@ -95,7 +95,7 @@ describe('api/contas', () => {
     mockFetchOk(204, {})
     await revogarToken(5)
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/contas/tokens/5',
+      'http://localhost:8000/api/proxy/contas/tokens/5',
       expect.objectContaining({ method: 'DELETE' }),
     )
   })

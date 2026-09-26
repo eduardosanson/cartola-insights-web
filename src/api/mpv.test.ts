@@ -23,7 +23,7 @@ describe('api/mpv', () => {
 
     await expect(buscarMpvAtleta(7)).resolves.toEqual(corpo)
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/atletas/7/mpv',
+      'http://localhost:8000/api/proxy/atletas/7/mpv',
       expect.objectContaining({ credentials: 'include' }),
     )
   })
@@ -34,7 +34,7 @@ describe('api/mpv', () => {
 
     await expect(buscarCurvaValorizacao()).resolves.toEqual(corpo)
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/mercado/curva-valorizacao',
+      'http://localhost:8000/api/proxy/mercado/curva-valorizacao',
       expect.objectContaining({ credentials: 'include' }),
     )
   })
@@ -45,7 +45,7 @@ describe('api/mpv', () => {
     await buscarCurvaValorizacao(5)
 
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/mercado/curva-valorizacao?rodada_ate=5',
+      'http://localhost:8000/api/proxy/mercado/curva-valorizacao?rodada_ate=5',
       expect.any(Object),
     )
   })

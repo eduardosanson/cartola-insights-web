@@ -33,7 +33,7 @@ describe('api/perfilRisco', () => {
       pontos_participacao: 56.5,
     })
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/atletas/1/perfil-risco',
+      'http://localhost:8000/api/proxy/atletas/1/perfil-risco',
       expect.objectContaining({ credentials: 'include' }),
     )
   })

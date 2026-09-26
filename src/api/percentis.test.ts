@@ -65,7 +65,7 @@ describe('api/percentis', () => {
       overall_score: 70.2,
     })
     expect(fetch).toHaveBeenCalledWith(
-      'http://localhost:8000/atletas/1/percentis',
+      'http://localhost:8000/api/proxy/atletas/1/percentis',
       expect.objectContaining({ credentials: 'include' }),
     )
   })
