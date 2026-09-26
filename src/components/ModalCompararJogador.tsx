@@ -15,7 +15,7 @@ const sortAccessors = {
   preco_atual: (atleta: Atleta) => atleta.preco_atual,
   media_casa: (atleta: Atleta) => atleta.media_casa,
   media_fora: (atleta: Atleta) => atleta.media_fora,
-  overall_score: (atleta: Atleta) => atleta.overall_score ?? -1,
+  overall_score: (atleta: Atleta) => atleta.overall_score,
 }
 
 type SortKey = keyof typeof sortAccessors
