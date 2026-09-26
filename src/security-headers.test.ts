@@ -27,8 +27,11 @@ describe('vercel.json — security headers (issue #10)', () => {
     return regra?.headers.find((h) => h.key === key)?.value
   }
 
-  it('preserva o rewrite existente do SPA', () => {
-    expect(config.rewrites).toEqual([{ source: '/(.*)', destination: '/index.html' }])
+  it('configura o rewrite do proxy de API e preserva o fallback do SPA', () => {
+    expect(config.rewrites).toEqual([
+      { source: '/api/proxy/:path*', destination: '/api/proxy/[...path]' },
+      { source: '/((?!api/).*)', destination: '/index.html' },
+    ])
   })
 
   it('aplica os headers a todas as rotas via source "/(.*)"', () => {

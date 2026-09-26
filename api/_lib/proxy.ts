@@ -33,7 +33,11 @@ export async function handleProxy(request: Request): Promise<Response> {
 
   const url = new URL(request.url)
   // Match against the raw pathname: no decoding, so %2e%2e, backslashes and // never reach an allowed pattern.
-  const path = url.pathname.startsWith(PREFIX) ? url.pathname.slice(PREFIX.length) : ''
+  let path = url.pathname.startsWith(PREFIX) ? url.pathname.slice(PREFIX.length) : ''
+  if (path === '/[...path]') {
+    const raw = request.headers.get('x-matched-path') ?? ''
+    if (raw.startsWith(PREFIX)) path = raw.slice(PREFIX.length)
+  }
   if (!matchRoute(method, path)) return erro(404, 'route_not_allowed')
 
   let body: ArrayBuffer | undefined

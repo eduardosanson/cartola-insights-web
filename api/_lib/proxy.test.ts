@@ -124,4 +124,13 @@ describe('handleProxy', () => {
     expect(res.status).toBe(502)
     expect(await res.text()).not.toContain('segredo')
   })
+
+  it('recupera o caminho via x-matched-path quando a URL foi reescrita para [...path]', async () => {
+    const r = new Request('https://app.test/api/proxy/[...path]?pagina=1', {
+      headers: { 'x-matched-path': '/api/proxy/atletas' },
+    })
+    const res = await handleProxy(r)
+    expect(res.status).toBe(200)
+    expect(upstream.mock.calls[0][0]).toBe('https://backend.test/atletas?pagina=1')
+  })
 })
