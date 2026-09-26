@@ -163,6 +163,6 @@ describe('Nav', () => {
     const user = userEvent.setup()
     await user.click(screen.getByRole('button', { name: /sair/i }))
     expect(logout).toHaveBeenCalled()
-    expect(screen.getByText('Home Page')).toBeInTheDocument()
+    expect(await screen.findByText('Home Page')).toBeInTheDocument()
   })
 })
