@@ -111,7 +111,7 @@ export default function Escalador() {
         <p>Monte 11 titulares e técnico respeitando orçamento, formação e limite por clube.</p>
       </header>
 
-      <div style={{ marginBottom: '1rem', padding: '0.5rem', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
+      <div className="sync-indicator-container">
         <IndicadorSincronizacao />
       </div>
 

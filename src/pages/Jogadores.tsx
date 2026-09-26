@@ -115,7 +115,7 @@ export default function Jogadores() {
 
   return (
     <div>
-      <div style={{ marginBottom: '1rem', padding: '0.5rem', backgroundColor: '#f5f5f5', borderRadius: '4px' }}>
+      <div className="sync-indicator-container">
         <IndicadorSincronizacao />
       </div>
       <div className="players-toolbar">
