@@ -579,4 +579,101 @@ describe('Escalador', () => {
 
     vi.useRealTimers()
   })
+
+  it('aguarda o prazo de Retry-After e obtém sucesso no retry sem novo clique', async () => {
+    let resolverPrimeiraChamada: () => void = () => {}
+    const primeiraPromessa = new Promise<api.EscalacaoOtima>((_, reject) => {
+      resolverPrimeiraChamada = () => {
+        reject(new ApiError('quota exceeded', 429, 'optimization_quota_exceeded', 8))
+      }
+    })
+
+    const spyMontar = vi.spyOn(api, 'montarEscalacao')
+      .mockReturnValueOnce(primeiraPromessa)
+      .mockResolvedValueOnce(escalacao)
+
+    renderizar()
+    const botaoMontar = await screen.findByRole('button', { name: /montar escalação ótima/i })
+    const form = botaoMontar.closest('form')!
+
+    vi.useFakeTimers()
+
+    fireEvent.submit(form)
+
+    await act(async () => {
+      resolverPrimeiraChamada()
+    })
+
+    expect(screen.getByText(/preparando sua escalação/i)).toBeInTheDocument()
+    expect(spyMontar).toHaveBeenCalledTimes(1)
+
+    // Antes de 8 segundos, não deve reenviar
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(7000)
+    })
+    expect(spyMontar).toHaveBeenCalledTimes(1)
+    expect(screen.queryByRole('heading', { name: /escalação sugerida/i })).not.toBeInTheDocument()
+
+    // Completa os 8 segundos
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000)
+    })
+
+    expect(spyMontar).toHaveBeenCalledTimes(2)
+    expect(screen.queryByText(/preparando sua escalação/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /escalação sugerida/i })).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
+
+  it('trata dois 429 consecutivos respeitando cada novo prazo sem requisições simultâneas', async () => {
+    const spyMontar = vi.spyOn(api, 'montarEscalacao')
+      .mockRejectedValueOnce(new ApiError('quota 1', 429, 'optimization_quota_exceeded', 6))
+      .mockRejectedValueOnce(new ApiError('quota 2', 429, 'optimization_quota_exceeded', 4))
+      .mockResolvedValueOnce(escalacao)
+
+    renderizar()
+    const botaoMontar = await screen.findByRole('button', { name: /montar escalação ótima/i })
+    const form = botaoMontar.closest('form')!
+
+    vi.useFakeTimers()
+
+    fireEvent.submit(form)
+
+    await act(async () => {
+      await Promise.resolve()
+    })
+
+    expect(spyMontar).toHaveBeenCalledTimes(1)
+    expect(screen.getByText(/preparando sua escalação/i)).toBeInTheDocument()
+
+    // Avança 5s (antes do primeiro prazo de 6s): ainda apenas 1 chamada
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(5000)
+    })
+    expect(spyMontar).toHaveBeenCalledTimes(1)
+
+    // Avança mais 1s (total 6s): dispara segunda chamada, que retorna 429 com prazo 4s
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000)
+    })
+    expect(spyMontar).toHaveBeenCalledTimes(2)
+    expect(screen.getByText(/preparando sua escalação/i)).toBeInTheDocument()
+
+    // Avança 3s (antes do segundo prazo de 4s): ainda 2 chamadas
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(3000)
+    })
+    expect(spyMontar).toHaveBeenCalledTimes(2)
+
+    // Avança mais 1s (total 4s pós-segundo erro): dispara terceira chamada e obtém sucesso
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000)
+    })
+    expect(spyMontar).toHaveBeenCalledTimes(3)
+    expect(screen.queryByText(/preparando sua escalação/i)).not.toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /escalação sugerida/i })).toBeInTheDocument()
+
+    vi.useRealTimers()
+  })
 })
