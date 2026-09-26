@@ -5,27 +5,31 @@ import { fetchSyncStatus } from './sincronizacao'
 vi.mock('./client')
 
 describe('fetchSyncStatus', () => {
-  it('returns SyncStatus when API call succeeds', async () => {
-    const mockData = { round: 42, timestamp: '2026-09-26T15:30:00Z' }
-    vi.mocked(apiClient.apiGet).mockResolvedValue(mockData)
+  it('maps the GET /dados/status contract to SyncStatus', async () => {
+    vi.mocked(apiClient.apiGet).mockResolvedValue({
+      estado: 'sincronizado',
+      rodada: 42,
+      sincronizado_em: '2026-09-26T15:30:00Z',
+    })
 
     const result = await fetchSyncStatus()
 
-    expect(result).toEqual(mockData)
-    expect(apiClient.apiGet).toHaveBeenCalledWith('/status/sync')
+    expect(result).toEqual({ round: 42, timestamp: '2026-09-26T15:30:00Z' })
+    expect(apiClient.apiGet).toHaveBeenCalledWith('/dados/status')
   })
 
-  it('returns null when no sync data exists', async () => {
-    vi.mocked(apiClient.apiGet).mockResolvedValue(null)
+  it('returns null when estado is sem_dados', async () => {
+    vi.mocked(apiClient.apiGet).mockResolvedValue({
+      estado: 'sem_dados',
+      rodada: null,
+      sincronizado_em: null,
+    })
 
-    const result = await fetchSyncStatus()
-
-    expect(result).toBeNull()
+    expect(await fetchSyncStatus()).toBeNull()
   })
 
-  it('throws ApiError when API call fails', async () => {
-    const mockError = new Error('Network error')
-    vi.mocked(apiClient.apiGet).mockRejectedValue(mockError)
+  it('throws when API call fails', async () => {
+    vi.mocked(apiClient.apiGet).mockRejectedValue(new Error('Network error'))
 
     await expect(fetchSyncStatus()).rejects.toThrow('Network error')
   })
