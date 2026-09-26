@@ -829,7 +829,60 @@ describe('ModalCompararJogador', () => {
     })
   })
 
-  it('usa -1 como valor padrão de ordenação quando overall_score é ausente (nullish, não falsy)', async () => {
+  it('coloca Overall null sempre por último na ordenação crescente e decrescente', async () => {
+    const atletaSemOverall: Atleta = {
+      ...atletaOrigem,
+      id: 700,
+      nome: 'SemOverall',
+      overall_score: null,
+    }
+    const atletaComOverall0: Atleta = {
+      ...atletaOrigem,
+      id: 701,
+      nome: 'OverallZero',
+      overall_score: 0,
+    }
+    const atletaComOverall80: Atleta = {
+      ...atletaOrigem,
+      id: 702,
+      nome: 'OverallOitenta',
+      overall_score: 80,
+    }
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      atletaSemOverall,
+      atletaComOverall0,
+      atletaComOverall80,
+    ])
+
+    const user = userEvent.setup()
+    renderModal()
+
+    await waitFor(() => screen.getByText('SemOverall'))
+
+    // Primeiro clique: descending (padrão)
+    await user.click(screen.getByRole('button', { name: /^Overall:/i }))
+
+    let linhas = screen
+      .getAllByRole('button')
+      .filter((el) => el.classList.contains('modal-table-row'))
+    // Descending: 80, 0, null
+    expect(within(linhas[0]).getByText('OverallOitenta')).toBeInTheDocument()
+    expect(within(linhas[1]).getByText('OverallZero')).toBeInTheDocument()
+    expect(within(linhas[2]).getByText('SemOverall')).toBeInTheDocument()
+
+    // Segundo clique: ascending
+    await user.click(screen.getByRole('button', { name: /^Overall.*decrescente/i }))
+
+    linhas = screen
+      .getAllByRole('button')
+      .filter((el) => el.classList.contains('modal-table-row'))
+    // Ascending: 0, 80, null
+    expect(within(linhas[0]).getByText('OverallZero')).toBeInTheDocument()
+    expect(within(linhas[1]).getByText('OverallOitenta')).toBeInTheDocument()
+    expect(within(linhas[2]).getByText('SemOverall')).toBeInTheDocument()
+  })
+
+  it('ordena corretamente com Overall negativo, mantendo null sempre por último', async () => {
     const atletaSemOverall: Atleta = {
       ...atletaOrigem,
       id: 700,
@@ -852,12 +905,23 @@ describe('ModalCompararJogador', () => {
 
     await waitFor(() => screen.getByText('SemOverall'))
 
+    // Primeiro clique: descending
     await user.click(screen.getByRole('button', { name: /^Overall:/i }))
 
-    const linhas = screen
+    let linhas = screen
       .getAllByRole('button')
       .filter((el) => el.classList.contains('modal-table-row'))
-    // -0.5 (OverallNegativo) > -1 (padrão para SemOverall) em ordem decrescente
+    // Descending: -0.5 (OverallNegativo) vem primeiro, null sempre último
+    expect(within(linhas[0]).getByText('OverallNegativo')).toBeInTheDocument()
+    expect(within(linhas[1]).getByText('SemOverall')).toBeInTheDocument()
+
+    // Segundo clique: ascending
+    await user.click(screen.getByRole('button', { name: /^Overall.*decrescente/i }))
+
+    linhas = screen
+      .getAllByRole('button')
+      .filter((el) => el.classList.contains('modal-table-row'))
+    // Ascending: -0.5 (OverallNegativo) vem primeiro (é menor), null sempre último
     expect(within(linhas[0]).getByText('OverallNegativo')).toBeInTheDocument()
     expect(within(linhas[1]).getByText('SemOverall')).toBeInTheDocument()
   })
