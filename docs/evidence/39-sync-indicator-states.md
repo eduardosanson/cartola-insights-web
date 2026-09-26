@@ -1,142 +1,69 @@
-# Sync Indicator Evidence — #39
+# Evidências do indicador de sincronização — #39
 
-_Indicar rodada e horário da última sincronização nas análises_
+_Indicar rodada e horário da última sincronização nas análises._
 
-## Implementation Summary
+## Resumo
 
-✅ **Feature complete and tested**
+O cliente consulta `GET /dados/status`; o componente reutilizável cobre carregamento, sucesso, vazio, erro e timestamp inválido. A falha do status não bloqueia os dados principais de Jogadores nem o formulário do Escalador.
 
-### Files Created
-- `src/api/sincronizacao.ts` — API client (100% coverage)
-- `src/components/IndicadorSincronizacao.tsx` — Component (100% coverage)
-- `src/api/sincronizacao.test.ts` — 3 API client tests
-- `src/components/IndicadorSincronizacao.test.tsx` — 4 component tests
+## Estados cobertos
 
-### Files Modified
-- `src/pages/Jogadores.tsx` — Integrated sync indicator at top
-- `src/pages/Escalador.tsx` — Integrated sync indicator at top
+### Normal
 
-### Files Fixed
-- `src/components/Nav.test.tsx` — Fixed async navigation test
-
-## Test Coverage
-
-### New Tests (7 total)
-✅ 3 API client tests (src/api/sincronizacao.test.ts)
-- Returns SyncStatus on success
-- Returns null when no sync data
-- Throws error on network failure
-
-✅ 4 Component tests (src/components/IndicadorSincronizacao.test.tsx)
-- Displays round + formatted timestamp on success
-- Shows "Dados ainda não sincronizados" when no sync data
-- Shows "Atualização indisponível" on network error
-- Includes UTC timestamp in title for accessibility
-
-### Overall Statistics
-- **Test Files**: 56 passed (no failures)
-- **Total Tests**: 663 passed
-- **Coverage**: 99.9% statements, 97.3% branches, 100% functions
-- **Lint**: 0 errors (warnings are pre-existing)
-- **Build**: ✓ Successful
-
-## Component States
-
-### State 1: Success (with sync data)
-**Rendered output:**
-```
-Rodada 42 • Atualizado em 26 de setembro de 2026, 15:30:42
+```text
+Rodada 24 • Sincronizado em 26 de setembro de 2026, 12:30:00 BRT
 ```
 
-**Attributes:**
-- Displays round number from API
-- Formats timestamp in local timezone (America/Sao_Paulo)
-- Shows day, month, year, hour, minute, second
-- UTC original value included in `title` attribute for screen readers
-- Non-blocking: renders even if backend `/dados/status` not available
+Exibe rodada, data/hora no fuso do navegador e o timestamp UTC original no `title`.
 
-### State 2: Empty (no sync data)
-**Rendered output:**
-```
-Dados ainda não sincronizado
+### Vazio
+
+```text
+Dados ainda não sincronizados
 ```
 
-**Behavior:**
-- API returns `null` (never synced)
-- Clear, non-error message
-- Parent page (Jogadores/Escalador) data still visible
-- Accessible to screen readers
+O backend respondeu `estado: "sem_dados"`, sem sincronização concluída.
 
-### State 3: Error (network failure)
-**Rendered output:**
-```
+### Erro
+
+```text
 Atualização indisponível
 ```
 
-**Behavior:**
-- API call fails (network error, timeout, 5xx, etc.)
-- Graceful fallback message
-- Parent page data not hidden or blocked
-- Allows user workflows to continue
+Uma resposta 5xx ou erro de rede fica isolada no indicador; a tabela de jogadores continua visível.
 
-## Consistency Check
+## Evidência visual
 
-✅ Same component renders identically on both pages:
-- Jogadores page: Sync indicator at top before filters
-- Escalador page: Sync indicator at top after header
+![Estado normal — rodada e horário](./39-sync-indicator-states/normal-desktop.png)
 
-✅ Styling consistent:
-- Background color: `#f5f5f5`
-- Padding: `0.5rem`
-- Border radius: `4px`
-- Margin bottom: `1rem`
+![Estado vazio — sem sincronização](./39-sync-indicator-states/vazio-desktop.png)
 
-## Timezone Handling
+![Estado de erro — atualização indisponível](./39-sync-indicator-states/erro-desktop.png)
 
-✅ **Respects user's local timezone**
-- Uses `Intl.DateTimeFormat` with `timeZone: 'America/Sao_Paulo'`
-- Formats to: "26 de setembro de 2026, 15:30:42"
+## Testes e cobertura
 
-✅ **UTC original always accessible**
-- Displayed in `title` attribute: `UTC: 2026-09-26T15:30:00Z`
-- Visible on hover (browser tooltip)
-- Readable by screen readers
+- 3 testes do cliente: sucesso, resposta sem dados e erro.
+- 9 testes do componente: estados, carregamento, fuso, timestamp inválido, rodada opcional, `role="status"` e cleanup.
+- Testes de página comprovam que falha do status não oculta os fluxos principais.
+- `npm run coverage`: 56 arquivos e 672 testes aprovados; 99,9% statements, 97,35% branches, 100% functions e 100% lines.
+- `npm run lint`: 0 erros; 2 avisos preexistentes em `src/contexts/AuthContext.tsx`.
+- `npm run test:e2e`: 4 aprovados e 2 ignorados (capturas restritas ao viewport desktop).
+- `npm run build`: aprovado.
 
-## API Integration
+## Contrato da API
 
-✅ **Client uses existing patterns**
-- `apiGet<T>()` from `src/api/client.ts`
-- Error handling via `ApiError` class
-- No special retry logic (caller's responsibility)
-
-✅ **Expected endpoint response**
 ```typescript
 GET /dados/status
 Response: {
-  round: number,
-  timestamp: string (ISO 8601)
-} | null
+  estado: 'sincronizado' | 'sem_dados',
+  rodada: number | null,
+  sincronizado_em: string | null
+}
 ```
 
-## Accessibility
+## Acessibilidade e comportamento
 
-✅ **ARIA and semantic HTML**
-- Uses standard `<div>` elements (no custom roles needed)
-- Title attribute provides UTC context to screen readers
-- No aria-labels required (content is self-descriptive)
-
-✅ **Keyboard accessible**
-- Component is read-only (no interaction required)
-- Information available to all browsers
-
-## Final Checklist
-
-- [x] All new files created
-- [x] All tests written and passing (7 new)
-- [x] Lint clean (0 errors)
-- [x] Build successful
-- [x] Coverage ≥ 90% (99.9% for new code)
-- [x] Evidence captured (this document)
-- [x] Both pages integrated
-- [x] Decision log updated
-- [x] Branch: `eduardosanson/39-indicar-rodada-e`
+- O indicador usa `role="status"`.
+- O `title` identifica o valor UTC e o fuso local resolvido pelo navegador.
+- O estado inicial de carregamento não apresenta uma mensagem de vazio falsa.
+- O componente ignora atualizações após unmount.
