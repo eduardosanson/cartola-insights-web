@@ -560,4 +560,39 @@ describe('DetalheJogador', () => {
     expect(screen.getByText('Overall (legado)')).toBeInTheDocument()
     expect(screen.getByText(/modelo anterior, mantido por compatibilidade/i)).toBeInTheDocument()
   })
+
+  // CA03 (issue #37): "Testes cobrem ambos os estados, inclusive troca de
+  // rodada" — garante que, ao navegar entre atletas com rodada_alvo
+  // diferentes, a rodada exibida nunca fica presa no valor do atleta
+  // anterior.
+  it('updates the target round shown when navigating between atletas with different rodada_alvo', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockImplementation((id) => {
+      if (id === 1) {
+        return Promise.resolve({ ...atleta, overall_contextual_score: 75.2, rodada_alvo: 25 })
+      }
+      return Promise.resolve({
+        ...atleta,
+        id: 2,
+        nome: 'Pedro',
+        overall_contextual_score: 60.1,
+        rodada_alvo: 30,
+      })
+    })
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+
+    const router = createMemoryRouter(
+      [{ path: '/jogadores/:id', element: <DetalheJogador /> }],
+      { initialEntries: ['/jogadores/1'] },
+    )
+    render(<RouterProvider router={router} />)
+
+    await screen.findByText('Gabigol')
+    expect(screen.getByText('rodada 25')).toBeInTheDocument()
+
+    await act(() => router.navigate('/jogadores/2'))
+    await screen.findByText('Pedro')
+
+    expect(screen.queryByText('rodada 25')).not.toBeInTheDocument()
+    expect(screen.getByText('rodada 30')).toBeInTheDocument()
+  })
 })
