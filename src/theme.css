@@ -517,6 +517,28 @@ button {
   font-weight: 500;
 }
 
+/* Overall Contextual na lista (issue #37, RF03) — diferencia visualmente
+   do Overall legado (coluna vizinha, sem classe extra) e evita que o
+   estado "não calculado" pareça um dado real. */
+.player-row .num.contextual-overall {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  color: var(--accent-home);
+}
+
+.player-row .num.contextual-overall small {
+  font-family: var(--font-body);
+  font-weight: 400;
+  color: var(--text-muted);
+  font-size: 0.7rem;
+}
+
+.player-row .num .not-calculated {
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
 .chance-badge {
   font-family: var(--font-mono);
   /* Tokens de tipografia da issue #4 (issue #5, RF03) — substituem os
@@ -670,6 +692,36 @@ button {
 
 .mpv-estimado small {
   color: var(--text-muted);
+}
+
+/* Overall Contextual (issue #37, RF03) — diferenciação visual do Overall
+   legado: fundo destacado com a cor de accent, igual ao padrão já usado
+   em .mpv-estimado, para não depender só do texto do rótulo. */
+.overall-contextual {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--accent-home);
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--accent-home) 8%, var(--bg-elevated));
+}
+
+.overall-contextual p {
+  margin: 0.35rem 0 0;
+}
+
+.overall-contextual-unavailable {
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border: 1px dashed var(--border-strong);
+  border-radius: 9px;
+}
+
+.overall-legado {
+  margin: 1rem 0;
+}
+
+.overall-legado .text-aux {
+  display: block;
 }
 
 .simulador-valorizacao input[type='range'] {
