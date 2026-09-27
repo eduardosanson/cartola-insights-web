@@ -1,18 +1,28 @@
 import { defineConfig } from 'vitest/config'
 import react from '@vitejs/plugin-react'
 
+const proxyConfig = {
+  target: process.env.BACKEND_ORIGIN || 'http://localhost:8000',
+  changeOrigin: true,
+  rewrite: (path: string) => path.replace(/^\/api\/proxy/, ''),
+}
+
 export default defineConfig({
   plugins: [react()],
+  server: {
+    proxy: {
+      '/api/proxy': proxyConfig,
+    },
+  },
+  preview: {
+    proxy: {
+      '/api/proxy': proxyConfig,
+    },
+  },
   test: {
     environment: 'jsdom',
     globals: true,
     setupFiles: ['./src/setupTests.ts'],
-    // e2e/ roda sob o test runner do Playwright (playwright.config.ts),
-    // não sob o Vitest — excluir para evitar conflito entre os dois
-    // `test`/`describe` globais (issue #6).
-    // .worktrees/ e .claude/ guardam checkouts de outras branches (worktrees do
-    // Orca/agentes); sem excluí-los o Vitest coleta os testes deles em vez dos
-    // desta árvore e o `npm test` local falha.
     exclude: ['e2e/**', 'node_modules/**', '.worktrees/**', '.claude/**'],
     env: {
       NODE_ENV: 'test',

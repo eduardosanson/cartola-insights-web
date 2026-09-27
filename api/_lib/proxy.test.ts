@@ -20,6 +20,7 @@ describe('matchRoute', () => {
     ['GET', '/atletas/12/perfil-risco'], ['GET', '/atletas/12/raio-x'], ['GET', '/atletas/12/mpv'], ['GET', '/clubes'],
     ['GET', '/mercado/status-alterados'], ['GET', '/mercado/curva-valorizacao'], ['GET', '/otimizador/esquemas'],
     ['GET', '/otimizador/matriz-capitao'], ['GET', '/otimizador/substituto/9'], ['GET', '/contas/me'], ['GET', '/contas/tokens'],
+    ['GET', '/dados/status'],
     ['POST', '/otimizador/escalar'], ['POST', '/contas/registro'], ['POST', '/contas/login'], ['POST', '/contas/logout'],
     ['POST', '/contas/tokens'], ['DELETE', '/contas/tokens/3'],
   ])('permite %s %s', (m, p) => expect(matchRoute(m, p)).toBe(true))
@@ -178,5 +179,18 @@ describe('handleProxy', () => {
     const res = await handleProxy(r)
     expect(res.status).toBe(404)
     expect(upstream).not.toHaveBeenCalled()
+  })
+
+  it('encaminha GET /dados/status para o backend com upstream', async () => {
+    upstream.mockResolvedValueOnce(
+      new Response('{"estado":"sincronizado","rodada":24}', {
+        status: 200,
+        headers: { 'content-type': 'application/json' },
+      }),
+    )
+    const res = await handleProxy(req('/dados/status'))
+    expect(res.status).toBe(200)
+    expect(upstream.mock.calls[0][0]).toBe('https://backend.test/dados/status')
+    expect(await res.json()).toEqual({ estado: 'sincronizado', rodada: 24 })
   })
 })
