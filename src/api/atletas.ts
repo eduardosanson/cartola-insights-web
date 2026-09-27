@@ -20,6 +20,8 @@ export interface Atleta {
   chance_pontuar_classificacao: 'baixa' | 'media' | 'alta' | null
   media_basica: number
   overall_score: number | null
+  overall_contextual_score?: number | null
+  rodada_alvo?: number | null
   status_id?: number | null
   status_nome?: StatusAtletaNome | null
 }

@@ -23,6 +23,7 @@ const sortAccessors = {
   // valor real, em nenhuma das duas direções (issues #5 e #35).
   chance_pontuar_percentual: (atleta: Atleta) => atleta.chance_pontuar_percentual,
   overall_score: (atleta: Atleta) => atleta.overall_score,
+  overall_contextual_score: (atleta: Atleta) => atleta.overall_contextual_score ?? null,
 }
 
 type SortKey = keyof typeof sortAccessors
@@ -111,6 +112,7 @@ export default function Jogadores() {
   const casa = sortState('media_casa')
   const fora = sortState('media_fora')
   const overall = sortState('overall_score')
+  const overallContextual = sortState('overall_contextual_score')
   const chance = sortState('chance_pontuar_percentual')
 
   return (
@@ -268,6 +270,12 @@ export default function Jogadores() {
               />
               <SortableHeader
                 as="div"
+                label="Overall Contextual"
+                {...overallContextual}
+                onToggle={() => toggleSort('overall_contextual_score')}
+              />
+              <SortableHeader
+                as="div"
                 label="Chance de pontuar"
                 {...chance}
                 onToggle={() => toggleSort('chance_pontuar_percentual')}
@@ -318,6 +326,16 @@ export default function Jogadores() {
                   </span>
                   <span role="cell" className="num">
                     {formatNumber(atleta.overall_score)}
+                  </span>
+                  <span role="cell" className="num contextual-overall">
+                    {atleta.overall_contextual_score !== null && atleta.overall_contextual_score !== undefined ? (
+                      <>
+                        <span>{formatNumber(atleta.overall_contextual_score)}</span>
+                        <small>{atleta.rodada_alvo !== null && atleta.rodada_alvo !== undefined ? `rod ${atleta.rodada_alvo}` : ''}</small>
+                      </>
+                    ) : (
+                      <span className="not-calculated">—</span>
+                    )}
                   </span>
                   <span role="cell" className="num">
                     {atleta.chance_pontuar_classificacao === null ? (
