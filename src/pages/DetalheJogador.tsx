@@ -139,6 +139,28 @@ function DetalheJogadorConteudo({ id }: { id: string | undefined }) {
             <p className="numeric">
               Média básica <span>{formatNumber(atleta.media_basica)}</span>
             </p>
+            {atleta.overall_score !== null && (
+              <p className="numeric">
+                Overall (legado) <span>{formatNumber(atleta.overall_score)}</span>
+              </p>
+            )}
+            {atleta.overall_contextual_score !== null && atleta.overall_contextual_score !== undefined ? (
+              <div className="overall-contextual">
+                <strong className="text-label">Overall Contextual</strong>
+                <p className="numeric">
+                  <span className="text-value">{formatNumber(atleta.overall_contextual_score)}</span>{' '}
+                  {atleta.rodada_alvo !== null && atleta.rodada_alvo !== undefined && (
+                    <small className="text-aux">rodada {atleta.rodada_alvo}</small>
+                  )}
+                </p>
+                <small className="text-aux">baseado em forma recente, confronto e disponibilidade</small>
+              </div>
+            ) : (
+              <div className="overall-contextual-unavailable">
+                <strong className="text-label">Overall Contextual</strong>
+                <p className="text-aux">Ainda não calculado</p>
+              </div>
+            )}
             <div className="mpv-estimado">
               <strong className="text-label">MPV estimado</strong>
               {mpv?.confiavel && mpv.mpv_estimado !== null && (

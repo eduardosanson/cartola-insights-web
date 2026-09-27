@@ -499,4 +499,51 @@ describe('DetalheJogador', () => {
 
     expect(screen.queryByRole('dialog')).not.toBeInTheDocument()
   })
+
+  it('shows overall contextual score and target round when available', async () => {
+    const atletaComContextual = {
+      ...atleta,
+      overall_contextual_score: 75.2,
+      rodada_alvo: 25,
+    }
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atletaComContextual)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+
+    renderDetalhe('1')
+    await screen.findByText('Gabigol')
+
+    expect(screen.getByText('Overall Contextual')).toBeInTheDocument()
+    expect(screen.getByText('75,2')).toBeInTheDocument()
+    expect(screen.getByText('rodada 25')).toBeInTheDocument()
+    expect(screen.getByText(/baseado em forma recente/i)).toBeInTheDocument()
+  })
+
+  it('shows "Ainda não calculado" when overall contextual is not available', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atleta)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+
+    renderDetalhe('1')
+    await screen.findByText('Gabigol')
+
+    expect(screen.getByText('Overall Contextual')).toBeInTheDocument()
+    expect(screen.getByText('Ainda não calculado')).toBeInTheDocument()
+  })
+
+  it('shows legacy overall score separately when available', async () => {
+    const atletaComOverall = {
+      ...atleta,
+      overall_score: 69.3,
+      overall_contextual_score: 75.2,
+    }
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue(atletaComOverall)
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+
+    renderDetalhe('1')
+    await screen.findByText('Gabigol')
+
+    expect(screen.getByText('Overall (legado)')).toBeInTheDocument()
+    expect(screen.getByText('69,3')).toBeInTheDocument()
+    expect(screen.getByText('Overall Contextual')).toBeInTheDocument()
+    expect(screen.getByText('75,2')).toBeInTheDocument()
+  })
 })

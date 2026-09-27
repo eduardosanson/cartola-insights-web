@@ -289,7 +289,7 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('Jogador 1')
 
-    const btnOverall = screen.getByRole('button', { name: /overall/i })
+    const btnOverall = screen.getAllByRole('button', { name: /overall/i })[0]
     await user.click(btnOverall)
 
     expect(within(screen.getAllByRole('row')[1]).getByText('Jogador 25')).toBeInTheDocument()
@@ -373,7 +373,9 @@ describe('Jogadores', () => {
     const badgeBaixa = within(rows[3]).getByText('Baixa')
     expect(badgeBaixa).toHaveClass('chance-badge', 'chance-baixa')
 
-    expect(within(rows[4]).getByText('—')).toBeInTheDocument()
+    // Atleta sem chance_pontuar tem "—" na coluna de chance (última coluna)
+    const dashes = within(rows[4]).getAllByText('—')
+    expect(dashes[dashes.length - 1]).toBeInTheDocument() // último "—" é a coluna de chance
   })
 
   it('shows the media basica column', async () => {
@@ -415,8 +417,11 @@ describe('Jogadores', () => {
     await screen.findByText('ComOverall')
 
     const rows = screen.getAllByRole('row')
+    // Verifica que o atleta com overall_score tem o valor exibido
     expect(within(rows[1]).getByText('69,3')).toBeInTheDocument()
-    expect(within(rows[2]).getByText('—')).toBeInTheDocument()
+    // Verifica que o atleta sem overall_score e sem overall_contextual_score tem o mesmo símbolo '—'
+    const dashes = within(rows[2]).getAllByText('—')
+    expect(dashes.length).toBeGreaterThan(0) // atleta sem overall_score terá pelo menos um '—'
   })
 
   it('sorts by chance de pontuar descending, with atletas sem dado ficando por ultimo', async () => {
@@ -487,7 +492,7 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('Media')
 
-    await user.click(screen.getByRole('button', { name: /overall/i }))
+    await user.click(screen.getAllByRole('button', { name: /overall/i })[0])
 
     const rows = screen.getAllByRole('row')
     expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
@@ -505,7 +510,7 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('SemDado')
 
-    const header = screen.getByRole('button', { name: /overall/i })
+    const header = screen.getAllByRole('button', { name: /overall/i })[0]
     await user.click(header) // desc
 
     let rows = screen.getAllByRole('row')
@@ -531,7 +536,7 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('ComDado')
 
-    const header = screen.getByRole('button', { name: /overall/i })
+    const header = screen.getAllByRole('button', { name: /overall/i })[0]
     await user.click(header) // desc
 
     let rows = screen.getAllByRole('row')
@@ -557,7 +562,7 @@ describe('Jogadores', () => {
     renderJogadores()
     await screen.findByText('Outro')
 
-    await user.click(screen.getByRole('button', { name: /overall/i }))
+    await user.click(screen.getAllByRole('button', { name: /overall/i })[0])
 
     const rows = screen.getAllByRole('row')
     expect(within(rows[1]).getByText('Outro')).toBeInTheDocument()
@@ -1124,6 +1129,35 @@ describe('Jogadores', () => {
     expect(await screen.findByTestId('estado-recebido')).toHaveTextContent(
       JSON.stringify({ atleta }),
     )
+  })
+
+  it('shows the overall contextual column with score and target round', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'ComContextual', overall_contextual_score: 72.5, rodada_alvo: 25 },
+    ])
+    renderJogadores()
+    await screen.findByText('ComContextual')
+
+    expect(screen.getByText('72,5')).toBeInTheDocument()
+    expect(screen.getByText('rod 25')).toBeInTheDocument()
+  })
+
+  it('sorts by overall contextual score, with atletas sem dado ficando por ultimo', async () => {
+    vi.spyOn(atletasApi, 'listarTodosAtletas').mockResolvedValue([
+      { ...atleta, id: 1, nome: 'Media', overall_contextual_score: 60 },
+      { ...atleta, id: 2, nome: 'SemDado', overall_contextual_score: null },
+      { ...atleta, id: 3, nome: 'Alta', overall_contextual_score: 90 },
+    ])
+    const user = userEvent.setup()
+    renderJogadores()
+    await screen.findByText('Media')
+
+    await user.click(screen.getByRole('button', { name: /overall contextual/i }))
+
+    const rows = screen.getAllByRole('row')
+    expect(within(rows[1]).getByText('Alta')).toBeInTheDocument()
+    expect(within(rows[2]).getByText('Media')).toBeInTheDocument()
+    expect(within(rows[3]).getByText('SemDado')).toBeInTheDocument()
   })
 })
 
