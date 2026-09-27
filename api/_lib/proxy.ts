@@ -8,6 +8,7 @@ const ROUTES: Record<string, RegExp[]> = {
     '/atletas', `/atletas/${ID}`, `/atletas/${ID}/historico`, `/atletas/${ID}/percentis`, `/atletas/${ID}/perfil-risco`,
     `/atletas/${ID}/raio-x`, `/atletas/${ID}/mpv`, '/clubes', '/mercado/status-alterados', '/mercado/curva-valorizacao',
     '/otimizador/esquemas', '/otimizador/matriz-capitao', `/otimizador/substituto/${ID}`, '/contas/me', '/contas/tokens',
+    '/dados/status',
   ].map((p) => new RegExp(`^${p}$`)),
   POST: ['/otimizador/escalar', '/contas/registro', '/contas/login', '/contas/logout', '/contas/tokens'].map((p) => new RegExp(`^${p}$`)),
   DELETE: [new RegExp(`^/contas/tokens/${ID}$`)],
