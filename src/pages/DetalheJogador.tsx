@@ -140,9 +140,12 @@ function DetalheJogadorConteudo({ id }: { id: string | undefined }) {
               Média básica <span>{formatNumber(atleta.media_basica)}</span>
             </p>
             {atleta.overall_score !== null && (
-              <p className="numeric">
-                Overall (legado) <span>{formatNumber(atleta.overall_score)}</span>
-              </p>
+              <div className="overall-legado">
+                <p className="numeric">
+                  Overall (legado) <span>{formatNumber(atleta.overall_score)}</span>
+                </p>
+                <small className="text-aux">modelo anterior, mantido por compatibilidade</small>
+              </div>
             )}
             {atleta.overall_contextual_score !== null && atleta.overall_contextual_score !== undefined ? (
               <div className="overall-contextual">

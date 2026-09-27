@@ -546,4 +546,18 @@ describe('DetalheJogador', () => {
     expect(screen.getByText('Overall Contextual')).toBeInTheDocument()
     expect(screen.getByText('75,2')).toBeInTheDocument()
   })
+
+  // RF04 (issue #37): "Exibir legenda curta do significado de ambos os
+  // scores" — o Overall legado também precisa de legenda, não só o
+  // contextual, para não confundir o usuário sobre a proveniência do valor.
+  it('shows a short legend explaining the legacy overall score', async () => {
+    vi.spyOn(atletasApi, 'buscarAtleta').mockResolvedValue({ ...atleta, overall_score: 69.3 })
+    vi.spyOn(atletasApi, 'buscarHistoricoAtleta').mockResolvedValue([partida])
+
+    renderDetalhe('1')
+    await screen.findByText('Gabigol')
+
+    expect(screen.getByText('Overall (legado)')).toBeInTheDocument()
+    expect(screen.getByText(/modelo anterior, mantido por compatibilidade/i)).toBeInTheDocument()
+  })
 })
