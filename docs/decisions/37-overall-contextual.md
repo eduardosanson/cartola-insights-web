@@ -18,3 +18,9 @@
 - Decisão: renderizar seção "Overall Contextual" separada no detalhe, com legenda explicativa
 - Decisão: corrigir testes legados que usavam `/overall/i` ambíguo — usar `getAllByRole(...)[0]` para "Overall" (primeira coluna)
 - Resultado: 693 testes passando, 99.72% cobertura, PR #51 aberto
+
+## CODE REVIEW (PR #51) — 2026-09-27
+
+- Decisão: adicionar CSS para as classes já usadas no JSX (`.overall-contextual`, `.overall-contextual-unavailable`, `.contextual-overall`, `.not-calculated`) — RF03 (diferenciação visual) não tinha efeito real, só nome de classe
+- Decisão: adicionar legenda curta também ao Overall legado (RF04 pedia legenda para "ambos os scores", só o contextual tinha)
+- Decisão: manter a nota de "não implementar ordenação" no log de DOR→SPEC como está — ficou desatualizada (o PR implementou ordenação), mas é só histórico de decisão, não código; não vale reescrever histórico
