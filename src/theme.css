@@ -498,9 +498,8 @@ button {
 .players-list-card {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-top: 3px solid var(--accent-home);
   overflow-x: auto;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.04);
 }
 
 .players-list-inner {
@@ -526,10 +525,10 @@ button {
   font-family: var(--font-heading);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
-  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  font-size: 0.78rem;
   color: var(--text-muted);
-  background: color-mix(in srgb, var(--accent-home) 6%, var(--bg-elevated));
+  background: var(--bg-sunken);
   border-bottom: 1px solid var(--border);
   align-items: start;
 }
@@ -553,8 +552,13 @@ button {
   border-bottom: none;
 }
 
+.player-row {
+  border-left: 3px solid transparent;
+}
+
 .player-row:hover {
-  background: color-mix(in srgb, var(--accent-home) 5%, transparent);
+  background: color-mix(in srgb, var(--accent-home) 8%, transparent);
+  border-left-color: var(--accent-home);
 }
 
 .player-row:focus-visible {
@@ -563,7 +567,9 @@ button {
 }
 
 .player-row .name-cell strong {
-  font-size: 0.94rem;
+  font-family: var(--font-heading);
+  letter-spacing: 0.03em;
+  font-size: 1.05rem;
 }
 
 .player-row .club-cell-text {
@@ -577,9 +583,8 @@ button {
   letter-spacing: 0.04em;
   font-weight: 600;
   padding: 0.1rem 0.5rem;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
   width: fit-content;
 }
 
