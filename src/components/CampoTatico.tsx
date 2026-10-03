@@ -22,6 +22,8 @@ function ordenarDefesa(atletas: AtletaEscalado[]) {
 interface Props {
   escalacao: EscalacaoOtima
   detalhes: Record<number, DetalhesAtletaCampo>
+  onSubstituir?: (atletaId: number) => void
+  substituindoId?: number
 }
 
 export interface DetalhesAtletaCampo {
@@ -32,7 +34,7 @@ export interface DetalhesAtletaCampo {
   mediaNoMando?: number
 }
 
-export default function CampoTatico({ escalacao, detalhes }: Props) {
+export default function CampoTatico({ escalacao, detalhes, onSubstituir, substituindoId }: Props) {
   return (
     <div className="campo-tatico" aria-label={`Campo tático ${escalacao.esquema}`}>
       {LINHAS.map((linha) => {
@@ -49,6 +51,8 @@ export default function CampoTatico({ escalacao, detalhes }: Props) {
                   key={atleta.atleta_id}
                   atleta={atleta}
                   detalhes={detalhes[atleta.atleta_id]}
+                  onSubstituir={onSubstituir}
+                  ativo={substituindoId === atleta.atleta_id}
                 />
               ))}
             </div>
@@ -76,26 +80,44 @@ export default function CampoTatico({ escalacao, detalhes }: Props) {
 function CardAtleta({
   atleta,
   detalhes,
+  onSubstituir,
+  ativo,
 }: {
   atleta: AtletaEscalado
   detalhes?: DetalhesAtletaCampo
+  onSubstituir?: (atletaId: number) => void
+  ativo: boolean
 }) {
+  const nome = detalhes?.nome ?? `Atleta #${atleta.atleta_id}`
   return (
-    <Link className="campo-atleta" to={`/jogadores/${atleta.atleta_id}`}>
-      <span className="campo-avatar" aria-hidden="true">
-        {iniciais(detalhes?.nome)}
-      </span>
-      <strong>{detalhes?.nome ?? `Atleta #${atleta.atleta_id}`}</strong>
-      <Confronto detalhes={detalhes} />
-      <span>
-        {atleta.posicao} · {formatCurrency(atleta.preco)}
-      </span>
-      {detalhes?.mediaNoMando !== undefined && detalhes.mando && (
-        <span>
-          Média {detalhes.mando}: {formatNumber(detalhes.mediaNoMando)}
+    <div className={ativo ? 'campo-atleta-item ativo' : 'campo-atleta-item'}>
+      <Link className="campo-atleta" to={`/jogadores/${atleta.atleta_id}`}>
+        <span className="campo-avatar" aria-hidden="true">
+          {iniciais(detalhes?.nome)}
         </span>
+        <strong>{detalhes?.nome ?? `Atleta #${atleta.atleta_id}`}</strong>
+        <Confronto detalhes={detalhes} />
+        <span>
+          {atleta.posicao} · {formatCurrency(atleta.preco)}
+        </span>
+        {detalhes?.mediaNoMando !== undefined && detalhes.mando && (
+          <span>
+            Média {detalhes.mando}: {formatNumber(detalhes.mediaNoMando)}
+          </span>
+        )}
+      </Link>
+      {onSubstituir && (
+        <button
+          type="button"
+          className="campo-atleta-trocar"
+          aria-label={`Substituir ${nome}`}
+          aria-pressed={ativo}
+          onClick={() => onSubstituir(atleta.atleta_id)}
+        >
+          Trocar
+        </button>
       )}
-    </Link>
+    </div>
   )
 }
 
