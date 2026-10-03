@@ -1759,3 +1759,11 @@ figure {
 .painel-tecnico:focus-visible {
   border-color: var(--accent-home);
 }
+
+.painel-tecnico strong {
+  flex: 1;
+}
+
+.painel-tecnico .numeric {
+  white-space: nowrap;
+}
