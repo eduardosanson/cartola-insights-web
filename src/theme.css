@@ -49,11 +49,11 @@
     --accent-home: #3bb27c;
     --accent-away: #e2a23e;
 
-    --bg: #14150f;
-    --bg-elevated: #1d1f16;
+    --bg: #0b0e0c;
+    --bg-elevated: #121813;
     --text: #eceee6;
     --text-muted: #a7a89c;
-    --border: #34362a;
+    --border: #243026;
     --danger: #ff8a80;
 
     --border-strong: color-mix(in srgb, var(--border) 55%, var(--text) 45%);
@@ -318,14 +318,37 @@ button {
 }
 
 .campo-tatico {
+  position: relative;
   display: grid;
-  gap: 1rem;
-  padding: 1.25rem;
-  border: 2px solid color-mix(in srgb, var(--accent-home) 60%, var(--border));
-  border-radius: 12px;
-  background:
-    linear-gradient(90deg, transparent 49.8%, rgba(255, 255, 255, 0.18) 50%, transparent 50.2%),
-    color-mix(in srgb, var(--accent-home) 25%, var(--bg-elevated));
+  gap: 1.25rem;
+  padding: 1.75rem 1.25rem;
+  border: 1px solid #2c3d30;
+  background: repeating-linear-gradient(180deg, #143020 0 4.75rem, #112a1b 4.75rem 9.5rem);
+  color: #e8ece6;
+  isolation: isolate;
+}
+
+/* Marcações do gramado: bordas, meio-campo e círculo central. */
+.campo-tatico::before,
+.campo-tatico::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border: 2px solid rgba(143, 200, 165, 0.35);
+}
+
+.campo-tatico::before {
+  inset: 0.75rem;
+}
+
+.campo-tatico::after {
+  top: 50%;
+  left: 50%;
+  width: 9rem;
+  height: 9rem;
+  margin: -4.5rem 0 0 -4.5rem;
+  border-radius: 50%;
 }
 
 .campo-linha {
@@ -335,7 +358,10 @@ button {
 
 .campo-linha-rotulo {
   font-family: var(--font-heading);
-  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8fa093;
   text-align: center;
 }
 
@@ -351,35 +377,46 @@ button {
   gap: 0.15rem;
   min-width: 9rem;
   max-width: 13rem;
-  padding: 0.65rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
-  color: var(--text);
+  padding: 0.75rem 0.65rem;
+  border: 1px solid #33463a;
+  border-top: 3px solid #3bb27c;
+  background: linear-gradient(180deg, #1b261e 0%, #0f1511 100%);
+  color: #e8ece6;
   text-align: center;
   text-decoration: none;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
 }
 
 .campo-atleta:hover,
 .campo-atleta:focus-visible {
-  border-color: var(--accent-home);
-  transform: translateY(-1px);
+  border-color: #3bb27c;
+  background: linear-gradient(180deg, #223a2b 0%, #12201a 100%);
+  box-shadow: inset 0 0 0 2px #3bb27c;
+  outline: none;
+}
+
+.campo-atleta > strong:first-child {
+  font-family: var(--font-heading);
+  font-size: var(--fs-md);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .campo-atleta span {
-  font-size: 0.82rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: #c4cec6;
 }
 
 .campo-atleta .campo-atleta-clube {
-  color: var(--accent-home);
+  color: #3bb27c;
   font-weight: 700;
 }
 
 .campo-atleta .campo-atleta-confronto {
   margin-top: 0.15rem;
   padding-top: 0.3rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid #243026;
 }
 
 .campo-tecnico .campo-atleta {

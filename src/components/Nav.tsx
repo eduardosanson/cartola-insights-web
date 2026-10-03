@@ -5,6 +5,10 @@ const linkStyle = ({ isActive }: { isActive: boolean }) => ({
   padding: '0.5rem 1rem',
   textDecoration: 'none',
   fontFamily: 'var(--font-heading)',
+  fontSize: '1.05rem',
+  fontWeight: 600,
+  letterSpacing: '0.08em',
+  textTransform: 'uppercase' as const,
   color: isActive ? 'var(--accent-home)' : 'var(--text)',
   borderBottom: isActive ? '2px solid var(--accent-home)' : '2px solid transparent',
 })
