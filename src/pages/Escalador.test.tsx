@@ -110,9 +110,9 @@ describe('Escalador', () => {
       modo: 'tiro_curto',
     })
     expect(await screen.findByRole('heading', { name: /escalação sugerida/i })).toBeInTheDocument()
-    expect(screen.getByText(/C\$ 40,00 de C\$ 120,00/)).toBeInTheDocument()
-    expect(screen.getByText(/— C\$ 80,00 sobrando/)).toBeInTheDocument()
-    expect(screen.getByText('Pontuação esperada')).toBeInTheDocument()
+    expect(screen.getByText(/de C\$ 120,00/)).toBeInTheDocument()
+    expect(screen.getByText(/C\$ 80,00/)).toBeInTheDocument()
+    expect(screen.getByText('Pontuação projetada')).toBeInTheDocument()
     expect(screen.getByText('45')).toBeInTheDocument()
     expect(screen.queryByText('Total do objetivo')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /^nome 1\b/i })).toHaveAttribute(

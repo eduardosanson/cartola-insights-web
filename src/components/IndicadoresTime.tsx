@@ -26,7 +26,7 @@ export default function IndicadoresTime({ escalacao, detalhes }: Props) {
 
   return (
     <div className="indicadores-time">
-      <h4 className="indicadores-titulo">Indicadores do time</h4>
+      <h4 className="hud-rotulo">Indicadores do time</h4>
       <Barra
         rotulo="Jogando em casa"
         valor={`${emCasa}/${total}`}

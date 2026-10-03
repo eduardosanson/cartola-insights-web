@@ -1787,3 +1787,134 @@ figure {
 .player-row-header {
   border-left: 3px solid transparent;
 }
+
+/* Painéis laterais do Escalador conforme o protótipo. */
+.hud-painel {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+
+.hud-rotulo {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.hud-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.hud-valor {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.hud-valor small {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.hud-chip {
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.resultado-cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.resultado-cabecalho h3 {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 2.25rem;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.resultado-painel .totais-pontuacao {
+  font-family: var(--font-mono);
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--accent-home);
+}
+
+.orcamento-barra {
+  height: 10px;
+}
+
+.indicadores-time .orcamento-barra {
+  height: 6px;
+  margin-top: 0.25rem;
+}
+
+.campo-tatico {
+  position: relative;
+}
+
+.campo-tecnico-carta {
+  position: absolute;
+  right: 2.5rem;
+  bottom: 2.5rem;
+  display: grid;
+  gap: 0.2rem;
+  width: 10rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #7f93a3;
+  background: linear-gradient(180deg, #1b261e 0%, #0f1511 100%);
+  color: #e8ece6;
+  text-decoration: none;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+
+.campo-tecnico-carta:hover,
+.campo-tecnico-carta:focus-visible {
+  background: linear-gradient(180deg, #223a2b 0%, #12201a 100%);
+  box-shadow: inset 0 0 0 2px #7f93a3;
+  outline: none;
+}
+
+.campo-tecnico-rotulo {
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7f93a3;
+}
+
+.campo-tecnico-carta > span:last-child {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: #c4cec6;
+}
+
+@media (max-width: 900px) {
+  .campo-tecnico-carta {
+    position: static;
+    justify-self: end;
+  }
+}

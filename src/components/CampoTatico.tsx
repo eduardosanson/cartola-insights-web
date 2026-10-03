@@ -55,6 +55,20 @@ export default function CampoTatico({ escalacao, detalhes }: Props) {
           </div>
         )
       })}
+      <Link
+        className="campo-tecnico-carta"
+        to={`/jogadores/${escalacao.tecnico.atleta_id}`}
+        aria-label="Técnico"
+      >
+        <span className="campo-tecnico-rotulo">Técnico</span>
+        <strong>
+          {detalhes[escalacao.tecnico.atleta_id]?.nome ?? `Técnico #${escalacao.tecnico.atleta_id}`}
+        </strong>
+        <span>
+          {detalhes[escalacao.tecnico.atleta_id]?.clubeNome ?? 'Time não disponível'} ·{' '}
+          {formatCurrency(escalacao.tecnico.preco)}
+        </span>
+      </Link>
     </div>
   )
 }

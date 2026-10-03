@@ -1,5 +1,4 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
-import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { buscarAtleta } from '../api/atletas'
 import {
@@ -281,46 +280,37 @@ function ResultadoEscalacao({ resultado }: { resultado: ResultadoCompleto }) {
   return (
     <section aria-labelledby="resultado-escalador" className="resultado-layout">
       <div className="resultado-campo">
-        <h3 id="resultado-escalador">Escalação sugerida</h3>
+        <div className="resultado-cabecalho">
+          <h3 id="resultado-escalador">Escalação sugerida</h3>
+          <span className="hud-chip">Esquema {escalacao.esquema}</span>
+          <span className="hud-chip">{MODOS[escalacao.modo].nome}</span>
+        </div>
         <CampoTatico escalacao={escalacao} detalhes={detalhes} />
       </div>
       <aside className="resultado-painel">
-        <dl className="otimizador-totais">
-          <div>
-            <dt>Pontuação esperada</dt>
-            <dd className="numeric totais-pontuacao">
-              {formatNumber(escalacao.pontuacao_esperada_total)}
-            </dd>
+        <div className="hud-painel">
+          <span className="hud-rotulo">Pontuação projetada</span>
+          <span className="numeric totais-pontuacao">
+            {formatNumber(escalacao.pontuacao_esperada_total)}
+          </span>
+        </div>
+        <div className="hud-painel">
+          <div className="hud-linha">
+            <span className="hud-rotulo">Cartoletas</span>
+            <span className="numeric">de {formatCurrency(orcamento)}</span>
           </div>
-          <div>
-            <dt>Estratégia</dt>
-            <dd>{MODOS[escalacao.modo].nome}</dd>
+          <div className="numeric hud-valor">
+            {formatCurrency(sobra)} <small>restantes</small>
           </div>
-        </dl>
-        <dl className="otimizador-totais">
-          <div>
-            <dt>Orçamento</dt>
-            <dd className="numeric">
-              {formatCurrency(escalacao.custo_total)} de {formatCurrency(orcamento)} —{' '}
-              {formatCurrency(sobra)} sobrando
-              <span className="orcamento-barra" aria-hidden="true">
-                <span
-                  style={{ width: `${Math.min(100, (escalacao.custo_total / orcamento) * 100)}%` }}
-                />
-              </span>
-            </dd>
-          </div>
-        </dl>
-        <div className="otimizador-totais">
+          <span className="orcamento-barra" aria-hidden="true">
+            <span
+              style={{ width: `${Math.min(100, (escalacao.custo_total / orcamento) * 100)}%` }}
+            />
+          </span>
+        </div>
+        <div className="hud-painel">
           <IndicadoresTime escalacao={escalacao} detalhes={detalhes} />
         </div>
-        <Link className="painel-tecnico" to={`/jogadores/${escalacao.tecnico.atleta_id}`}>
-          <span>Técnico</span>
-          <strong>
-            {detalhes[escalacao.tecnico.atleta_id]?.nome ?? `Técnico #${escalacao.tecnico.atleta_id}`}
-          </strong>
-          <span className="numeric">{formatCurrency(escalacao.tecnico.preco)}</span>
-        </Link>
         <p className="estimativa-nota">
           Os valores são estimativas históricas e não representam promessa de pontuação oficial.
         </p>
