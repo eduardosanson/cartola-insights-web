@@ -1602,3 +1602,20 @@ figure {
 }
 
 
+
+/* Chip de rodada/sincronização no estilo HUD (usa /dados/status). */
+.sync-indicator-container {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-home);
+  background: var(--bg-elevated);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.sync-indicator-container:empty {
+  display: none;
+}
