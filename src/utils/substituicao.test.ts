@@ -65,9 +65,18 @@ describe('aplicarSubstituicao', () => {
     })
   })
 
-  it('recusa troca que estoura o orçamento', () => {
+  it('permite troca acima do orçamento, avisa e ajusta o orçamento ao novo custo', () => {
     const plano = aplicarSubstituicao(atual, 2, substituto({ preco: 40 }), { nome: 'x' })
-    expect(plano).toHaveProperty('erro')
-    if ('erro' in plano) expect(plano.erro).toMatch(/excede o orçamento/)
+    expect(plano).toHaveProperty('resultado')
+    if (!('resultado' in plano)) return
+    expect(plano.resultado.escalacao.custo_total).toBe(52)
+    expect(plano.resultado.orcamento).toBe(52)
+    expect(plano.aviso).toMatch(/ultrapassa o orçamento/)
+  })
+
+  it('não avisa nem altera o orçamento quando a troca cabe nele', () => {
+    const plano = aplicarSubstituicao(atual, 2, substituto(), { nome: 'x' })
+    expect('resultado' in plano && plano.aviso).toBeUndefined()
+    expect('resultado' in plano && plano.resultado.orcamento).toBe(50)
   })
 })

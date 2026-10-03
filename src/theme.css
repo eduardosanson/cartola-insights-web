@@ -2005,3 +2005,7 @@ figure {
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.painel-substituicao .aviso-orcamento {
+  color: var(--accent-away);
+}

@@ -783,12 +783,26 @@ describe('Escalador', () => {
       expect(screen.queryByLabelText('Substituição de atleta')).not.toBeInTheDocument()
     })
 
-    it('bloqueia a troca que excede o orçamento', async () => {
+    it('permite a troca acima do orçamento, avisa e ajusta o orçamento', async () => {
       vi.spyOn(api, 'buscarSubstituto').mockResolvedValue({ ...substituto, preco: 90 })
       const user = userEvent.setup()
       await abrirTroca(user)
 
-      expect(await screen.findByText(/excede o orçamento/i)).toBeInTheDocument()
+      expect(await screen.findByText(/ultrapassa o orçamento/i)).toBeInTheDocument()
+      const confirmar = screen.getByRole('button', { name: /confirmar troca/i })
+      expect(confirmar).toBeEnabled()
+      await user.click(confirmar)
+
+      expect(screen.getByText(/de C\$ 123,00/)).toBeInTheDocument()
+      expect(screen.getByLabelText(/orçamento/i)).toHaveValue(123)
+    })
+
+    it('bloqueia a troca quando o substituto já está na escalação', async () => {
+      vi.spyOn(api, 'buscarSubstituto').mockResolvedValue({ ...substituto, atleta_id: 1 })
+      const user = userEvent.setup()
+      await abrirTroca(user)
+
+      expect(await screen.findByText(/já está na escalação/i)).toBeInTheDocument()
       expect(screen.getByRole('button', { name: /confirmar troca/i })).toBeDisabled()
     })
 

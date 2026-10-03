@@ -224,6 +224,7 @@ export default function Escalador() {
   function confirmarSubstituicao(proximo: ResultadoCompleto) {
     substituicaoRef.current++
     setResultado(proximo)
+    setOrcamento(proximo.orcamento)
     setSubstituicao(null)
   }
 
@@ -368,6 +369,7 @@ function ResultadoEscalacao({
           <PainelSubstituicao
             estado={substituicao}
             nomeAtual={detalhes[substituicao.atletaId]?.nome ?? `Atleta #${substituicao.atletaId}`}
+            aviso={plano && 'aviso' in plano ? plano.aviso : undefined}
             bloqueio={plano && 'erro' in plano ? plano.erro : undefined}
             onCancelar={onCancelar}
             onConfirmar={() => plano && 'resultado' in plano && onConfirmar(plano.resultado)}

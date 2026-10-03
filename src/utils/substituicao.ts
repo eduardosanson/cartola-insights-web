@@ -8,11 +8,12 @@ export interface ResultadoCompleto {
   orcamento: number
 }
 
-export type PlanoSubstituicao = { resultado: ResultadoCompleto } | { erro: string }
+export type PlanoSubstituicao = { resultado: ResultadoCompleto; aviso?: string } | { erro: string }
 
 /**
  * Troca um titular pelo substituto sugerido e recalcula custo e pontuação.
  * O substituto não traz pontuação esperada do otimizador; usa-se a média geral dele.
+ * Se a troca ultrapassar o orçamento, ela é permitida e o orçamento é ajustado ao novo custo.
  */
 export function aplicarSubstituicao(
   atual: ResultadoCompleto,
@@ -30,11 +31,8 @@ export function aplicarSubstituicao(
     return { erro: 'O substituto sugerido joga em outra posição.' }
   }
   const custoTotal = escalacao.custo_total - antigo.preco + substituto.preco
-  if (custoTotal > atual.orcamento) {
-    return {
-      erro: `A troca excede o orçamento em ${formatCurrency(custoTotal - atual.orcamento)}.`,
-    }
-  }
+  const estoura = custoTotal > atual.orcamento
+  const orcamento = estoura ? Math.round(custoTotal * 100) / 100 : atual.orcamento
   const titulares = escalacao.titulares.map((atleta) =>
     atleta.atleta_id === atletaId
       ? {
@@ -46,8 +44,11 @@ export function aplicarSubstituicao(
       : atleta,
   )
   return {
+    aviso: estoura
+      ? `A troca ultrapassa o orçamento de ${formatCurrency(atual.orcamento)}; o orçamento será ajustado para ${formatCurrency(orcamento)}.`
+      : undefined,
     resultado: {
-      orcamento: atual.orcamento,
+      orcamento,
       detalhes: { ...atual.detalhes, [substituto.atleta_id]: detalhesNovo },
       escalacao: {
         ...escalacao,

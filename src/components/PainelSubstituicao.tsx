@@ -17,6 +17,7 @@ export type EstadoSubstituicao =
 interface Props {
   estado: EstadoSubstituicao
   nomeAtual: string
+  aviso?: string
   bloqueio?: string
   onConfirmar: () => void
   onCancelar: () => void
@@ -25,6 +26,7 @@ interface Props {
 export default function PainelSubstituicao({
   estado,
   nomeAtual,
+  aviso,
   bloqueio,
   onConfirmar,
   onCancelar,
@@ -56,6 +58,11 @@ export default function PainelSubstituicao({
           </div>
           <p className="estimativa-nota">A pontuação projetada usa a média geral do substituto.</p>
           {bloqueio && <p role="alert">{bloqueio}</p>}
+          {aviso && (
+            <p role="status" className="aviso-orcamento">
+              {aviso}
+            </p>
+          )}
         </>
       )}
       <div className="painel-substituicao-acoes">
