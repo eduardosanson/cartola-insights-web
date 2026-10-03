@@ -47,7 +47,7 @@ describe('Nav', () => {
 
     const entrarLink = screen.getByRole('link', { name: /entrar/i })
     expect(entrarLink).toHaveStyle({
-      padding: '0.5rem 1rem',
+      padding: '0.5rem 0.75rem',
       textDecoration: 'none',
       fontFamily: 'var(--font-heading)',
       color: 'var(--text)',
@@ -88,7 +88,7 @@ describe('Nav', () => {
     expect(logout).toHaveBeenCalled()
   })
 
-  it('aplica display flex, borda e espaçamento no container do menu', () => {
+  it('usa a classe nav-hud no container do menu', () => {
     vi.mocked(AuthContextModule.useAuth).mockReturnValue({
       usuario: null,
       carregando: false,
@@ -101,14 +101,7 @@ describe('Nav', () => {
       </MemoryRouter>,
     )
 
-    expect(screen.getByRole('navigation')).toHaveStyle({
-      display: 'flex',
-      flexWrap: 'wrap',
-      gap: '0.5rem',
-      alignItems: 'center',
-      borderBottom: '1px solid var(--border)',
-      marginBottom: '1.5rem',
-    })
+    expect(screen.getByRole('navigation')).toHaveClass('nav-hud')
   })
 
   it('destaca o link ativo com cor e borda diferentes do link inativo', () => {
@@ -126,7 +119,7 @@ describe('Nav', () => {
 
     const linkAtivo = screen.getByRole('link', { name: /tabela/i })
     expect(linkAtivo).toHaveStyle({
-      padding: '0.5rem 1rem',
+      padding: '0.5rem 0.75rem',
       color: 'var(--accent-home)',
     })
     // jsdom não reconstrói corretamente o shorthand `border-bottom` quando a cor

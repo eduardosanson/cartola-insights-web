@@ -1,4 +1,4 @@
-import { act, fireEvent, render, screen } from '@testing-library/react'
+import { act, fireEvent, render, screen, within } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { StrictMode } from 'react'
 import { MemoryRouter } from 'react-router-dom'
@@ -110,9 +110,9 @@ describe('Escalador', () => {
       modo: 'tiro_curto',
     })
     expect(await screen.findByRole('heading', { name: /escalação sugerida/i })).toBeInTheDocument()
-    expect(screen.getByText(/C\$ 40,00 de C\$ 120,00/)).toBeInTheDocument()
-    expect(screen.getByText(/— C\$ 80,00 sobrando/)).toBeInTheDocument()
-    expect(screen.getByText('Pontuação esperada')).toBeInTheDocument()
+    expect(screen.getByText(/de C\$ 120,00/)).toBeInTheDocument()
+    expect(screen.getByText(/C\$ 80,00/)).toBeInTheDocument()
+    expect(screen.getByText('Pontuação projetada')).toBeInTheDocument()
     expect(screen.getByText('45')).toBeInTheDocument()
     expect(screen.queryByText('Total do objetivo')).not.toBeInTheDocument()
     expect(screen.getByRole('link', { name: /^nome 1\b/i })).toHaveAttribute(
@@ -742,5 +742,98 @@ describe('Escalador', () => {
     expect(screen.getByRole('heading', { name: /escalação sugerida/i })).toBeInTheDocument()
 
     vi.useRealTimers()
+  })
+
+  describe('substituição de atleta', () => {
+    const substituto = {
+      atleta_id: 50,
+      posicao: 'ATA',
+      preco: 9,
+      score: 1,
+      media_geral: 6,
+      chance_pontuar_percentual: 60,
+      fator_confronto: 1,
+      proximo_confronto: {
+        clube_adversario_nome: 'Rival',
+        mando: 'fora',
+        media_no_mando: 5,
+      },
+    } as api.SubstitutoSugerido
+
+    async function abrirTroca(user: ReturnType<typeof userEvent.setup>) {
+      renderizar()
+      await user.click(await screen.findByRole('button', { name: /montar escalação ótima/i }))
+      await user.click(await screen.findByRole('button', { name: 'Substituir Nome 5' }))
+    }
+
+    it('troca o atleta e atualiza campo, orçamento e pontuação', async () => {
+      vi.spyOn(api, 'buscarSubstituto').mockResolvedValue(substituto)
+      const user = userEvent.setup()
+      await abrirTroca(user)
+
+      expect(await screen.findByRole('button', { name: /confirmar troca/i })).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: /confirmar troca/i }))
+
+      expect(api.buscarSubstituto).toHaveBeenCalledWith(5)
+      const carta = screen.getByRole('link', { name: /nome 50/i })
+      expect(within(carta).getByText('ATA · C$ 9,00')).toBeInTheDocument()
+      expect(screen.queryByRole('link', { name: /^nome 5\b/i })).not.toBeInTheDocument()
+      expect(screen.getByText(/C\$ 58,00/)).toBeInTheDocument()
+      expect(screen.getByText('47')).toBeInTheDocument()
+      expect(screen.queryByLabelText('Substituição de atleta')).not.toBeInTheDocument()
+    })
+
+    it('permite a troca acima do orçamento, avisa e mostra o excedente', async () => {
+      vi.spyOn(api, 'buscarSubstituto').mockResolvedValue({ ...substituto, preco: 90 })
+      const user = userEvent.setup()
+      await abrirTroca(user)
+
+      expect(await screen.findByText(/ultrapassa o orçamento em/i)).toBeInTheDocument()
+      const confirmar = screen.getByRole('button', { name: /confirmar troca/i })
+      expect(confirmar).toBeEnabled()
+      await user.click(confirmar)
+
+      expect(screen.getByText(/de C\$ 100,00/)).toBeInTheDocument()
+      expect(screen.getByText(/C\$ 23,00/)).toBeInTheDocument()
+      expect(screen.getByText(/excedente/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/orçamento/i)).toHaveValue(100)
+    })
+
+    it('busca alternativa no ranking quando o substituto já está na escalação', async () => {
+      vi.spyOn(api, 'buscarSubstituto').mockResolvedValue({ ...substituto, atleta_id: 1 })
+      const listar = vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+        { id: 1, posicao: 'ATA', preco_atual: 5, media_geral: 9, chance_pontuar_percentual: 50 },
+        { id: 77, posicao: 'ATA', preco_atual: 6, media_geral: 8, chance_pontuar_percentual: 55 },
+      ] as atletasApi.Atleta[])
+      const user = userEvent.setup()
+      await abrirTroca(user)
+
+      expect(await screen.findByText(/melhor alternativa/i)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Nome 77' })).toBeInTheDocument()
+      expect(listar).toHaveBeenCalledWith(
+        expect.objectContaining({ posicao: ['ATA'], status_id: [7], sort_by: 'media_geral' }),
+      )
+      await user.click(screen.getByRole('button', { name: /confirmar troca/i }))
+      expect(screen.getByRole('link', { name: /nome 77/i })).toBeInTheDocument()
+    })
+
+    it('informa quando não há substituto e permite cancelar', async () => {
+      vi.spyOn(api, 'buscarSubstituto').mockResolvedValue(null)
+      vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([])
+      const user = userEvent.setup()
+      await abrirTroca(user)
+
+      expect(await screen.findByText(/nenhum substituto direto/i)).toBeInTheDocument()
+      await user.click(screen.getByRole('button', { name: /cancelar/i }))
+      expect(screen.queryByLabelText('Substituição de atleta')).not.toBeInTheDocument()
+    })
+
+    it('mostra o erro quando a busca falha', async () => {
+      vi.spyOn(api, 'buscarSubstituto').mockRejectedValue(new Error('falhou'))
+      const user = userEvent.setup()
+      await abrirTroca(user)
+
+      expect(await screen.findByRole('alert')).toHaveTextContent('falhou')
+    })
   })
 })

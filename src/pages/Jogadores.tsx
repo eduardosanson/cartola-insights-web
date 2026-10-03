@@ -116,7 +116,7 @@ export default function Jogadores() {
   const chance = sortState('chance_pontuar_percentual')
 
   return (
-    <div>
+    <div className="pagina-larga">
       <div className="sync-indicator-container">
         <IndicadorSincronizacao />
       </div>

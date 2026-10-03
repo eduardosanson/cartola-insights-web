@@ -18,9 +18,11 @@ function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <div style={{ maxWidth: 960, margin: '0 auto', padding: '1rem' }}>
-          <h1>Cartola Insights</h1>
-          <Nav />
+        <div className="app-shell">
+          <header className="hud-topo">
+            <h1>Cartola Insights</h1>
+            <Nav />
+          </header>
           <Routes>
             <Route path="/" element={<Navigate to="/tabela" replace />} />
             <Route path="/tabela" element={<Tabela />} />

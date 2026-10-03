@@ -45,6 +45,18 @@ describe('listarAtletas', () => {
     expect(url.get('page_size')).toBe('20')
   })
 
+  it('sends sort and repeated status_id params when provided', async () => {
+    const apiGetSpy = vi.spyOn(client, 'apiGet').mockResolvedValue([])
+
+    await listarAtletas({ status_id: [7, 2], sort_by: 'media_geral', sort_dir: 'desc' })
+
+    const calledPath = apiGetSpy.mock.calls[0][0] as string
+    const url = new URLSearchParams(calledPath.split('?')[1])
+    expect(url.getAll('status_id')).toEqual(['7', '2'])
+    expect(url.get('sort_by')).toBe('media_geral')
+    expect(url.get('sort_dir')).toBe('desc')
+  })
+
   it('omits the mando param when not provided', async () => {
     const apiGetSpy = vi.spyOn(client, 'apiGet').mockResolvedValue([])
 

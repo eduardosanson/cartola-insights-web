@@ -1,19 +1,29 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { ApiError } from '../api/client'
-import { buscarAtleta } from '../api/atletas'
+import { buscarAtleta, listarAtletas } from '../api/atletas'
 import {
   EscalacaoInviavelError,
   buscarEsquemas,
+  buscarSubstituto,
   montarEscalacao,
-  type EscalacaoOtima,
   type EsquemaTatico,
   type EsquemasDisponiveis,
   type ModoOtimizacao,
 } from '../api/otimizador'
-import { buscarRaioXConfronto } from '../api/raioX'
+import { buscarRaioXConfronto, type RaioXConfronto } from '../api/raioX'
 import CampoTatico, { type DetalhesAtletaCampo } from '../components/CampoTatico'
+import IndicadoresTime from '../components/IndicadoresTime'
+import PainelSubstituicao, { type EstadoSubstituicao } from '../components/PainelSubstituicao'
 import IndicadorSincronizacao from '../components/IndicadorSincronizacao'
 import { formatCurrency, formatNumber } from '../utils/formatNumber'
+import {
+  aplicarSubstituicao,
+  escolherAlternativa,
+  type ResultadoCompleto,
+  type SugestaoTroca,
+} from '../utils/substituicao'
+
+const STATUS_PROVAVEL = 7
 
 const MODOS: Record<ModoOtimizacao, { nome: string; descricao: string }> = {
   classica: { nome: 'Liga Clássica', descricao: 'Prioriza atletas com maior piso de pontuação.' },
@@ -28,12 +38,6 @@ const MODOS: Record<ModoOtimizacao, { nome: string; descricao: string }> = {
   },
 }
 
-interface ResultadoCompleto {
-  escalacao: EscalacaoOtima
-  detalhes: Record<number, DetalhesAtletaCampo>
-  orcamento: number
-}
-
 export default function Escalador() {
   const [esquemas, setEsquemas] = useState<EsquemasDisponiveis | null>(null)
   const [orcamento, setOrcamento] = useState(100)
@@ -42,6 +46,8 @@ export default function Escalador() {
   const [resultado, setResultado] = useState<ResultadoCompleto | null>(null)
   const [carregando, setCarregando] = useState(false)
   const [erro, setErro] = useState<string | null>(null)
+  const [substituicao, setSubstituicao] = useState<EstadoSubstituicao | null>(null)
+  const substituicaoRef = useRef(0)
   const [aguardandoRetry, setAguardandoRetry] = useState(false)
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const requisicaoAtivaRef = useRef(0)
@@ -121,6 +127,7 @@ export default function Escalador() {
     setCarregando(true)
     setErro(null)
     setResultado(null)
+    setSubstituicao(null)
 
     try {
       const resultado = await executarEscalacao(parametros)
@@ -186,10 +193,71 @@ export default function Escalador() {
     setErro(null)
   }
 
+  async function pedirSubstituto(atletaId: number) {
+    const id = ++substituicaoRef.current
+    setSubstituicao({ atletaId, estado: 'carregando' })
+    try {
+      const titulares = resultado?.escalacao.titulares ?? []
+      const antigo = titulares.find((atleta) => atleta.atleta_id === atletaId)
+      const idsEscalados = titulares.map((atleta) => atleta.atleta_id)
+      const doBackend = await buscarSubstituto(atletaId)
+      let sugestao: SugestaoTroca | null = doBackend
+      let confronto: RaioXConfronto | null = doBackend?.proximo_confronto ?? null
+      let alternativa = false
+      if ((!sugestao || idsEscalados.includes(sugestao.atleta_id)) && antigo) {
+        // O backend não conhece a escalação: se ele sugerir quem já está no time, busca no ranking.
+        const ranking = await listarAtletas({
+          posicao: [antigo.posicao],
+          status_id: [STATUS_PROVAVEL],
+          sort_by: 'media_geral',
+          sort_dir: 'desc',
+          page_size: 50,
+        })
+        sugestao = escolherAlternativa(ranking, idsEscalados, antigo.preco)
+        confronto = sugestao ? await buscarRaioXConfronto(sugestao.atleta_id).catch(() => null) : null
+        alternativa = sugestao !== null
+      }
+      if (id !== substituicaoRef.current) return
+      if (!sugestao) {
+        setSubstituicao({ atletaId, estado: 'vazio' })
+        return
+      }
+      const atleta = await buscarAtleta(sugestao.atleta_id).catch(() => null)
+      if (id !== substituicaoRef.current) return
+      setSubstituicao({
+        atletaId,
+        estado: 'pronto',
+        substituto: sugestao,
+        alternativa,
+        detalhes: {
+          nome: atleta?.nome ?? `Atleta #${sugestao.atleta_id}`,
+          clubeNome: atleta?.clube_nome,
+          adversarioNome: confronto?.clube_adversario_nome,
+          mando: confronto?.mando,
+          mediaNoMando: confronto?.media_no_mando,
+        },
+      })
+    } catch (err) {
+      if (id !== substituicaoRef.current) return
+      setSubstituicao({ atletaId, estado: 'erro', mensagem: (err as Error).message })
+    }
+  }
+
+  function cancelarSubstituicao() {
+    substituicaoRef.current++
+    setSubstituicao(null)
+  }
+
+  function confirmarSubstituicao(proximo: ResultadoCompleto) {
+    substituicaoRef.current++
+    setResultado(proximo)
+    setSubstituicao(null)
+  }
+
   const formacao = esquemas?.[esquema]
 
   return (
-    <main>
+    <main className="pagina-larga">
       <header>
         <h2>Escalador</h2>
         <p>Monte 11 titulares e técnico respeitando orçamento, formação e limite por clube.</p>
@@ -267,39 +335,104 @@ export default function Escalador() {
         {erro && <p role="alert">{erro}</p>}
       </section>
 
-      {resultado && <ResultadoEscalacao resultado={resultado} />}
+      {resultado && (
+        <ResultadoEscalacao
+          resultado={resultado}
+          substituicao={substituicao}
+          onSubstituir={(atletaId) => void pedirSubstituto(atletaId)}
+          onCancelar={cancelarSubstituicao}
+          onConfirmar={confirmarSubstituicao}
+        />
+      )}
     </main>
   )
 }
 
-function ResultadoEscalacao({ resultado }: { resultado: ResultadoCompleto }) {
+interface ResultadoProps {
+  resultado: ResultadoCompleto
+  substituicao: EstadoSubstituicao | null
+  onSubstituir: (atletaId: number) => void
+  onCancelar: () => void
+  onConfirmar: (proximo: ResultadoCompleto) => void
+}
+
+function ResultadoEscalacao({
+  resultado,
+  substituicao,
+  onSubstituir,
+  onCancelar,
+  onConfirmar,
+}: ResultadoProps) {
   const { escalacao, detalhes, orcamento } = resultado
   const sobra = Math.max(0, orcamento - escalacao.custo_total)
+  const excesso = Math.max(0, Math.round((escalacao.custo_total - orcamento) * 100) / 100)
+  const plano =
+    substituicao?.estado === 'pronto'
+      ? aplicarSubstituicao(
+          resultado,
+          substituicao.atletaId,
+          substituicao.substituto,
+          substituicao.detalhes,
+        )
+      : null
 
   return (
-    <section aria-labelledby="resultado-escalador">
-      <h3 id="resultado-escalador">Escalação sugerida</h3>
-      <dl className="otimizador-totais">
-        <div>
-          <dt>Orçamento</dt>
-          <dd className="numeric">
-            {formatCurrency(escalacao.custo_total)} de {formatCurrency(orcamento)} —{' '}
-            {formatCurrency(sobra)} sobrando
-          </dd>
+    <section aria-labelledby="resultado-escalador" className="resultado-layout">
+      <div className="resultado-campo">
+        <div className="resultado-cabecalho">
+          <h3 id="resultado-escalador">Escalação sugerida</h3>
+          <span className="hud-chip">Esquema {escalacao.esquema}</span>
+          <span className="hud-chip">{MODOS[escalacao.modo].nome}</span>
         </div>
-        <div>
-          <dt>Pontuação esperada</dt>
-          <dd className="numeric">{formatNumber(escalacao.pontuacao_esperada_total)}</dd>
+        <CampoTatico
+          escalacao={escalacao}
+          detalhes={detalhes}
+          onSubstituir={onSubstituir}
+          substituindoId={substituicao?.atletaId}
+        />
+      </div>
+      <aside className="resultado-painel">
+        {substituicao && (
+          <PainelSubstituicao
+            estado={substituicao}
+            nomeAtual={detalhes[substituicao.atletaId]?.nome ?? `Atleta #${substituicao.atletaId}`}
+            aviso={plano && 'aviso' in plano ? plano.aviso : undefined}
+            bloqueio={plano && 'erro' in plano ? plano.erro : undefined}
+            onCancelar={onCancelar}
+            onConfirmar={() => plano && 'resultado' in plano && onConfirmar(plano.resultado)}
+          />
+        )}
+        <div className="hud-painel">
+          <span className="hud-rotulo">Pontuação projetada</span>
+          <span className="numeric totais-pontuacao">
+            {formatNumber(escalacao.pontuacao_esperada_total)}
+          </span>
         </div>
-        <div>
-          <dt>Estratégia</dt>
-          <dd>{MODOS[escalacao.modo].nome}</dd>
+        <div className="hud-painel">
+          <div className="hud-linha">
+            <span className="hud-rotulo">Cartoletas</span>
+            <span className="numeric">de {formatCurrency(orcamento)}</span>
+          </div>
+          <div className={excesso > 0 ? 'numeric hud-valor excesso' : 'numeric hud-valor'}>
+            {formatCurrency(excesso > 0 ? excesso : sobra)}{' '}
+            <small>{excesso > 0 ? 'excedente' : 'restantes'}</small>
+          </div>
+          <span
+            className={excesso > 0 ? 'orcamento-barra excedido' : 'orcamento-barra'}
+            aria-hidden="true"
+          >
+            <span
+              style={{ width: `${Math.min(100, (escalacao.custo_total / orcamento) * 100)}%` }}
+            />
+          </span>
         </div>
-      </dl>
-      <CampoTatico escalacao={escalacao} detalhes={detalhes} />
-      <p className="estimativa-nota">
-        Os valores são estimativas históricas e não representam promessa de pontuação oficial.
-      </p>
+        <div className="hud-painel">
+          <IndicadoresTime escalacao={escalacao} detalhes={detalhes} />
+        </div>
+        <p className="estimativa-nota">
+          Os valores são estimativas históricas e não representam promessa de pontuação oficial.
+        </p>
+      </aside>
     </section>
   )
 }

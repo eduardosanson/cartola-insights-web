@@ -49,11 +49,11 @@
     --accent-home: #3bb27c;
     --accent-away: #e2a23e;
 
-    --bg: #14150f;
-    --bg-elevated: #1d1f16;
+    --bg: #0b0e0c;
+    --bg-elevated: #121813;
     --text: #eceee6;
     --text-muted: #a7a89c;
-    --border: #34362a;
+    --border: #243026;
     --danger: #ff8a80;
 
     --border-strong: color-mix(in srgb, var(--border) 55%, var(--text) 45%);
@@ -204,10 +204,9 @@ header,
 section {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 12px;
   padding: 1rem 1.25rem;
   margin: 1rem 0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.04);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
 }
 
 /* Chips de filtro sem estilo próprio (ex.: mando) — mesmo visual dos que
@@ -290,11 +289,17 @@ button {
   grid-column: 1 / -1;
   justify-self: start;
   border: 0;
-  border-radius: 8px;
-  padding: 0.65rem 1rem;
+  min-height: 44px;
+  padding: 0 1.5rem;
+  font-family: var(--font-heading);
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
   color: white;
   background: var(--accent-home);
   cursor: pointer;
+  clip-path: polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
 }
 
 .otimizador-form button:disabled {
@@ -313,19 +318,85 @@ button {
   color: var(--text-muted);
 }
 
+.otimizador-totais {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem 2rem;
+  margin: 0 0 1rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+
 .otimizador-totais > div {
   min-width: 10rem;
 }
 
+.otimizador-totais dt {
+  font-family: var(--font-heading);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.otimizador-totais dd {
+  margin: 0.2rem 0 0;
+}
+
+.otimizador-totais .totais-pontuacao {
+  font-size: 2.5rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--accent-home);
+}
+
+.orcamento-barra {
+  display: block;
+  height: 8px;
+  margin-top: 0.5rem;
+  background: var(--bg-sunken);
+}
+
+.orcamento-barra > span {
+  display: block;
+  height: 100%;
+  background: var(--accent-home);
+}
+
 .campo-tatico {
+  position: relative;
   display: grid;
-  gap: 1rem;
-  padding: 1.25rem;
-  border: 2px solid color-mix(in srgb, var(--accent-home) 60%, var(--border));
-  border-radius: 12px;
-  background:
-    linear-gradient(90deg, transparent 49.8%, rgba(255, 255, 255, 0.18) 50%, transparent 50.2%),
-    color-mix(in srgb, var(--accent-home) 25%, var(--bg-elevated));
+  gap: 1.25rem;
+  padding: 1.75rem 1.25rem;
+  border: 1px solid #2c3d30;
+  background: repeating-linear-gradient(180deg, #143020 0 4.75rem, #112a1b 4.75rem 9.5rem);
+  color: #e8ece6;
+  isolation: isolate;
+}
+
+/* Marcações do gramado: bordas, meio-campo e círculo central. */
+.campo-tatico::before,
+.campo-tatico::after {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  pointer-events: none;
+  border: 2px solid rgba(143, 200, 165, 0.35);
+}
+
+.campo-tatico::before {
+  inset: 0.75rem;
+}
+
+.campo-tatico::after {
+  top: 50%;
+  left: 50%;
+  width: 9rem;
+  height: 9rem;
+  margin: -4.5rem 0 0 -4.5rem;
+  border-radius: 50%;
 }
 
 .campo-linha {
@@ -335,7 +406,10 @@ button {
 
 .campo-linha-rotulo {
   font-family: var(--font-heading);
-  color: var(--text-muted);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #8fa093;
   text-align: center;
 }
 
@@ -351,35 +425,46 @@ button {
   gap: 0.15rem;
   min-width: 9rem;
   max-width: 13rem;
-  padding: 0.65rem;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  background: color-mix(in srgb, var(--bg-elevated) 90%, transparent);
-  color: var(--text);
+  padding: 0.75rem 0.65rem;
+  border: 1px solid #33463a;
+  border-top: 3px solid #3bb27c;
+  background: linear-gradient(180deg, #1b261e 0%, #0f1511 100%);
+  color: #e8ece6;
   text-align: center;
   text-decoration: none;
-  box-shadow: 0 3px 8px rgba(0, 0, 0, 0.15);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
 }
 
 .campo-atleta:hover,
 .campo-atleta:focus-visible {
-  border-color: var(--accent-home);
-  transform: translateY(-1px);
+  border-color: #3bb27c;
+  background: linear-gradient(180deg, #223a2b 0%, #12201a 100%);
+  box-shadow: inset 0 0 0 2px #3bb27c;
+  outline: none;
+}
+
+.campo-atleta > strong {
+  font-family: var(--font-heading);
+  font-size: var(--fs-md);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .campo-atleta span {
-  font-size: 0.82rem;
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: #c4cec6;
 }
 
 .campo-atleta .campo-atleta-clube {
-  color: var(--accent-home);
+  color: #3bb27c;
   font-weight: 700;
 }
 
 .campo-atleta .campo-atleta-confronto {
   margin-top: 0.15rem;
   padding-top: 0.3rem;
-  border-top: 1px solid var(--border);
+  border-top: 1px solid #243026;
 }
 
 .campo-tecnico .campo-atleta {
@@ -412,9 +497,8 @@ button {
 .players-list-card {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-top: 3px solid var(--accent-home);
   overflow-x: auto;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.04);
 }
 
 .players-list-inner {
@@ -429,8 +513,8 @@ button {
 .player-row {
   display: grid;
   grid-template-columns:
-    minmax(110px, 1.5fr) 34px minmax(48px, 0.8fr) 52px 72px 58px 64px 64px 64px
-    64px 64px 96px;
+    minmax(110px, 1.5fr) 34px minmax(48px, 0.8fr) 64px 72px 58px 64px 64px 64px
+    64px 64px 96px 84px;
   align-items: center;
   gap: 0.35rem;
   padding: 0.55rem 0.6rem;
@@ -440,10 +524,10 @@ button {
   font-family: var(--font-heading);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
-  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem;
   color: var(--text-muted);
-  background: color-mix(in srgb, var(--accent-home) 6%, var(--bg-elevated));
+  background: var(--bg-sunken);
   border-bottom: 1px solid var(--border);
   align-items: start;
 }
@@ -467,8 +551,13 @@ button {
   border-bottom: none;
 }
 
+.player-row {
+  border-left: 3px solid transparent;
+}
+
 .player-row:hover {
-  background: color-mix(in srgb, var(--accent-home) 5%, transparent);
+  background: color-mix(in srgb, var(--accent-home) 8%, transparent);
+  border-left-color: var(--accent-home);
 }
 
 .player-row:focus-visible {
@@ -477,7 +566,9 @@ button {
 }
 
 .player-row .name-cell strong {
-  font-size: 0.94rem;
+  font-family: var(--font-heading);
+  letter-spacing: 0.03em;
+  font-size: 1.05rem;
 }
 
 .player-row .club-cell-text {
@@ -491,9 +582,8 @@ button {
   letter-spacing: 0.04em;
   font-weight: 600;
   padding: 0.1rem 0.5rem;
-  border-radius: 999px;
-  border: 1px solid var(--border);
-  color: var(--text-muted);
+  border: 1px solid var(--border-strong);
+  color: var(--text);
   width: fit-content;
 }
 
@@ -676,14 +766,27 @@ button {
 
 .detalhe-topo header {
   margin: 1rem 0;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  border-top: 3px solid var(--accent-away);
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent-away) 14%, var(--bg-elevated)), var(--bg-elevated) 60%);
+  clip-path: polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+}
+
+.detalhe-topo header h2 {
+  margin: 0 0 0.25rem;
+  font-size: 2.4rem;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .mpv-estimado {
   margin: 1rem 0;
   padding: 0.75rem;
   border: 1px solid var(--border);
-  border-radius: 9px;
   background: color-mix(in srgb, var(--accent-home) 5%, var(--bg-elevated));
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
 }
 
 .mpv-estimado p {
@@ -701,8 +804,15 @@ button {
   margin: 1rem 0;
   padding: 0.75rem;
   border: 1px solid var(--accent-home);
-  border-radius: 9px;
   background: color-mix(in srgb, var(--accent-home) 8%, var(--bg-elevated));
+  clip-path: polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+
+.overall-contextual .text-value {
+  font-size: 2.25rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--accent-home);
 }
 
 .overall-contextual p {
@@ -746,6 +856,15 @@ button {
 
 .curva-transicao circle {
   fill: var(--accent-home);
+}
+
+.curva-transicao text {
+  font-size: 12px;
+  fill: var(--text);
+}
+
+.curva-transicao .curva-rotulo-oculto {
+  display: none;
 }
 
 .matriz-capitao,
@@ -1491,3 +1610,411 @@ figure {
 }
 
 
+
+/* Chip de rodada/sincronização no estilo HUD (usa /dados/status). */
+.sync-indicator-container {
+  display: inline-block;
+  margin-bottom: 1rem;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent-home);
+  background: var(--bg-elevated);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.sync-indicator-container:empty {
+  display: none;
+}
+
+/* Shell do app e barra superior no estilo HUD. */
+.app-shell {
+  max-width: 1376px;
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+}
+
+.hud-topo {
+  clip-path: none;
+  border-width: 0 0 1px;
+  padding-block: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 2rem;
+  margin: 0 -2rem 1.5rem;
+  padding: 0 2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sunken);
+}
+
+.hud-topo h1 {
+  margin: 0;
+  padding: 0.6rem 0;
+  font-size: 1.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-home);
+}
+
+.nav-hud {
+  display: flex;
+  flex: 1 1 400px;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.campo-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 0.25rem;
+  border: 1px solid #33463a;
+  border-radius: 50%;
+  background: #18221b;
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #e8ece6;
+}
+
+.campo-atleta .campo-avatar {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  color: #e8ece6;
+}
+
+/* Resultado do escalador: campo à esquerda, painel à direita. */
+.resultado-layout {
+  clip-path: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.resultado-campo {
+  flex: 999 1 640px;
+  min-width: 0;
+}
+
+.resultado-painel {
+  flex: 1 1 300px;
+  max-width: 420px;
+}
+
+.resultado-painel .otimizador-totais {
+  flex-direction: column;
+}
+
+.resultado-painel {
+  display: grid;
+  gap: 1rem;
+}
+
+.resultado-painel .otimizador-totais {
+  margin: 0;
+}
+
+.indicadores-time {
+  display: grid;
+  gap: 0.75rem;
+  width: 100%;
+}
+
+.indicadores-titulo {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: var(--fs-xs);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.indicador-linha {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: var(--fs-sm);
+}
+
+.painel-tecnico {
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text);
+  text-decoration: none;
+  font-size: var(--fs-sm);
+}
+
+.painel-tecnico > span:first-child {
+  font-family: var(--font-heading);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.painel-tecnico:hover,
+.painel-tecnico:focus-visible {
+  border-color: var(--accent-home);
+}
+
+.painel-tecnico strong {
+  flex: 1;
+}
+
+.painel-tecnico .numeric {
+  white-space: nowrap;
+}
+
+/* Telas ainda não redesenhadas (tabela de jogadores, curva de patrimônio etc.)
+   foram desenhadas para ~960px; só as páginas marcadas ocupam a largura total. */
+.app-shell > :not(.hud-topo):not(.pagina-larga) {
+  max-width: 1000px;
+  margin-inline: auto;
+}
+
+.player-row-header {
+  border-left: 3px solid transparent;
+}
+
+/* Painéis laterais do Escalador conforme o protótipo. */
+.hud-painel {
+  display: grid;
+  gap: 0.5rem;
+  padding: 1.25rem;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+
+.hud-rotulo {
+  margin: 0;
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.hud-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  font-size: var(--fs-sm);
+  color: var(--text-muted);
+}
+
+.hud-valor {
+  font-size: 2rem;
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.hud-valor small {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.hud-chip {
+  padding: 0.35rem 0.65rem;
+  border: 1px solid var(--border);
+  font-family: var(--font-mono);
+  font-size: var(--fs-xs);
+  color: var(--text-muted);
+}
+
+.resultado-cabecalho {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.resultado-cabecalho h3 {
+  flex: 1 1 auto;
+  margin: 0;
+  font-size: 2.25rem;
+  line-height: 1;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.resultado-painel .totais-pontuacao {
+  font-family: var(--font-mono);
+  font-size: 4rem;
+  font-weight: 700;
+  line-height: 1.1;
+  color: var(--accent-home);
+}
+
+.orcamento-barra {
+  height: 10px;
+}
+
+.indicadores-time .orcamento-barra {
+  height: 6px;
+  margin-top: 0.25rem;
+}
+
+.campo-tatico {
+  position: relative;
+}
+
+.campo-tecnico-carta {
+  position: absolute;
+  right: 2.5rem;
+  bottom: 2.5rem;
+  display: grid;
+  gap: 0.2rem;
+  width: 10rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid #7f93a3;
+  background: linear-gradient(180deg, #1b261e 0%, #0f1511 100%);
+  color: #e8ece6;
+  text-decoration: none;
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+
+.campo-tecnico-carta:hover,
+.campo-tecnico-carta:focus-visible {
+  background: linear-gradient(180deg, #223a2b 0%, #12201a 100%);
+  box-shadow: inset 0 0 0 2px #7f93a3;
+  outline: none;
+}
+
+.campo-tecnico-rotulo {
+  font-family: var(--font-heading);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #7f93a3;
+}
+
+.campo-tecnico-carta > span:last-child {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: #c4cec6;
+}
+
+@media (max-width: 900px) {
+  .campo-tecnico-carta {
+    position: static;
+    justify-self: end;
+  }
+}
+
+/* Substituição de atleta: botão na carta e painel de confirmação. */
+.campo-atleta-item {
+  position: relative;
+  display: grid;
+  min-width: 9rem;
+  max-width: 13rem;
+}
+
+.campo-atleta-item .campo-atleta {
+  min-width: 0;
+  max-width: none;
+}
+
+.campo-atleta-item.ativo .campo-atleta {
+  box-shadow: inset 0 0 0 2px var(--accent-away);
+  border-color: var(--accent-away);
+}
+
+.campo-atleta-trocar {
+  position: absolute;
+  top: 0.35rem;
+  left: 0.35rem;
+  min-height: 24px;
+  padding: 0 0.3rem;
+  border: 1px solid #33463a;
+  background: #0f1511;
+  color: #c4cec6;
+  font-family: var(--font-heading);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.campo-atleta-trocar:hover,
+.campo-atleta-trocar:focus-visible,
+.campo-atleta-trocar[aria-pressed='true'] {
+  border-color: var(--accent-away);
+  color: #e2a23e;
+}
+
+.painel-substituicao {
+  border-color: var(--accent-away);
+}
+
+.painel-substituicao p {
+  margin: 0;
+}
+
+.substituto-nome {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text);
+}
+
+.painel-substituicao-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.painel-substituicao-acoes button {
+  min-height: 44px;
+  padding: 0 1.25rem;
+  border: 1px solid var(--accent-home);
+  background: var(--accent-home);
+  color: white;
+  font-family: var(--font-heading);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.painel-substituicao-acoes button.secundario {
+  background: transparent;
+  color: var(--accent-home);
+}
+
+.painel-substituicao-acoes button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.painel-substituicao .aviso-orcamento {
+  color: var(--accent-away);
+}
+
+.hud-valor.excesso,
+.hud-valor.excesso small {
+  color: var(--accent-away);
+}
+
+.orcamento-barra.excedido > span {
+  background: var(--accent-away);
+}
