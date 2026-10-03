@@ -2009,3 +2009,12 @@ figure {
 .painel-substituicao .aviso-orcamento {
   color: var(--accent-away);
 }
+
+.hud-valor.excesso,
+.hud-valor.excesso small {
+  color: var(--accent-away);
+}
+
+.orcamento-barra.excedido > span {
+  background: var(--accent-away);
+}

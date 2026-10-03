@@ -1,6 +1,6 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
 import { ApiError } from '../api/client'
-import { buscarAtleta } from '../api/atletas'
+import { buscarAtleta, listarAtletas } from '../api/atletas'
 import {
   EscalacaoInviavelError,
   buscarEsquemas,
@@ -10,13 +10,20 @@ import {
   type EsquemasDisponiveis,
   type ModoOtimizacao,
 } from '../api/otimizador'
-import { buscarRaioXConfronto } from '../api/raioX'
+import { buscarRaioXConfronto, type RaioXConfronto } from '../api/raioX'
 import CampoTatico, { type DetalhesAtletaCampo } from '../components/CampoTatico'
 import IndicadoresTime from '../components/IndicadoresTime'
 import PainelSubstituicao, { type EstadoSubstituicao } from '../components/PainelSubstituicao'
 import IndicadorSincronizacao from '../components/IndicadorSincronizacao'
 import { formatCurrency, formatNumber } from '../utils/formatNumber'
-import { aplicarSubstituicao, type ResultadoCompleto } from '../utils/substituicao'
+import {
+  aplicarSubstituicao,
+  escolherAlternativa,
+  type ResultadoCompleto,
+  type SugestaoTroca,
+} from '../utils/substituicao'
+
+const STATUS_PROVAVEL = 7
 
 const MODOS: Record<ModoOtimizacao, { nome: string; descricao: string }> = {
   classica: { nome: 'Liga Clássica', descricao: 'Prioriza atletas com maior piso de pontuação.' },
@@ -190,24 +197,44 @@ export default function Escalador() {
     const id = ++substituicaoRef.current
     setSubstituicao({ atletaId, estado: 'carregando' })
     try {
-      const substituto = await buscarSubstituto(atletaId)
+      const titulares = resultado?.escalacao.titulares ?? []
+      const antigo = titulares.find((atleta) => atleta.atleta_id === atletaId)
+      const idsEscalados = titulares.map((atleta) => atleta.atleta_id)
+      const doBackend = await buscarSubstituto(atletaId)
+      let sugestao: SugestaoTroca | null = doBackend
+      let confronto: RaioXConfronto | null = doBackend?.proximo_confronto ?? null
+      let alternativa = false
+      if ((!sugestao || idsEscalados.includes(sugestao.atleta_id)) && antigo) {
+        // O backend não conhece a escalação: se ele sugerir quem já está no time, busca no ranking.
+        const ranking = await listarAtletas({
+          posicao: [antigo.posicao],
+          status_id: [STATUS_PROVAVEL],
+          sort_by: 'media_geral',
+          sort_dir: 'desc',
+          page_size: 50,
+        })
+        sugestao = escolherAlternativa(ranking, idsEscalados, antigo.preco)
+        confronto = sugestao ? await buscarRaioXConfronto(sugestao.atleta_id).catch(() => null) : null
+        alternativa = sugestao !== null
+      }
       if (id !== substituicaoRef.current) return
-      if (!substituto) {
+      if (!sugestao) {
         setSubstituicao({ atletaId, estado: 'vazio' })
         return
       }
-      const atleta = await buscarAtleta(substituto.atleta_id).catch(() => null)
+      const atleta = await buscarAtleta(sugestao.atleta_id).catch(() => null)
       if (id !== substituicaoRef.current) return
       setSubstituicao({
         atletaId,
         estado: 'pronto',
-        substituto,
+        substituto: sugestao,
+        alternativa,
         detalhes: {
-          nome: atleta?.nome ?? `Atleta #${substituto.atleta_id}`,
+          nome: atleta?.nome ?? `Atleta #${sugestao.atleta_id}`,
           clubeNome: atleta?.clube_nome,
-          adversarioNome: substituto.proximo_confronto.clube_adversario_nome,
-          mando: substituto.proximo_confronto.mando,
-          mediaNoMando: substituto.proximo_confronto.media_no_mando,
+          adversarioNome: confronto?.clube_adversario_nome,
+          mando: confronto?.mando,
+          mediaNoMando: confronto?.media_no_mando,
         },
       })
     } catch (err) {
@@ -224,7 +251,6 @@ export default function Escalador() {
   function confirmarSubstituicao(proximo: ResultadoCompleto) {
     substituicaoRef.current++
     setResultado(proximo)
-    setOrcamento(proximo.orcamento)
     setSubstituicao(null)
   }
 
@@ -339,6 +365,7 @@ function ResultadoEscalacao({
 }: ResultadoProps) {
   const { escalacao, detalhes, orcamento } = resultado
   const sobra = Math.max(0, orcamento - escalacao.custo_total)
+  const excesso = Math.max(0, Math.round((escalacao.custo_total - orcamento) * 100) / 100)
   const plano =
     substituicao?.estado === 'pronto'
       ? aplicarSubstituicao(
@@ -386,10 +413,14 @@ function ResultadoEscalacao({
             <span className="hud-rotulo">Cartoletas</span>
             <span className="numeric">de {formatCurrency(orcamento)}</span>
           </div>
-          <div className="numeric hud-valor">
-            {formatCurrency(sobra)} <small>restantes</small>
+          <div className={excesso > 0 ? 'numeric hud-valor excesso' : 'numeric hud-valor'}>
+            {formatCurrency(excesso > 0 ? excesso : sobra)}{' '}
+            <small>{excesso > 0 ? 'excedente' : 'restantes'}</small>
           </div>
-          <span className="orcamento-barra" aria-hidden="true">
+          <span
+            className={excesso > 0 ? 'orcamento-barra excedido' : 'orcamento-barra'}
+            aria-hidden="true"
+          >
             <span
               style={{ width: `${Math.min(100, (escalacao.custo_total / orcamento) * 100)}%` }}
             />

@@ -783,31 +783,43 @@ describe('Escalador', () => {
       expect(screen.queryByLabelText('Substituição de atleta')).not.toBeInTheDocument()
     })
 
-    it('permite a troca acima do orçamento, avisa e ajusta o orçamento', async () => {
+    it('permite a troca acima do orçamento, avisa e mostra o excedente', async () => {
       vi.spyOn(api, 'buscarSubstituto').mockResolvedValue({ ...substituto, preco: 90 })
       const user = userEvent.setup()
       await abrirTroca(user)
 
-      expect(await screen.findByText(/ultrapassa o orçamento/i)).toBeInTheDocument()
+      expect(await screen.findByText(/ultrapassa o orçamento em/i)).toBeInTheDocument()
       const confirmar = screen.getByRole('button', { name: /confirmar troca/i })
       expect(confirmar).toBeEnabled()
       await user.click(confirmar)
 
-      expect(screen.getByText(/de C\$ 123,00/)).toBeInTheDocument()
-      expect(screen.getByLabelText(/orçamento/i)).toHaveValue(123)
+      expect(screen.getByText(/de C\$ 100,00/)).toBeInTheDocument()
+      expect(screen.getByText(/C\$ 23,00/)).toBeInTheDocument()
+      expect(screen.getByText(/excedente/i)).toBeInTheDocument()
+      expect(screen.getByLabelText(/orçamento/i)).toHaveValue(100)
     })
 
-    it('bloqueia a troca quando o substituto já está na escalação', async () => {
+    it('busca alternativa no ranking quando o substituto já está na escalação', async () => {
       vi.spyOn(api, 'buscarSubstituto').mockResolvedValue({ ...substituto, atleta_id: 1 })
+      const listar = vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([
+        { id: 1, posicao: 'ATA', preco_atual: 5, media_geral: 9, chance_pontuar_percentual: 50 },
+        { id: 77, posicao: 'ATA', preco_atual: 6, media_geral: 8, chance_pontuar_percentual: 55 },
+      ] as atletasApi.Atleta[])
       const user = userEvent.setup()
       await abrirTroca(user)
 
-      expect(await screen.findByText(/já está na escalação/i)).toBeInTheDocument()
-      expect(screen.getByRole('button', { name: /confirmar troca/i })).toBeDisabled()
+      expect(await screen.findByText(/melhor alternativa/i)).toBeInTheDocument()
+      expect(screen.getByRole('link', { name: 'Nome 77' })).toBeInTheDocument()
+      expect(listar).toHaveBeenCalledWith(
+        expect.objectContaining({ posicao: ['ATA'], status_id: [7], sort_by: 'media_geral' }),
+      )
+      await user.click(screen.getByRole('button', { name: /confirmar troca/i }))
+      expect(screen.getByRole('link', { name: /nome 77/i })).toBeInTheDocument()
     })
 
     it('informa quando não há substituto e permite cancelar', async () => {
       vi.spyOn(api, 'buscarSubstituto').mockResolvedValue(null)
+      vi.spyOn(atletasApi, 'listarAtletas').mockResolvedValue([])
       const user = userEvent.setup()
       await abrirTroca(user)
 

@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import type { SubstitutoSugerido } from '../api/otimizador'
-import { aplicarSubstituicao, type ResultadoCompleto } from './substituicao'
+import type { Atleta } from '../api/atletas'
+import { aplicarSubstituicao, escolherAlternativa, type ResultadoCompleto } from './substituicao'
 
 const atual: ResultadoCompleto = {
   orcamento: 50,
@@ -65,18 +66,45 @@ describe('aplicarSubstituicao', () => {
     })
   })
 
-  it('permite troca acima do orçamento, avisa e ajusta o orçamento ao novo custo', () => {
+  it('permite troca acima do orçamento, mantém o orçamento e avisa o excedente', () => {
     const plano = aplicarSubstituicao(atual, 2, substituto({ preco: 40 }), { nome: 'x' })
     expect(plano).toHaveProperty('resultado')
     if (!('resultado' in plano)) return
     expect(plano.resultado.escalacao.custo_total).toBe(52)
-    expect(plano.resultado.orcamento).toBe(52)
-    expect(plano.aviso).toMatch(/ultrapassa o orçamento/)
+    expect(plano.resultado.orcamento).toBe(50)
+    expect(plano.aviso).toMatch(/ultrapassa o orçamento em C\$\s2,00/)
   })
 
   it('não avisa nem altera o orçamento quando a troca cabe nele', () => {
     const plano = aplicarSubstituicao(atual, 2, substituto(), { nome: 'x' })
     expect('resultado' in plano && plano.aviso).toBeUndefined()
     expect('resultado' in plano && plano.resultado.orcamento).toBe(50)
+  })
+})
+
+describe('escolherAlternativa', () => {
+  const atleta = (id: number, preco: number): Atleta =>
+    ({
+      id,
+      posicao: 'ATA',
+      preco_atual: preco,
+      media_geral: id,
+      chance_pontuar_percentual: null,
+    }) as Atleta
+
+  it('ignora escalados e quem custa mais que o substituído', () => {
+    const ranking = [atleta(1, 8), atleta(2, 15), atleta(3, 9), atleta(4, 5)]
+    expect(escolherAlternativa(ranking, [1], 10)).toEqual({
+      atleta_id: 3,
+      posicao: 'ATA',
+      preco: 9,
+      media_geral: 3,
+      chance_pontuar_percentual: null,
+    })
+  })
+
+  it('retorna null quando ninguém atende', () => {
+    expect(escolherAlternativa([atleta(1, 8)], [1], 10)).toBeNull()
+    expect(escolherAlternativa([], [], 10)).toBeNull()
   })
 })

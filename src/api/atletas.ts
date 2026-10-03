@@ -32,6 +32,8 @@ export interface FiltrosAtletas {
   clube_id?: number | number[]
   status_id?: number[]
   mando?: MandoRodada
+  sort_by?: 'preco_atual' | 'media_geral' | 'media_basica' | 'media_casa' | 'media_fora' | 'chance_pontuar_percentual'
+  sort_dir?: 'asc' | 'desc'
   page?: number
   page_size?: number
 }
@@ -52,10 +54,15 @@ export function listarAtletas(filtros: FiltrosAtletas = {}): Promise<Atleta[]> {
   if (filtros.nome) params.set('nome', filtros.nome)
   if (filtros.clube_id !== undefined) params.set('clube_id', String(filtros.clube_id))
   if (filtros.mando !== undefined) params.set('mando', filtros.mando)
+  if (filtros.sort_by !== undefined) params.set('sort_by', filtros.sort_by)
+  if (filtros.sort_dir !== undefined) params.set('sort_dir', filtros.sort_dir)
   if (filtros.page !== undefined) params.set('page', String(filtros.page))
   if (filtros.page_size !== undefined) params.set('page_size', String(filtros.page_size))
   for (const posicao of filtros.posicao ?? []) {
     params.append('posicao', posicao)
+  }
+  for (const statusId of filtros.status_id ?? []) {
+    params.append('status_id', String(statusId))
   }
 
   const query = params.toString()

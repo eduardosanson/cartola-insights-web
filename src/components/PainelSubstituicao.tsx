@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import type { SubstitutoSugerido } from '../api/otimizador'
+import type { SugestaoTroca } from '../utils/substituicao'
 import { formatCurrency, formatNumber } from '../utils/formatNumber'
 import type { DetalhesAtletaCampo } from './CampoTatico'
 
@@ -10,8 +10,9 @@ export type EstadoSubstituicao =
   | {
       atletaId: number
       estado: 'pronto'
-      substituto: SubstitutoSugerido
+      substituto: SugestaoTroca
       detalhes: DetalhesAtletaCampo
+      alternativa: boolean
     }
 
 interface Props {
@@ -50,12 +51,20 @@ export default function PainelSubstituicao({
             </span>
             <span className="numeric">Média {formatNumber(estado.substituto.media_geral)}</span>
           </div>
-          <div className="hud-linha">
-            <span>Chance de pontuar</span>
-            <span className="numeric">
-              {formatNumber(estado.substituto.chance_pontuar_percentual)}%
-            </span>
-          </div>
+          {estado.substituto.chance_pontuar_percentual !== null && (
+            <div className="hud-linha">
+              <span>Chance de pontuar</span>
+              <span className="numeric">
+                {formatNumber(estado.substituto.chance_pontuar_percentual)}%
+              </span>
+            </div>
+          )}
+          {estado.alternativa && (
+            <p className="estimativa-nota">
+              O substituto principal já está na escalação; esta é a melhor alternativa por média
+              geral dentro do preço do atleta substituído.
+            </p>
+          )}
           <p className="estimativa-nota">A pontuação projetada usa a média geral do substituto.</p>
           {bloqueio && <p role="alert">{bloqueio}</p>}
           {aviso && (
