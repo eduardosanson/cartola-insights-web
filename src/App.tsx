@@ -1,18 +1,18 @@
-import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
-import { AuthProvider } from "./contexts/AuthContext";
-import Nav from "./components/Nav";
-import RotaProtegida from "./components/RotaProtegida";
-import Tabela from "./pages/Tabela";
-import Jogadores from "./pages/Jogadores";
-import DetalheJogador from "./pages/DetalheJogador";
-import Login from "./pages/Login";
-import Registro from "./pages/Registro";
-import MinhaConta from "./pages/MinhaConta";
-import Comparar from "./pages/Comparar";
-import Patrimonio from "./pages/Patrimonio";
-import Escalador from "./pages/Escalador";
-import MatrizCapitao from "./pages/MatrizCapitao";
-import AlertasMercado from "./pages/AlertasMercado";
+import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom'
+import { AuthProvider } from './contexts/AuthContext'
+import Nav from './components/Nav'
+import RotaProtegida from './components/RotaProtegida'
+import Tabela from './pages/Tabela'
+import Jogadores from './pages/Jogadores'
+import DetalheJogador from './pages/DetalheJogador'
+import Login from './pages/Login'
+import Registro from './pages/Registro'
+import MinhaConta from './pages/MinhaConta'
+import Comparar from './pages/Comparar'
+import Patrimonio from './pages/Patrimonio'
+import Escalador from './pages/Escalador'
+import MatrizCapitao from './pages/MatrizCapitao'
+import AlertasMercado from './pages/AlertasMercado'
 
 function App() {
   return (
@@ -47,7 +47,7 @@ function App() {
         </div>
       </BrowserRouter>
     </AuthProvider>
-  );
+  )
 }
 
-export default App;
+export default App

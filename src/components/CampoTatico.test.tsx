@@ -86,8 +86,7 @@ describe('CampoTatico', () => {
     )
 
     expect(screen.getByText('Atleta #5')).toBeInTheDocument()
-    expect(screen.getByText('Técnico #6')).toBeInTheDocument()
-    expect(screen.getByText('Time não disponível')).toBeInTheDocument()
+    expect(screen.queryByLabelText('Técnico')).not.toBeInTheDocument()
     expect(screen.getAllByText('Confronto não disponível')).toHaveLength(7)
   })
 
@@ -101,15 +100,14 @@ describe('CampoTatico', () => {
     expect(screen.getByLabelText('Campo tático 4-3-3')).toBeInTheDocument()
   })
 
-  it('cria o link do técnico apontando para o id correto', () => {
+  it('não exibe o técnico no campo', () => {
     render(
       <MemoryRouter>
         <CampoTatico escalacao={criarEscalacao('classica')} detalhes={detalhes} />
       </MemoryRouter>,
     )
 
-    const tecnicoLink = screen.getByRole('link', { name: /técnico/i })
-    expect(tecnicoLink).toHaveAttribute('href', '/jogadores/6')
+    expect(screen.queryByRole('link', { name: /técnico/i })).not.toBeInTheDocument()
   })
 
   it('mantém a ordem original da defesa quando há apenas um lateral', () => {

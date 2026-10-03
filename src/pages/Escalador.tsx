@@ -1,4 +1,5 @@
 import { type FormEvent, useEffect, useRef, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { buscarAtleta } from '../api/atletas'
 import {
@@ -12,6 +13,7 @@ import {
 } from '../api/otimizador'
 import { buscarRaioXConfronto } from '../api/raioX'
 import CampoTatico, { type DetalhesAtletaCampo } from '../components/CampoTatico'
+import IndicadoresTime from '../components/IndicadoresTime'
 import IndicadorSincronizacao from '../components/IndicadorSincronizacao'
 import { formatCurrency, formatNumber } from '../utils/formatNumber'
 
@@ -291,6 +293,12 @@ function ResultadoEscalacao({ resultado }: { resultado: ResultadoCompleto }) {
             </dd>
           </div>
           <div>
+            <dt>Estratégia</dt>
+            <dd>{MODOS[escalacao.modo].nome}</dd>
+          </div>
+        </dl>
+        <dl className="otimizador-totais">
+          <div>
             <dt>Orçamento</dt>
             <dd className="numeric">
               {formatCurrency(escalacao.custo_total)} de {formatCurrency(orcamento)} —{' '}
@@ -302,11 +310,17 @@ function ResultadoEscalacao({ resultado }: { resultado: ResultadoCompleto }) {
               </span>
             </dd>
           </div>
-          <div>
-            <dt>Estratégia</dt>
-            <dd>{MODOS[escalacao.modo].nome}</dd>
-          </div>
         </dl>
+        <div className="otimizador-totais">
+          <IndicadoresTime escalacao={escalacao} detalhes={detalhes} />
+        </div>
+        <Link className="painel-tecnico" to={`/jogadores/${escalacao.tecnico.atleta_id}`}>
+          <span>Técnico</span>
+          <strong>
+            {detalhes[escalacao.tecnico.atleta_id]?.nome ?? `Técnico #${escalacao.tecnico.atleta_id}`}
+          </strong>
+          <span className="numeric">{formatCurrency(escalacao.tecnico.preco)}</span>
+        </Link>
         <p className="estimativa-nota">
           Os valores são estimativas históricas e não representam promessa de pontuação oficial.
         </p>
