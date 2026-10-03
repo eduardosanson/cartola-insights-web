@@ -285,11 +285,14 @@ function ResultadoEscalacao({ resultado }: { resultado: ResultadoCompleto }) {
           <dd className="numeric">
             {formatCurrency(escalacao.custo_total)} de {formatCurrency(orcamento)} —{' '}
             {formatCurrency(sobra)} sobrando
+            <span className="orcamento-barra" aria-hidden="true">
+              <span style={{ width: `${Math.min(100, (escalacao.custo_total / orcamento) * 100)}%` }} />
+            </span>
           </dd>
         </div>
         <div>
           <dt>Pontuação esperada</dt>
-          <dd className="numeric">{formatNumber(escalacao.pontuacao_esperada_total)}</dd>
+          <dd className="numeric totais-pontuacao">{formatNumber(escalacao.pontuacao_esperada_total)}</dd>
         </div>
         <div>
           <dt>Estratégia</dt>
