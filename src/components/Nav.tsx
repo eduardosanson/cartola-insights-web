@@ -2,12 +2,12 @@ import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../contexts/AuthContext'
 
 const linkStyle = ({ isActive }: { isActive: boolean }) => ({
-  padding: '0.5rem 1rem',
+  padding: '0.5rem 0.75rem',
   textDecoration: 'none',
   fontFamily: 'var(--font-heading)',
   fontSize: '1.05rem',
   fontWeight: 600,
-  letterSpacing: '0.08em',
+  letterSpacing: '0.06em',
   textTransform: 'uppercase' as const,
   color: isActive ? 'var(--accent-home)' : 'var(--text)',
   borderBottom: isActive ? '2px solid var(--accent-home)' : '2px solid transparent',
@@ -27,16 +27,7 @@ export default function Nav() {
   }
 
   return (
-    <nav
-      style={{
-        display: 'flex',
-        flexWrap: 'wrap',
-        gap: '0.5rem',
-        alignItems: 'center',
-        borderBottom: '1px solid var(--border)',
-        marginBottom: '1.5rem',
-      }}
-    >
+    <nav className="nav-hud">
       <NavLink to="/tabela" style={linkStyle}>
         Tabela
       </NavLink>

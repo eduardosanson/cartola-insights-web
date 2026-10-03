@@ -277,32 +277,40 @@ function ResultadoEscalacao({ resultado }: { resultado: ResultadoCompleto }) {
   const sobra = Math.max(0, orcamento - escalacao.custo_total)
 
   return (
-    <section aria-labelledby="resultado-escalador">
-      <h3 id="resultado-escalador">Escalação sugerida</h3>
-      <dl className="otimizador-totais">
-        <div>
-          <dt>Orçamento</dt>
-          <dd className="numeric">
-            {formatCurrency(escalacao.custo_total)} de {formatCurrency(orcamento)} —{' '}
-            {formatCurrency(sobra)} sobrando
-            <span className="orcamento-barra" aria-hidden="true">
-              <span style={{ width: `${Math.min(100, (escalacao.custo_total / orcamento) * 100)}%` }} />
-            </span>
-          </dd>
-        </div>
-        <div>
-          <dt>Pontuação esperada</dt>
-          <dd className="numeric totais-pontuacao">{formatNumber(escalacao.pontuacao_esperada_total)}</dd>
-        </div>
-        <div>
-          <dt>Estratégia</dt>
-          <dd>{MODOS[escalacao.modo].nome}</dd>
-        </div>
-      </dl>
-      <CampoTatico escalacao={escalacao} detalhes={detalhes} />
-      <p className="estimativa-nota">
-        Os valores são estimativas históricas e não representam promessa de pontuação oficial.
-      </p>
+    <section aria-labelledby="resultado-escalador" className="resultado-layout">
+      <div className="resultado-campo">
+        <h3 id="resultado-escalador">Escalação sugerida</h3>
+        <CampoTatico escalacao={escalacao} detalhes={detalhes} />
+      </div>
+      <aside className="resultado-painel">
+        <dl className="otimizador-totais">
+          <div>
+            <dt>Pontuação esperada</dt>
+            <dd className="numeric totais-pontuacao">
+              {formatNumber(escalacao.pontuacao_esperada_total)}
+            </dd>
+          </div>
+          <div>
+            <dt>Orçamento</dt>
+            <dd className="numeric">
+              {formatCurrency(escalacao.custo_total)} de {formatCurrency(orcamento)} —{' '}
+              {formatCurrency(sobra)} sobrando
+              <span className="orcamento-barra" aria-hidden="true">
+                <span
+                  style={{ width: `${Math.min(100, (escalacao.custo_total / orcamento) * 100)}%` }}
+                />
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt>Estratégia</dt>
+            <dd>{MODOS[escalacao.modo].nome}</dd>
+          </div>
+        </dl>
+        <p className="estimativa-nota">
+          Os valores são estimativas históricas e não representam promessa de pontuação oficial.
+        </p>
+      </aside>
     </section>
   )
 }

@@ -204,10 +204,9 @@ header,
 section {
   background: var(--bg-elevated);
   border: 1px solid var(--border);
-  border-radius: 12px;
   padding: 1rem 1.25rem;
   margin: 1rem 0;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04), 0 6px 16px rgba(0, 0, 0, 0.04);
+  clip-path: polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
 }
 
 /* Chips de filtro sem estilo próprio (ex.: mando) — mesmo visual dos que
@@ -444,7 +443,7 @@ button {
   outline: none;
 }
 
-.campo-atleta > strong:first-child {
+.campo-atleta > strong {
   font-family: var(--font-heading);
   font-size: var(--fs-md);
   letter-spacing: 0.04em;
@@ -1618,4 +1617,90 @@ figure {
 
 .sync-indicator-container:empty {
   display: none;
+}
+
+/* Shell do app e barra superior no estilo HUD. */
+.app-shell {
+  max-width: 1376px;
+  margin: 0 auto;
+  padding: 0 2rem 3rem;
+}
+
+.hud-topo {
+  clip-path: none;
+  border-width: 0 0 1px;
+  padding-block: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 2rem;
+  margin: 0 -2rem 1.5rem;
+  padding: 0 2rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--bg-sunken);
+}
+
+.hud-topo h1 {
+  margin: 0;
+  padding: 0.6rem 0;
+  font-size: 1.5rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--accent-home);
+}
+
+.nav-hud {
+  display: flex;
+  flex: 1 1 400px;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  align-items: center;
+}
+
+.campo-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  margin: 0 auto 0.25rem;
+  border: 1px solid #33463a;
+  border-radius: 50%;
+  background: #18221b;
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #e8ece6;
+}
+
+.campo-atleta .campo-avatar {
+  font-family: var(--font-heading);
+  font-size: 1.3rem;
+  color: #e8ece6;
+}
+
+/* Resultado do escalador: campo à esquerda, painel à direita. */
+.resultado-layout {
+  clip-path: none;
+  border: 0;
+  background: none;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+  align-items: flex-start;
+}
+
+.resultado-campo {
+  flex: 999 1 640px;
+  min-width: 0;
+}
+
+.resultado-painel {
+  flex: 1 1 300px;
+  max-width: 420px;
+}
+
+.resultado-painel .otimizador-totais {
+  flex-direction: column;
 }

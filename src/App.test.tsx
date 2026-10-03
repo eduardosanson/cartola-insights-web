@@ -22,12 +22,9 @@ describe('App', () => {
     const heading = screen.getByText('Cartola Insights')
     expect(heading).toBeInTheDocument()
 
-    const container = heading.parentElement as HTMLElement
-    expect(container).toHaveStyle({
-      maxWidth: '960px',
-      margin: '0 auto',
-      padding: '1rem',
-    })
+    const shell = heading.closest('.app-shell') as HTMLElement
+    expect(shell).toBeInTheDocument()
+    expect(shell.querySelector('header.hud-topo nav')).toBeInTheDocument()
   })
 
   it('redireciona /conta para a tela de login quando não autenticado', async () => {
