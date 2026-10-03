@@ -138,4 +138,19 @@ describe('CurvaTransicao', () => {
 
     expect(screen.getByTestId('faixa-rodadas-iniciais')).toBeInTheDocument()
   })
+
+  it('oculta rótulos intermediários quando há muitas rodadas', () => {
+    const pontos = Array.from({ length: 38 }, (_, indice) => ({
+      rodada: indice + 1,
+      variacao_media: indice / 10,
+    }))
+    const { container } = render(<CurvaTransicao pontos={pontos} />)
+
+    const textos = Array.from(container.querySelectorAll('text'))
+    const visiveis = textos.filter((texto) => !texto.classList.contains('curva-rotulo-oculto'))
+    expect(textos).toHaveLength(38)
+    expect(visiveis.map((texto) => texto.textContent)).toEqual([
+      'R1', 'R6', 'R11', 'R16', 'R21', 'R26', 'R31', 'R36', 'R38',
+    ])
+  })
 })

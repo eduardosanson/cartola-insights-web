@@ -191,7 +191,7 @@ export default function Escalador() {
   const formacao = esquemas?.[esquema]
 
   return (
-    <main>
+    <main className="pagina-larga">
       <header>
         <h2>Escalador</h2>
         <p>Monte 11 titulares e técnico respeitando orçamento, formação e limite por clube.</p>

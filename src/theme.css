@@ -513,8 +513,8 @@ button {
 .player-row {
   display: grid;
   grid-template-columns:
-    minmax(110px, 1.5fr) 34px minmax(48px, 0.8fr) 52px 72px 58px 64px 64px 64px
-    64px 64px 96px;
+    minmax(110px, 1.5fr) 34px minmax(48px, 0.8fr) 64px 72px 58px 64px 64px 64px
+    64px 64px 96px 84px;
   align-items: center;
   gap: 0.35rem;
   padding: 0.55rem 0.6rem;
@@ -524,8 +524,8 @@ button {
   font-family: var(--font-heading);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.1em;
-  font-size: 0.78rem;
+  letter-spacing: 0.04em;
+  font-size: 0.75rem;
   color: var(--text-muted);
   background: var(--bg-sunken);
   border-bottom: 1px solid var(--border);
@@ -856,6 +856,15 @@ button {
 
 .curva-transicao circle {
   fill: var(--accent-home);
+}
+
+.curva-transicao text {
+  font-size: 12px;
+  fill: var(--text);
+}
+
+.curva-transicao .curva-rotulo-oculto {
+  display: none;
 }
 
 .matriz-capitao,
@@ -1766,4 +1775,15 @@ figure {
 
 .painel-tecnico .numeric {
   white-space: nowrap;
+}
+
+/* Telas ainda não redesenhadas (tabela de jogadores, curva de patrimônio etc.)
+   foram desenhadas para ~960px; só as páginas marcadas ocupam a largura total. */
+.app-shell > :not(.hud-topo):not(.pagina-larga) {
+  max-width: 1000px;
+  margin-inline: auto;
+}
+
+.player-row-header {
+  border-left: 3px solid transparent;
 }

@@ -65,10 +65,15 @@ export default function CurvaTransicao({ pontos }: Props) {
             className="curva-eixo"
           />
           <path d={caminho} className="curva-linha" fill="none" />
-          {pontos.map((ponto) => (
+          {pontos.map((ponto, indice) => (
             <g key={ponto.rodada}>
               <circle cx={escalaX(ponto.rodada)} cy={escalaY(ponto.variacao_media)} r="5" />
-              <text x={escalaX(ponto.rodada)} y={ALTURA - 16} textAnchor="middle">
+              <text
+                x={escalaX(ponto.rodada)}
+                y={ALTURA - 16}
+                textAnchor="middle"
+                className={rotuloVisivel(indice, pontos.length) ? undefined : 'curva-rotulo-oculto'}
+              >
                 R{ponto.rodada}
               </text>
               <title>{`Rodada ${ponto.rodada}: ${formatCurrency(ponto.variacao_media)}`}</title>
@@ -82,4 +87,9 @@ export default function CurvaTransicao({ pontos }: Props) {
       </figcaption>
     </figure>
   )
+}
+
+/** Com muitas rodadas os rótulos se sobrepõem: mostra de 5 em 5 e o último. */
+function rotuloVisivel(indice: number, total: number) {
+  return total <= 12 || indice % 5 === 0 || indice === total - 1
 }
